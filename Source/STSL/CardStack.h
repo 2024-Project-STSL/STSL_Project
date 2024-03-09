@@ -10,8 +10,19 @@ UCLASS()
 class STSL_API ACardStack : public AActor
 {
 	GENERATED_BODY()
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* VisualMesh;
+	UPROPERTY(EditAnywhere, Category = "CardStack")
+	TArray<AActor*> Cards;
+
+	// X Offset between cards
+	UPROPERTY(EditAnywhere, Category = "CardStack")
+	float XOffset = -50.0f;
+
+	// Z Offset between cards
+	UPROPERTY(EditAnywhere, Category = "CardStack")
+	float ZOffset = 5.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "CardStack")
+	FVector Location;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -24,5 +35,13 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	// Add a card to the stack
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	AActor* InitCard(AActor* Card, AActor* Other);
+
+	// Add a card to the stack
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	void AddCard(AActor* Card);
 
 };
