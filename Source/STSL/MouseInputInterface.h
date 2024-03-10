@@ -1,0 +1,40 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/Interface.h"
+#include "MouseInputInterface.generated.h"
+
+// This class does not need to be modified.
+UINTERFACE(MinimalAPI)
+class UMouseInputInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+/**
+ * 
+ */
+class STSL_API IMouseInputInterface
+{
+	GENERATED_BODY()
+
+	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
+public:
+	UFUNCTION(BlueprintCallable, Category = "Drag", BlueprintImplementableEvent)
+	void StartDrag();
+
+	UFUNCTION(BlueprintCallable, Category = "Drag", BlueprintImplementableEvent)
+	void EndDrag();
+
+	UFUNCTION(BlueprintCallable, Category = "Hover", BlueprintImplementableEvent)
+	void StartMouseHover();
+
+	UFUNCTION(BlueprintCallable, Category = "Hover", BlueprintImplementableEvent)
+	void EndMouseHover();
+
+	UFUNCTION(BlueprintCallable, Category = "Move", BlueprintImplementableEvent)
+	void MoveToCursor();
+
+};
