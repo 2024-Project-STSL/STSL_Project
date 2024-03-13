@@ -26,7 +26,7 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	AActor* CardStack;
 
 	UPROPERTY(VisibleAnywhere)
-	uint32 CardID;
+	int32 CardID = 0;
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* VisualMesh;
@@ -34,21 +34,41 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere)
 	FVector CardOffset;
 
+	UPROPERTY(EditDefaultsOnly)
+	float CardMass = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Collsionforce = 2000.0f;
+
+	// 상대방을 밀어낼 벡터에 곱할 계수
+	UPROPERTY(EditDefaultsOnly)
+	float OtherCollsionWeight = -2.5f;
+
 public:	
 	// Sets default values for this actor's properties
 	ACard();
-	ACard(uint32 CardID);
-	
+	ACard(int32 CardID);
+
+	UFUNCTION(BlueprintCallable, Category = "CardID")
+	int32 GetCardID() const { return CardID; }
+
+	UFUNCTION(BlueprintCallable, Category = "CardID")
+	void SetCardID(int32 NewCardID) { CardID = NewCardID; }
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	void SetCardStack(AActor* Stack);
+
+	// 마우스 카드 이동 관련
 	void SendMovementToStack(ECardMovement Movement);
 	FVector GetMouseHitLocation() const;
 
@@ -66,4 +86,9 @@ public:
 
 	virtual void MoveToCursor() override;
 	void MoveCardToCursor(float FloatingHeight);
+	
+
+	// 카드 충돌 관련
+	void GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVector& OtherVector) const;
+
 };

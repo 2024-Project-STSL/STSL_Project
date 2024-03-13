@@ -14,6 +14,7 @@ ACard::ACard()
     VisualMesh->SetupAttachment(RootComponent);
 
     static ConstructorHelpers::FObjectFinder<UStaticMesh> CardVisualAsset(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/CardMesh.CardMesh'"));
+    // static ConstructorHelpers::FObjectFinder<UPhysicalMaterial> CardPhysicalMeterial(TEXT("/Script/PhysicsCore.PhysicalMaterial'/Game/Material/CardPhysicalMaterial1.CardPhysicalMaterial1'"));
 
     if (CardVisualAsset.Succeeded())
     {
@@ -21,7 +22,9 @@ ACard::ACard()
         VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
         VisualMesh->SetSimulatePhysics(true);
         VisualMesh->SetRelativeScale3D(FVector(3.2f, 2.0f, 0.05f));
-
+        VisualMesh->SetNotifyRigidBodyCollision(true);
+        VisualMesh->SetMassOverrideInKg(NAME_None, CardMass, true);
+        //VisualMesh->SetPhysMaterialOverride(CardPhysicalMeterial.Object);
         VisualMesh->BodyInstance.bLockXRotation = true;
         VisualMesh->BodyInstance.bLockYRotation = true;
         VisualMesh->BodyInstance.bLockZRotation = true;
@@ -29,7 +32,7 @@ ACard::ACard()
     }
 }
 
-ACard::ACard(uint32 CardID)
+ACard::ACard(int32 CardID)
 {
     ACard::ACard();
     this->CardID = CardID;
@@ -39,6 +42,7 @@ ACard::ACard(uint32 CardID)
 void ACard::BeginPlay()
 {
 	Super::BeginPlay();
+    VisualMesh->OnComponentHit.AddDynamic(this, &ACard::OnHit);
 }
 
 // Called every frame
@@ -106,8 +110,6 @@ void ACard::StartCardDrag()
     FVector ActorLocation = GetActorLocation();
     FVector HitLocation = GetMouseHitLocation();
     CardOffset = ActorLocation - HitLocation;
-    FString VectorString = FString::Printf(TEXT("X: %f, Y: %f, Z: %f"), CardOffset.X, CardOffset.Y, CardOffset.Z);
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, VectorString);
 }
 
 void ACard::EndCardDrag()
@@ -121,4 +123,45 @@ void ACard::MoveCardToCursor(float FloatingHeight)
     FVector NewLocation = (CardOffset + HitLocation);
     NewLocation.Z = FloatingHeight;
     SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
+}
+
+void ACard::GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVector& OtherVector) const
+{
+    FVector ActorLocation = GetActorLocation();
+    FVector OtherLocation = Other->GetActorLocation();
+    FVector CollisionVector = (ActorLocation - OtherLocation).GetSafeNormal(0.0001f);
+    CollisionVector.Z = 0.0f;
+    CollisionVector *= Collsionforce;
+    SelfVector = CollisionVector;
+    CollisionVector *= OtherCollsionWeight;
+    OtherVector = CollisionVector;
+}
+
+void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+    if (OtherActor->IsA<ACard>())
+    {
+        ACard* OtherCard = Cast<ACard>(OtherActor);
+        if (CardID == OtherCard->CardID)
+            // 스택
+        {
+            // TODO
+        }
+            // 충돌
+            // TODO: 충돌도 이동처럼 스택에 알려서 스택이 다 같이 처리해야 함
+        else {
+            FVector SelfVector, OtherVector;
+            GetCardCollisionVector(OtherActor, SelfVector, OtherVector);
+            if (VisualMesh->IsSimulatingPhysics())
+            {
+                // FString VectorString = FString::Printf(TEXT("Other Hit %f %f %f"), SelfVector.X, SelfVector.Y, SelfVector.Z);
+                // GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, VectorString);
+                VisualMesh->AddForce(SelfVector);
+            }
+            if (OtherCard->VisualMesh->IsSimulatingPhysics())
+            {
+                OtherCard->VisualMesh->AddForce(OtherVector);
+            }
+        }
+    }
 }
