@@ -133,7 +133,6 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 		// TODO
 	}
 	// 충돌
-	// TODO: 충돌도 이동처럼 스택에 알려서 스택이 다 같이 처리해야 함
 	else {
 		FVector SelfVector, OtherVector;
 		GetCardCollisionVector(OtherCard, SelfVector, OtherVector);
