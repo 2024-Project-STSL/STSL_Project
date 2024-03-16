@@ -125,43 +125,20 @@ void ACard::MoveCardToCursor(float FloatingHeight)
     SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
 }
 
-void ACard::GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVector& OtherVector) const
-{
-    FVector ActorLocation = GetActorLocation();
-    FVector OtherLocation = Other->GetActorLocation();
-    FVector CollisionVector = (ActorLocation - OtherLocation).GetSafeNormal(0.0001f);
-    CollisionVector.Z = 0.0f;
-    CollisionVector *= Collsionforce;
-    SelfVector = CollisionVector;
-    CollisionVector *= OtherCollsionWeight;
-    OtherVector = CollisionVector;
-}
-
 void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
     if (OtherActor->IsA<ACard>())
     {
+        ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
         ACard* OtherCard = Cast<ACard>(OtherActor);
-        if (CardID == OtherCard->CardID)
-            // 스택
-        {
-            // TODO
-        }
-            // 충돌
-            // TODO: 충돌도 이동처럼 스택에 알려서 스택이 다 같이 처리해야 함
-        else {
-            FVector SelfVector, OtherVector;
-            GetCardCollisionVector(OtherActor, SelfVector, OtherVector);
-            if (VisualMesh->IsSimulatingPhysics())
-            {
-                // FString VectorString = FString::Printf(TEXT("Other Hit %f %f %f"), SelfVector.X, SelfVector.Y, SelfVector.Z);
-                // GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, VectorString);
-                VisualMesh->AddForce(SelfVector);
-            }
-            if (OtherCard->VisualMesh->IsSimulatingPhysics())
-            {
-                OtherCard->VisualMesh->AddForce(OtherVector);
-            }
-        }
+        CardStackActor->HandleStackCollision(OtherCard);
+    }
+}
+
+void ACard::Push(FVector Force)
+{
+    if (VisualMesh->IsSimulatingPhysics())
+    {
+        VisualMesh->AddForce(Force);
     }
 }

@@ -1,7 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
+#include "SLGameModeBase.h"
 #include "CardStack.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ACardStack::ACardStack()
@@ -19,6 +21,9 @@ ACardStack::ACardStack()
 void ACardStack::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+	SLGameMode->AddCardStack(this);
 }
 
 // Called every frame
@@ -50,6 +55,7 @@ void ACardStack::AddCard(AActor* Card)
 	ACard* CardActor = Cast<ACard>(Card);
 	if (CardActor)
 	{
+		LastCard = CardActor;
 		CardActor->SetCardStack(this);
 	}
 
@@ -78,31 +84,81 @@ void ACardStack::AddCard(AActor* Card)
 
 void ACardStack::HandleStackMove(ECardMovement Movement)
 {
-	for (int i = 0; i < Cards.Num(); i++)
+	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+	for (AActor* Card : Cards)
 	{
-		ACard* Card = Cast<ACard>(Cards[i]);
-		if (Card)
+		ACard* CardActor = Cast<ACard>(Card);
+		if (CardActor)
 		{
 			switch (Movement)
 			{
 			case ECardMovement::StartHover:
-				Card->StartHover(HoveringHeight);
+				CardActor->StartHover(HoveringHeight);
 				break;
 			case ECardMovement::EndHover:
-				Card->EndHover();
+				CardActor->EndHover();
 				break;
 			case ECardMovement::StartDrag:
-				Card->StartCardDrag();
+				CardActor->StartCardDrag();
+				SLGameMode->SetCardHighlight(true, this);
 				break;
 			case ECardMovement::EndDrag:
-				Card->EndCardDrag();
+				CardActor->EndCardDrag();
+				SLGameMode->SetCardHighlight(false);
 				break;
 			case ECardMovement::MoveToCursor:
-				Card->MoveCardToCursor(FloatingHeight);
+				CardActor->MoveCardToCursor(FloatingHeight);
 				break;
 			default:
 				break;
 			}
 		}
 	}
+}
+
+bool ACardStack::IsCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
+{
+	// TODO: 정확한 카드 스택 조건 구현
+	// 지금은 (상대의 마지막 카드 ID == 내 첫 카드 ID면 true)
+	ACard* FirstCard = Cast<ACard>(CardStack->Cards[0]);
+	return (FirstCard->GetCardID() == OtherStack->LastCard->GetCardID());
+}
+
+void ACardStack::HandleStackCollision(ACard* OtherCard)
+{
+	ACardStack* OtherCardStack = Cast<ACardStack>(OtherCard->GetCardStack());
+	if (IsCardStackable(this, OtherCardStack))
+		// 스택
+	{
+		// TODO
+	}
+	// 충돌
+	// TODO: 충돌도 이동처럼 스택에 알려서 스택이 다 같이 처리해야 함
+	else {
+		FVector SelfVector, OtherVector;
+		GetCardCollisionVector(OtherCard, SelfVector, OtherVector);
+		PushCards(SelfVector);
+		OtherCardStack->PushCards(OtherVector);
+	}
+}
+
+void ACardStack::PushCards(FVector Force)
+{
+	for (AActor* Card : Cards)
+	{
+		ACard* CardActor = Cast<ACard>(Card);
+		CardActor->Push(Force);
+	}
+}
+
+void ACardStack::GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVector& OtherVector) const
+{
+	FVector ActorLocation = Cards[0]->GetActorLocation();
+	FVector OtherLocation = Other->GetActorLocation();
+	FVector CollisionVector = (ActorLocation - OtherLocation).GetSafeNormal(0.0001f);
+	CollisionVector.Z = 0.0f;
+	CollisionVector *= Collsionforce;
+	SelfVector = CollisionVector;
+	CollisionVector *= OtherCollsionWeight;
+	OtherVector = CollisionVector;
 }

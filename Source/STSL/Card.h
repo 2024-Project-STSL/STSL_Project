@@ -37,13 +37,6 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(EditDefaultsOnly)
 	float CardMass = 10.0f;
 
-	UPROPERTY(EditDefaultsOnly)
-	float Collsionforce = 2000.0f;
-
-	// 상대방을 밀어낼 벡터에 곱할 계수
-	UPROPERTY(EditDefaultsOnly)
-	float OtherCollsionWeight = -2.5f;
-
 public:	
 	// Sets default values for this actor's properties
 	ACard();
@@ -67,6 +60,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void SetCardStack(AActor* Stack);
+	AActor* GetCardStack() const { return CardStack; }
+
+	UStaticMeshComponent* GetVisualMesh() const { return VisualMesh; }
 
 	// 마우스 카드 이동 관련
 	void SendMovementToStack(ECardMovement Movement);
@@ -86,9 +82,7 @@ public:
 
 	virtual void MoveToCursor() override;
 	void MoveCardToCursor(float FloatingHeight);
-	
 
-	// 카드 충돌 관련
-	void GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVector& OtherVector) const;
-
+	// 벡터만큼의 힘 받기
+	void Push(FVector Force);
 };

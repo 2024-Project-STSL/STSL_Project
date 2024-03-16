@@ -17,6 +17,9 @@ class STSL_API ACardStack : public AActor
 	UPROPERTY(EditAnywhere, Category = "CardStack")
 	TArray<AActor*> Cards;
 
+	UPROPERTY(VisibleAnywhere, Category = "CardStack")
+	ACard* LastCard = nullptr;
+
 	// X Offset between cards
 	UPROPERTY(EditDefaultsOnly, Category = "CardStack")
 	float XOffset = -50.0f;
@@ -30,6 +33,13 @@ class STSL_API ACardStack : public AActor
 
 	UPROPERTY(EditDefaultsOnly, Category = "Move")
 	float FloatingHeight = 20.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Collsionforce = 2000.0f;
+
+	// 상대방을 밀어낼 벡터에 곱할 계수
+	UPROPERTY(EditDefaultsOnly)
+	float OtherCollsionWeight = -2.5f;
 
 public:	
 	// Sets default values for this actor's properties
@@ -52,5 +62,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void AddCard(AActor* Card);
 
+	ACard* GetLastCard() const { return LastCard; }
+
 	void HandleStackMove(ECardMovement Movement);
+
+	void HandleStackCollision(ACard* OtherCard);
+
+	// 카드 충돌 관련
+	void GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVector& OtherVector) const;
+	void PushCards(FVector Force);
+
+	// 상대 스택에 이 스택이 쌓일 수 있는가?
+	static bool IsCardStackable(ACardStack* CardStack, ACardStack* OtherStack);
 };
