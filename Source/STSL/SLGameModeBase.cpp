@@ -8,9 +8,15 @@ void ASLGameModeBase::AddCardStack(ACardStack* CardStack)
 	CardStacks.Add(CardStack);
 }
 
-void ASLGameModeBase::SetCardHighlight(bool CardHighlight, ACardStack* HoveringStack)
+void ASLGameModeBase::RemoveCardStack(ACardStack* CardStack)
 {
-	IsCardHighlight = CardHighlight;
+	CardStacks.Remove(CardStack);
+}
+
+
+void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* HoveringStack)
+{
+	IsCardHighlight = bCardHighlight;
 	if (IsCardHighlight)
 	{
 		if (HoveringStack == nullptr) return;

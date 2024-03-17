@@ -34,6 +34,9 @@ class STSL_API ACardStack : public AActor
 	UPROPERTY(EditDefaultsOnly, Category = "Move")
 	float FloatingHeight = 20.0f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Move")
+	float HeightOffset = 2.0f;
+
 	UPROPERTY(EditDefaultsOnly)
 	float Collsionforce = 2000.0f;
 
@@ -50,6 +53,12 @@ protected:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	// 자신의 위치를 첫 카드의 위치로 반영하고
+	// 물리 엔진에 의해 조금씩 틀어지는 카드 위치 보정
+	void UpdatePosition();
+
+	void RemoveFromGamemode();
 
 public:	
 	// Called every frame

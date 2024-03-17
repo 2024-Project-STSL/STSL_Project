@@ -131,6 +131,10 @@ void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimiti
     {
         ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
         ACard* OtherCard = Cast<ACard>(OtherActor);
+
+        // 같은 스택의 카드끼리는 충돌 처리 없음
+        if (CardStack == OtherCard->CardStack) return;
+
         CardStackActor->HandleStackCollision(OtherCard);
     }
 }

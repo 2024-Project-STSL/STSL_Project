@@ -26,5 +26,8 @@ public:
 	void AddCardStack(ACardStack* CardStack);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	void SetCardHighlight(bool CardHighlight, ACardStack* HoveringStack = nullptr);
+	void RemoveCardStack(ACardStack* CardStack);
+
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	void SetCardHighlight(bool bCardHighlight, ACardStack* HoveringStack = nullptr);
 };
