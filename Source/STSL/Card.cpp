@@ -60,7 +60,7 @@ void ACard::SetCardStack(AActor* Stack)
 void ACard::SendMovementToStack(ECardMovement Movement)
 {
     ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
-    CardStackActor->HandleStackMove(Movement);
+    CardStackActor->HandleStackMove(this, Movement);
 }
 
 void ACard::StartMouseHover()

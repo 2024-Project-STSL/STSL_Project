@@ -47,8 +47,8 @@ void ACardStack::UpdatePosition()
 	for (int16 i = 0; i < Cards.Num(); i++)
 	{
 		FVector NewLocation = GetActorLocation();
-		NewLocation.X += XOffset * (i - 1);
-		NewLocation.Z += ZOffset * (i - 1);
+		NewLocation.X += XOffset * i;
+		NewLocation.Z += ZOffset * i;
 		Cards[i]->SetActorLocation(NewLocation);
 	}
 }
@@ -59,33 +59,22 @@ void ACardStack::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-// Init card stack with two cards - deprecated
-AActor* ACardStack::InitCard(AActor* Card, AActor* Other)
-{
-	if (Card->GetActorLocation().Z <= Other->GetActorLocation().Z)
-	{
-		AddCard(Card); AddCard(Other);
-	}
-	else 
-	{
-		AddCard(Other); AddCard(Card);
-	}
-	return Other;
-}
-
 // Add a card to the stack
 void ACardStack::AddCard(AActor* Card)
 {
 	UpdatePosition();
 
+	ACard* CardActor = Cast<ACard>(Card);
+	// 마우스 이동을 받는 중에는 합쳐질 수 없게 비활성화
+	if (!CardActor->GetVisualMesh()->IsSimulatingPhysics()) return;
+
 	// Add the card to the stack
 	Cards.Add(Card);
-	ACard* CardActor = Cast<ACard>(Card);
+
 	if (CardActor)
 	{
 		AActor* OldStackActor = CardActor->GetCardStack();
 
-		LastCard = CardActor;
 		CardActor->SetCardStack(this);
 
 		if (OldStackActor != nullptr)
@@ -99,7 +88,8 @@ void ACardStack::AddCard(AActor* Card)
 				OldStackActor->Destroy();
 			}
 			else {
-				// TODO: 아니었으면 자신만 삭제
+				// 아니었으면 자신만 삭제
+				OldCardStack->Cards.Remove(Card);
 			}
 		}
 
@@ -114,7 +104,6 @@ void ACardStack::AddCard(AActor* Card)
 		FVector CardLocation = Card->GetActorLocation();
 		CardLocation.Z = 0.f;
 		SetActorLocation(CardLocation);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("First Card"));
 	}
 	else
 	{
@@ -128,8 +117,28 @@ void ACardStack::AddCard(AActor* Card)
 
 }
 
-void ACardStack::HandleStackMove(ECardMovement Movement)
+void ACardStack::RemoveCard(int32 Index, bool bDespawn)
 {
+	RemoveCard(Cards[Index], bDespawn);
+}
+
+void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
+{
+	ACard* Card = Cast<ACard>(CardActor);
+	if (Card == nullptr) return;
+
+	Cards.Remove(CardActor);
+	if (bDespawn)
+	{
+		CardActor->Destroy();
+	}
+}
+
+void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
+{
+	// 마우스 입력을 보낸 카드 찾기
+	int32 SenderIndex = Cards.IndexOfByKey(Sender);
+
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
 	for (int16 i = 0; i < Cards.Num(); i++)
 	{
@@ -140,18 +149,23 @@ void ACardStack::HandleStackMove(ECardMovement Movement)
 			switch (Movement)
 			{
 			case ECardMovement::StartHover:
+				UpdatePosition();
 				CardActor->StartHover(HoveringHeight + i * HeightOffset);
 				break;
 			case ECardMovement::EndHover:
 				CardActor->EndHover();
 				break;
 			case ECardMovement::StartDrag:
+				if (SenderIndex != 0)
+				{
+					SplitCardStack(this, SenderIndex);
+				}
 				CardActor->StartCardDrag();
-				SLGameMode->SetCardHighlight(true, this);
+				//SLGameMode->SetCardHighlight(true, this);
 				break;
 			case ECardMovement::EndDrag:
 				CardActor->EndCardDrag();
-				SLGameMode->SetCardHighlight(false);
+				//SLGameMode->SetCardHighlight(false);
 				break;
 			case ECardMovement::MoveToCursor:
 				CardActor->MoveCardToCursor(FloatingHeight + i * HeightOffset);
@@ -168,7 +182,42 @@ bool ACardStack::IsCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 	// TODO: 정확한 카드 스택 조건 구현
 	// 지금은 (상대의 마지막 카드 ID == 내 첫 카드 ID면 true)
 	ACard* FirstCard = Cast<ACard>(CardStack->Cards[0]);
-	return (FirstCard->GetCardID() == OtherStack->LastCard->GetCardID());
+	return (FirstCard->GetCardID() == OtherStack->GetLastCard()->GetCardID());
+}
+
+// 1번 Index 기준으로 나누어라 = 0번 Index까지 스택 하나, 1번 Index부터 스택 하나
+void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d Split"), Index));
+	// Index가 너무 크거나 작으면 return
+	if (Index >= CardStack->Cards.Num() || Index <= -1) return;
+
+	TArray<AActor*> NewCards;
+
+	for (int32 i = 0; i < Index; i++)
+	{
+		NewCards.Add(CardStack->Cards[i]);
+		CardStack->RemoveCard(i);
+	}
+
+	FVector Location = CardStack->GetActorLocation();
+
+	AActor* NewCardStackActor = CardStack->GetWorld()->SpawnActor
+	(
+		ACardStack::StaticClass(),
+		&Location
+	);
+
+	if (NewCardStackActor == nullptr) return;
+	ACardStack* NewCardStack = Cast<ACardStack>(NewCardStackActor);
+
+	for (int32 i = 0; i < NewCards.Num(); i++)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d ADD"), i));
+		NewCardStack->Cards.Add(NewCards[i]);
+		Cast<ACard>(NewCards[i])->SetCardStack(NewCardStackActor);
+	}
+	NewCardStack->UpdatePosition();
 }
 
 void ACardStack::HandleStackCollision(ACard* OtherCard)
@@ -177,9 +226,17 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 	if (IsCardStackable(this, OtherCardStack))
 		// 스택
 	{
-		for (AActor* NewCard : OtherCardStack->Cards)
+		if (GetLastCard()->GetActorLocation().Z <= OtherCard->GetActorLocation().Z)
 		{
-			AddCard(NewCard);
+			for (AActor* NewCard : OtherCardStack->Cards)
+			{
+				AddCard(NewCard);
+			}
+		} else {
+			for (AActor* NewCard : Cards)
+			{
+				OtherCardStack->AddCard(NewCard);
+			}
 		}
 	}
 	// 충돌

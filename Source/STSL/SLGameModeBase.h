@@ -19,7 +19,7 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	TArray<ACardStack*> CardStacks;
 
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
-	bool IsCardHighlight;
+	bool bIsCardHighlight;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "CardStack")

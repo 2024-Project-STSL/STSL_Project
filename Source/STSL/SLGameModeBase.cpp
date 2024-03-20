@@ -16,8 +16,8 @@ void ASLGameModeBase::RemoveCardStack(ACardStack* CardStack)
 
 void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* HoveringStack)
 {
-	IsCardHighlight = bCardHighlight;
-	if (IsCardHighlight)
+	bIsCardHighlight = bCardHighlight;
+	if (bIsCardHighlight)
 	{
 		if (HoveringStack == nullptr) return;
 		for (ACardStack* CardStack : CardStacks)

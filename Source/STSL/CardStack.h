@@ -17,9 +17,6 @@ class STSL_API ACardStack : public AActor
 	UPROPERTY(EditAnywhere, Category = "CardStack")
 	TArray<AActor*> Cards;
 
-	UPROPERTY(VisibleAnywhere, Category = "CardStack")
-	ACard* LastCard = nullptr;
-
 	// X Offset between cards
 	UPROPERTY(EditDefaultsOnly, Category = "CardStack")
 	float XOffset = -50.0f;
@@ -64,16 +61,18 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	AActor* InitCard(AActor* Card, AActor* Other);
-
 	// Add a card to the stack
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void AddCard(AActor* Card);
 
-	ACard* GetLastCard() const { return LastCard; }
+	void RemoveCard(AActor* Card, bool bDespawn = false);
 
-	void HandleStackMove(ECardMovement Movement);
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	void RemoveCard(int32 Index, bool bDespawn = false);
+
+	ACard* GetLastCard() const { return Cast<ACard>(Cards.Last()); }
+
+	void HandleStackMove(ACard* Sender, ECardMovement Movement);
 
 	void HandleStackCollision(ACard* OtherCard);
 
@@ -83,4 +82,7 @@ public:
 
 	// 상대 스택에 이 스택이 쌓일 수 있는가?
 	static bool IsCardStackable(ACardStack* CardStack, ACardStack* OtherStack);
+
+	// 기준 index 이전의 스택을 나누어 새로운 스택으로 만듦
+	static void SplitCardStack(ACardStack* CardStack, int32 Index);
 };
