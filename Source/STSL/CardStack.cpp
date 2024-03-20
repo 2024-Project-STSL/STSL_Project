@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SLGameModeBase.h"
 #include "CardStack.h"
+#include "SLGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -196,7 +196,7 @@ void ACardStack::PushCards(FVector Force)
 	for (AActor* Card : Cards)
 	{
 		ACard* CardActor = Cast<ACard>(Card);
-		CardActor->Push(Force);
+		CardActor->Push(Force * FApp::GetDeltaTime());
 	}
 }
 

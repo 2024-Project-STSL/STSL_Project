@@ -83,6 +83,6 @@ public:
 	virtual void MoveToCursor() override;
 	void MoveCardToCursor(float FloatingHeight);
 
-	// 벡터만큼의 힘 받기
+	// 벡터만큼 카드 밀어내기
 	void Push(FVector Force);
 };

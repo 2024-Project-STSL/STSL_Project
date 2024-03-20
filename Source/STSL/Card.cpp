@@ -143,6 +143,6 @@ void ACard::Push(FVector Force)
 {
     if (VisualMesh->IsSimulatingPhysics())
     {
-        VisualMesh->AddForce(Force);
+        SetActorLocation(GetActorLocation() + Force);
     }
 }

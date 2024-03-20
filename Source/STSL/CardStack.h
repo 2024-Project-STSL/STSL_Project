@@ -38,11 +38,11 @@ class STSL_API ACardStack : public AActor
 	float HeightOffset = 2.0f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float Collsionforce = 2000.0f;
+	float Collsionforce = 50.0f;
 
 	// 상대방을 밀어낼 벡터에 곱할 계수
 	UPROPERTY(EditDefaultsOnly)
-	float OtherCollsionWeight = -2.5f;
+	float OtherCollsionWeight = -1.0f;
 
 public:	
 	// Sets default values for this actor's properties
