@@ -165,7 +165,10 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 				break;
 			case ECardMovement::StartDrag:
 				CardActor->StartCardDrag();
-				SLGameMode->SetCardHighlight(true, this);
+				if (SenderIndex == 0)
+				{
+					SLGameMode->SetCardHighlight(true, this);
+				}
 				break;
 			case ECardMovement::EndDrag:
 				CardActor->EndCardDrag();
@@ -226,7 +229,6 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 
 	for (int32 i = 0; i < NewCards.Num(); i++)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d ADD"), i));
 		NewCardStack->Cards.Add(NewCards[i]);
 		Cast<ACard>(NewCards[i])->SetCardStack(NewCardStackActor);
 	}
@@ -234,6 +236,8 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 	NewCardStack->UpdatePosition();
 	// 분리된 카드의 아래쪽 호버 해제
 	CardStack->HandleStackMove(CardStack->GetLastCard(), ECardMovement::EndHover);
+	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(CardStack));
+	SLGameMode->SetCardHighlight(true, NewCardStack);
 }
 
 void ACardStack::HandleStackCollision(ACard* OtherCard)
@@ -241,24 +245,16 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 	ACardStack* OtherCardStack = Cast<ACardStack>(OtherCard->GetCardStack());
 	UpdatePosition(); OtherCardStack->UpdatePosition();
 
-	if (IsCardStackable(this, OtherCardStack))
+	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (SLGameMode->GetHoveringStack() == this && IsCardStackable(this, OtherCardStack))
 		// 스택
 	{
-		if (GetLastCard()->GetActorLocation().Z <= OtherCard->GetActorLocation().Z)
+		for (AActor* NewCard : Cards)
 		{
-			for (AActor* NewCard : OtherCardStack->Cards)
-			{
-				AddCard(NewCard);
-			}
-		} else {
-			for (AActor* NewCard : Cards)
-			{
-				OtherCardStack->AddCard(NewCard);
-			}
+			OtherCardStack->AddCard(NewCard);
 		}
-	}
-	// 충돌
-	else {
+	} else {
+		// 충돌
 		FVector SelfVector, OtherVector;
 		GetCardCollisionVector(OtherCard, SelfVector, OtherVector);
 		PushCards(SelfVector);

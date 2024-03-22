@@ -10,19 +10,24 @@ void ASLGameModeBase::AddCardStack(ACardStack* CardStack)
 
 void ASLGameModeBase::RemoveCardStack(ACardStack* CardStack)
 {
+	if (CardStack == DraggingStack)
+	{
+		DraggingStack = nullptr;
+	}
 	CardStacks.Remove(CardStack);
 }
 
 
-void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* HoveringStack)
+void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* NewDraggingStack)
 {
 	bIsCardHighlight = bCardHighlight;
 	if (bIsCardHighlight)
 	{
-		if (HoveringStack == nullptr) return;
+		DraggingStack = NewDraggingStack;
+		if (DraggingStack == nullptr) return;
 		for (ACardStack* CardStack : CardStacks)
 		{
-			if (CardStack != HoveringStack && ACardStack::IsCardStackable(HoveringStack, CardStack))
+			if (CardStack != DraggingStack && ACardStack::IsCardStackable(DraggingStack, CardStack))
 			{
 				CardStack->GetLastCard()->GetVisualMesh()->SetRenderCustomDepth(true);
 			}

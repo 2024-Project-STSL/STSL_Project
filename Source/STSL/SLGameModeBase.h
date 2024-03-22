@@ -18,6 +18,10 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TArray<ACardStack*> CardStacks;
 
+	// 가장 최근 마우스에 의해 드래그 시작된 스택
+	UPROPERTY(VisibleAnywhere, Category = "CardStack")
+	ACardStack* DraggingStack;
+
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	bool bIsCardHighlight;
 
@@ -29,5 +33,8 @@ public:
 	void RemoveCardStack(ACardStack* CardStack);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	void SetCardHighlight(bool bCardHighlight, ACardStack* HoveringStack = nullptr);
+	void SetCardHighlight(bool bCardHighlight, ACardStack* NewDraggingStack = nullptr);
+
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	ACardStack* GetHoveringStack() const { return DraggingStack; };
 };
