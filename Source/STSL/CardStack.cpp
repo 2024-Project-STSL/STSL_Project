@@ -140,6 +140,14 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 	int32 SenderIndex = Cards.IndexOfByKey(Sender);
 
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+
+	// 스택 나누는 구문은 카드 반복 for문 밖으로
+	if (Movement == ECardMovement::StartDrag && SenderIndex != 0)
+	{
+		SplitCardStack(this, SenderIndex);
+	}
+
+	// 카드마다 반복
 	for (int32 i = 0; i < Cards.Num(); i++)
 	{
 		AActor* Card = Cards[i];
@@ -156,19 +164,16 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 				CardActor->EndHover();
 				break;
 			case ECardMovement::StartDrag:
-				if (SenderIndex != 0)
-				{
-					SplitCardStack(this, SenderIndex);
-				}
 				CardActor->StartCardDrag();
-				//SLGameMode->SetCardHighlight(true, this);
+				SLGameMode->SetCardHighlight(true, this);
 				break;
 			case ECardMovement::EndDrag:
 				CardActor->EndCardDrag();
-				//SLGameMode->SetCardHighlight(false);
+				SLGameMode->SetCardHighlight(false);
 				break;
 			case ECardMovement::MoveToCursor:
 				CardActor->MoveCardToCursor(FloatingHeight + i * HeightOffset);
+				UpdatePosition();
 				break;
 			default:
 				break;
@@ -194,11 +199,19 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 
 	TArray<AActor*> NewCards;
 
-	for (int32 i = 0; i < Index; i++)
+	for (int32 i = Index; i < CardStack->Cards.Num(); i++)
 	{
+		FString CardName = CardStack->Cards[i]->GetName();
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("%d"), i));
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, CardName);
 		NewCards.Add(CardStack->Cards[i]);
-		CardStack->RemoveCard(i);
 	}
+
+	for (int32 i = 0; i < NewCards.Num(); i++)
+	{
+		CardStack->RemoveCard(NewCards[i]);
+	}
+
 
 	FVector Location = CardStack->GetActorLocation();
 
@@ -217,12 +230,17 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 		NewCardStack->Cards.Add(NewCards[i]);
 		Cast<ACard>(NewCards[i])->SetCardStack(NewCardStackActor);
 	}
+	
 	NewCardStack->UpdatePosition();
+	// 분리된 카드의 아래쪽 호버 해제
+	CardStack->HandleStackMove(CardStack->GetLastCard(), ECardMovement::EndHover);
 }
 
 void ACardStack::HandleStackCollision(ACard* OtherCard)
 {
 	ACardStack* OtherCardStack = Cast<ACardStack>(OtherCard->GetCardStack());
+	UpdatePosition(); OtherCardStack->UpdatePosition();
+
 	if (IsCardStackable(this, OtherCardStack))
 		// 스택
 	{

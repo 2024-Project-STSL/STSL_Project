@@ -32,7 +32,7 @@ class STSL_API ACardStack : public AActor
 	float FloatingHeight = 20.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Move")
-	float HeightOffset = 2.0f;
+	float HeightOffset = 0.2f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float Collsionforce = 50.0f;
