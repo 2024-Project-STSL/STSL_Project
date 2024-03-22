@@ -44,7 +44,7 @@ void ACardStack::UpdatePosition()
 	SetActorLocation(Location);
 
 	// 물리 엔진에 의해 틀어지는 카드들의 위치 보정
-	for (int16 i = 0; i < Cards.Num(); i++)
+	for (int32 i = 0; i < Cards.Num(); i++)
 	{
 		FVector NewLocation = GetActorLocation();
 		NewLocation.X += XOffset * i;
@@ -140,7 +140,7 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 	int32 SenderIndex = Cards.IndexOfByKey(Sender);
 
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-	for (int16 i = 0; i < Cards.Num(); i++)
+	for (int32 i = 0; i < Cards.Num(); i++)
 	{
 		AActor* Card = Cards[i];
 		ACard* CardActor = Cast<ACard>(Card);
