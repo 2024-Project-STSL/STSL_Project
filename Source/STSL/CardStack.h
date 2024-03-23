@@ -74,6 +74,8 @@ public:
 
 	void HandleStackMove(ACard* Sender, ECardMovement Movement);
 
+	int32 FindMouseSender() const;
+
 	void HandleStackCollision(ACard* OtherCard);
 
 	// 카드 충돌 관련

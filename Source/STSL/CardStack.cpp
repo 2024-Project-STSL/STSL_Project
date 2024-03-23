@@ -134,10 +134,30 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 	}
 }
 
+int32 ACardStack::FindMouseSender() const
+{
+	double CardX = Cards[0]->GetActorLocation().X;
+	
+	// 임시
+	const double CardHeight = -160.0;
+	CardX -= CardHeight;
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	FHitResult HitResult;
+	PlayerController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Visibility), true, HitResult);
+	
+	double HitLocationX = HitResult.Location.X;
+	
+	int32 CardIndex = FMath::Floor((HitLocationX - CardX) / XOffset);
+	if (CardIndex >= Cards.Num()) CardIndex = Cards.Num() - 1;
+	if (CardIndex < 0) CardIndex = 0;
+	return CardIndex;
+}
+
 void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 {
 	// 마우스 입력을 보낸 카드 찾기
-	int32 SenderIndex = Cards.IndexOfByKey(Sender);
+	int32 SenderIndex = FindMouseSender();
 
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
 
@@ -196,7 +216,6 @@ bool ACardStack::IsCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 // 1번 Index 기준으로 나누어라 = 0번 Index까지 스택 하나, 1번 Index부터 스택 하나
 void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d Split"), Index));
 	// Index가 너무 크거나 작으면 return
 	if (Index >= CardStack->Cards.Num() || Index <= -1) return;
 
@@ -249,10 +268,18 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 	if (SLGameMode->GetHoveringStack() == this && IsCardStackable(this, OtherCardStack))
 		// 스택
 	{
+		TArray<AActor*> NewCards;
+
 		for (AActor* NewCard : Cards)
+		{
+			NewCards.Add(NewCard);
+		}
+		for (AActor* NewCard : NewCards)
 		{
 			OtherCardStack->AddCard(NewCard);
 		}
+
+		
 	} else {
 		// 충돌
 		FVector SelfVector, OtherVector;
