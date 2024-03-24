@@ -59,6 +59,14 @@ void ACardStack::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ACardStack::AddCard(TArray<AActor*> NewCards)
+{
+	for (AActor* Card : NewCards)
+	{
+		AddCard(Card);
+	}
+}
+
 // Add a card to the stack
 void ACardStack::AddCard(AActor* Card)
 {
@@ -117,6 +125,15 @@ void ACardStack::AddCard(AActor* Card)
 
 }
 
+void ACardStack::RemoveCard(TArray<AActor*> NewCards, bool bDespawn)
+{
+
+	for (int32 i = 0; i < NewCards.Num(); i++)
+	{
+		RemoveCard(NewCards[i]);
+	}
+}
+
 void ACardStack::RemoveCard(int32 Index, bool bDespawn)
 {
 	RemoveCard(Cards[Index], bDespawn);
@@ -134,30 +151,26 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 	}
 }
 
-int32 ACardStack::FindMouseSender() const
+AActor* ACardStack::FindMouseSender(FVector Location) const
 {
 	double CardX = Cards[0]->GetActorLocation().X;
 	
 	// 임시
 	const double CardHeight = -160.0;
 	CardX -= CardHeight;
-
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	FHitResult HitResult;
-	PlayerController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Visibility), true, HitResult);
 	
-	double HitLocationX = HitResult.Location.X;
+	double HitLocationX = Location.X;
 	
 	int32 CardIndex = FMath::Floor((HitLocationX - CardX) / XOffset);
 	if (CardIndex >= Cards.Num()) CardIndex = Cards.Num() - 1;
 	if (CardIndex < 0) CardIndex = 0;
-	return CardIndex;
+	return Cards[CardIndex];
 }
 
 void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 {
 	// 마우스 입력을 보낸 카드 찾기
-	int32 SenderIndex = FindMouseSender();
+	int32 SenderIndex = Cards.IndexOfByKey(Sender);
 
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
 
@@ -229,11 +242,7 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 		NewCards.Add(CardStack->Cards[i]);
 	}
 
-	for (int32 i = 0; i < NewCards.Num(); i++)
-	{
-		CardStack->RemoveCard(NewCards[i]);
-	}
-
+	CardStack->RemoveCard(NewCards);
 
 	FVector Location = CardStack->GetActorLocation();
 
@@ -265,21 +274,11 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 	UpdatePosition(); OtherCardStack->UpdatePosition();
 
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-	if (SLGameMode->GetHoveringStack() == this && IsCardStackable(this, OtherCardStack))
+	if (SLGameMode->GetDraggingStack() == this && IsCardStackable(this, OtherCardStack))
 		// 스택
 	{
 		TArray<AActor*> NewCards;
-
-		for (AActor* NewCard : Cards)
-		{
-			NewCards.Add(NewCard);
-		}
-		for (AActor* NewCard : NewCards)
-		{
-			OtherCardStack->AddCard(NewCard);
-		}
-
-		
+		OtherCardStack->AddCard(Cards);
 	} else {
 		// 충돌
 		FVector SelfVector, OtherVector;

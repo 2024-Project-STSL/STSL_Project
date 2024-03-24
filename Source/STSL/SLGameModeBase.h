@@ -36,5 +36,5 @@ public:
 	void SetCardHighlight(bool bCardHighlight, ACardStack* NewDraggingStack = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	ACardStack* GetHoveringStack() const { return DraggingStack; };
+	ACardStack* GetDraggingStack() const { return DraggingStack; };
 };

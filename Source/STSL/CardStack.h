@@ -64,17 +64,20 @@ public:
 	// Add a card to the stack
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void AddCard(AActor* Card);
-
-	void RemoveCard(AActor* Card, bool bDespawn = false);
+	void AddCard(TArray<AActor*> NewCards);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void RemoveCard(int32 Index, bool bDespawn = false);
+	void RemoveCard(AActor* Card, bool bDespawn = false);
+	void RemoveCard(TArray<AActor*> NewCards, bool bDespawn = false);
 
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	ACard* GetLastCard() const { return Cast<ACard>(Cards.Last()); }
 
 	void HandleStackMove(ACard* Sender, ECardMovement Movement);
 
-	int32 FindMouseSender() const;
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	AActor* FindMouseSender(FVector Location) const;
 
 	void HandleStackCollision(ACard* OtherCard);
 
