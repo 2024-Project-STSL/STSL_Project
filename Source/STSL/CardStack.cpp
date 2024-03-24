@@ -174,10 +174,29 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
 
-	// 스택 나누는 구문은 카드 반복 for문 밖으로
-	if (Movement == ECardMovement::StartDrag && SenderIndex != 0)
+	// 반복이 필요없는 구문들
+	switch (Movement)
 	{
-		SplitCardStack(this, SenderIndex);
+	case ECardMovement::StartHover:
+		UpdatePosition();
+		break;
+	case ECardMovement::EndHover:
+		break;
+	case ECardMovement::StartDrag:
+		if (SenderIndex != 0)
+		{
+			SplitCardStack(this, SenderIndex);
+		} else {
+			SLGameMode->SetCardHighlight(true, this);
+		}
+		break;
+	case ECardMovement::EndDrag:
+		SLGameMode->SetCardHighlight(false);
+		break;
+	case ECardMovement::MoveToCursor:
+		break;
+	default:
+		break;
 	}
 
 	// 카드마다 반복
@@ -190,7 +209,6 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 			switch (Movement)
 			{
 			case ECardMovement::StartHover:
-				UpdatePosition();
 				CardActor->StartHover(HoveringHeight + i * HeightOffset);
 				break;
 			case ECardMovement::EndHover:
@@ -198,14 +216,9 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 				break;
 			case ECardMovement::StartDrag:
 				CardActor->StartCardDrag();
-				if (SenderIndex == 0)
-				{
-					SLGameMode->SetCardHighlight(true, this);
-				}
 				break;
 			case ECardMovement::EndDrag:
 				CardActor->EndCardDrag();
-				SLGameMode->SetCardHighlight(false);
 				break;
 			case ECardMovement::MoveToCursor:
 				CardActor->MoveCardToCursor(FloatingHeight + i * HeightOffset);
