@@ -72,6 +72,8 @@ public:
 	void RemoveCard(TArray<AActor*> NewCards, bool bDespawn = false);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	ACard* GetFirstCard() const { return Cast<ACard>(Cards[0]); }
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	ACard* GetLastCard() const { return Cast<ACard>(Cards.Last()); }
 
 	void HandleStackMove(ACard* Sender, ECardMovement Movement);

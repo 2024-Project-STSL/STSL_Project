@@ -277,6 +277,7 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 	NewCardStack->UpdatePosition();
 	// 분리된 카드의 아래쪽 호버 해제
 	CardStack->HandleStackMove(CardStack->GetLastCard(), ECardMovement::EndHover);
+	NewCardStack->HandleStackMove(NewCardStack->GetFirstCard(), ECardMovement::StartDrag);
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(CardStack));
 	SLGameMode->SetCardHighlight(true, NewCardStack);
 }
@@ -292,6 +293,8 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 	{
 		TArray<AActor*> NewCards;
 		OtherCardStack->AddCard(Cards);
+		// 합쳐진 스택의 호버 해제
+		OtherCardStack->HandleStackMove(OtherCardStack->GetLastCard(), ECardMovement::EndHover);
 	} else {
 		// 충돌
 		FVector SelfVector, OtherVector;
