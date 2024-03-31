@@ -68,22 +68,31 @@ void ACardStack::AddCard(TArray<AActor*> NewCards)
 }
 
 // Add a card to the stack
-void ACardStack::AddCard(AActor* Card)
+void ACardStack::AddCard(AActor* CardActor)
 {
 	UpdatePosition();
 
-	ACard* CardActor = Cast<ACard>(Card);
+	ACard* Card = Cast<ACard>(CardActor);
 	// 마우스 이동을 받는 중에는 합쳐질 수 없게 비활성화
-	if (!CardActor->GetVisualMesh()->IsSimulatingPhysics()) return;
+	// 가끔 카드가 추가되어야 하는데 안 돼서 일단 주석 처리, 추후 움직임이 이상하면 재 활성화하기로
+	//if (!Card->GetVisualMesh()->IsSimulatingPhysics()) return;
 
 	// Add the card to the stack
 	Cards.Add(Card);
-
-	if (CardActor)
+	int32 CardID = Card->GetCardID();
+	if (CardCount.Contains(CardID))
 	{
-		AActor* OldStackActor = CardActor->GetCardStack();
+		CardCount[CardID] += 1;
+	} else {
+		CardCount.Add(CardID);
+		CardCount[CardID] = 1;
+	}
 
-		CardActor->SetCardStack(this);
+	if (Card)
+	{
+		AActor* OldStackActor = Card->GetCardStack();
+
+		Card->SetCardStack(this);
 
 		if (OldStackActor != nullptr)
 		{
@@ -144,7 +153,11 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 	ACard* Card = Cast<ACard>(CardActor);
 	if (Card == nullptr) return;
 
+	int32 CardID = Card->GetCardID();
+	CardCount[CardID] -= 1;
+
 	Cards.Remove(CardActor);
+	Card->SetCardStack(nullptr);
 	if (bDespawn)
 	{
 		CardActor->Destroy();
@@ -270,8 +283,7 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 
 	for (int32 i = 0; i < NewCards.Num(); i++)
 	{
-		NewCardStack->Cards.Add(NewCards[i]);
-		Cast<ACard>(NewCards[i])->SetCardStack(NewCardStackActor);
+		NewCardStack->AddCard(NewCards[i]);
 	}
 	
 	NewCardStack->UpdatePosition();

@@ -41,6 +41,10 @@ class STSL_API ACardStack : public AActor
 	UPROPERTY(EditDefaultsOnly)
 	float OtherCollsionWeight = -1.0f;
 
+	// 각 카드 ID 별 카드의 개수
+	UPROPERTY(VisibleAnywhere, Category = "CardStack")
+	TMap<int32, int32> CardCount;
+
 public:	
 	// Sets default values for this actor's properties
 	ACardStack();
