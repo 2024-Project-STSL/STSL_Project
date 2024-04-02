@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MouseInputInterface.h"
+#include <Components/TextRenderComponent.h>
+#include "Data/CardData.h"
 #include "Card.generated.h"
 
 UENUM(BlueprintType)
@@ -26,10 +28,25 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	AActor* CardStack;
 
 	UPROPERTY(VisibleAnywhere)
-	int32 CardID = 0;
+	class UDataTable* CardDataTable;
+
+	UPROPERTY(VisibleAnywhere)
+	FCardData CardData;
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* VisualMesh;
+
+	// 카드 제목 텍스트
+	UPROPERTY(VisibleAnywhere)
+	UTextRenderComponent* TitleText;
+
+	// 판매가
+	UPROPERTY(VisibleAnywhere)
+	UTextRenderComponent* SellPriceText;
+
+	// 추가 기능
+	UPROPERTY(VisibleAnywhere)
+	UTextRenderComponent* AddTypeText;
 
 	UPROPERTY(VisibleAnywhere)
 	FVector CardOffset;
@@ -43,10 +60,10 @@ public:
 	ACard(int32 CardID);
 
 	UFUNCTION(BlueprintCallable, Category = "CardID")
-	int32 GetCardID() const { return CardID; }
+	int32 GetCardID() const { return CardData.CardCode; }
 
 	UFUNCTION(BlueprintCallable, Category = "CardID")
-	void SetCardID(int32 NewCardID) { CardID = NewCardID; }
+	void SetCardID(int32 NewCardID) { CardData.CardCode = NewCardID; LoadCard(); }
 
 protected:
 	// Called when the game starts or when spawned
@@ -54,6 +71,8 @@ protected:
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	void LoadCard();
 
 public:	
 	// Called every frame

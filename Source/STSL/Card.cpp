@@ -13,7 +13,7 @@ ACard::ACard()
     VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
     VisualMesh->SetupAttachment(RootComponent);
 
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> CardVisualAsset(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/CardMesh.CardMesh'"));
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> CardVisualAsset(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/DummyCard.DummyCard'"));
     // static ConstructorHelpers::FObjectFinder<UPhysicalMaterial> CardPhysicalMeterial(TEXT("/Script/PhysicsCore.PhysicalMaterial'/Game/Material/CardPhysicalMaterial1.CardPhysicalMaterial1'"));
 
     if (CardVisualAsset.Succeeded())
@@ -21,7 +21,7 @@ ACard::ACard()
         VisualMesh->SetStaticMesh(CardVisualAsset.Object);
         VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
         VisualMesh->SetSimulatePhysics(true);
-        VisualMesh->SetRelativeScale3D(FVector(3.2f, 2.0f, 0.005f));
+        VisualMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
         VisualMesh->SetNotifyRigidBodyCollision(true);
         VisualMesh->SetMassOverrideInKg(NAME_None, CardMass, true);
         //VisualMesh->SetPhysMaterialOverride(CardPhysicalMeterial.Object);
@@ -30,12 +30,65 @@ ACard::ACard()
         VisualMesh->BodyInstance.bLockZRotation = true;
         //VisualMesh->BodyInstance.SetDOFLock(EDOFMode::SixDOF);
     }
+
+    TitleText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("TitleText"));
+    TitleText->SetHorizontalAlignment(EHTA_Center);
+    
+    TitleText->SetRelativeLocationAndRotation(FVector(180.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    TitleText->SetTextRenderColor(FColor::Black);
+    TitleText->SetWorldSize(80.0f);
+    TitleText->SetText(FText::FromString(TEXT("Dummy")));
+    TitleText->SetupAttachment(VisualMesh);
+
+    SellPriceText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("SellPriceText"));
+    SellPriceText->SetHorizontalAlignment(EHTA_Center);
+
+    SellPriceText->SetRelativeLocationAndRotation(FVector(-250.0f, -115.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    SellPriceText->SetTextRenderColor(FColor::Black);
+    SellPriceText->SetWorldSize(80.0f);
+    SellPriceText->SetText(FText::FromString(TEXT("99")));
+    SellPriceText->SetupAttachment(VisualMesh);
+
+    AddTypeText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("AddTypeText"));
+    AddTypeText->SetHorizontalAlignment(EHTA_Center);
+
+    AddTypeText->SetRelativeLocationAndRotation(FVector(-250.0f, 115.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    AddTypeText->SetTextRenderColor(FColor::Black);
+    AddTypeText->SetWorldSize(80.0f);
+    AddTypeText->SetText(FText::FromString(TEXT("99")));
+    AddTypeText->SetupAttachment(VisualMesh);
+
+    static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CardDB.CardDB'"));
+    if (DataTable.Succeeded())
+    {
+        CardDataTable = DataTable.Object;
+    }
+    LoadCard();
 }
 
 ACard::ACard(int32 CardID)
 {
     ACard::ACard();
-    this->CardID = CardID;
+    this->CardData.CardCode = CardID;
+}
+
+void ACard::LoadCard()
+{
+    if (CardDataTable != nullptr)
+    {
+        FName RowName = FName(*FString::FromInt(CardData.CardCode));
+        FCardData* RowData = CardDataTable->FindRow<FCardData>(RowName, TEXT(""));
+        if (RowData != nullptr) CardData = *RowData;
+    }
+    TitleText->SetText(FText::FromString(CardData.CardName));
+    if (CardData.CardPrice != 0)
+    {
+        SellPriceText->SetText(FText::AsNumber(CardData.CardPrice));
+    }
+    if (CardData.AddType != AddType::nope)
+    {
+        AddTypeText->SetText(FText::AsNumber(CardData.AddTypeValue));
+    }
 }
 
 // Called when the game starts or when spawned
@@ -49,7 +102,6 @@ void ACard::BeginPlay()
 void ACard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void ACard::SetCardStack(AActor* Stack)

@@ -169,7 +169,7 @@ AActor* ACardStack::FindMouseSender(FVector Location) const
 	double CardX = Cards[0]->GetActorLocation().X;
 	
 	// юс╫ц
-	const double CardHeight = -160.0;
+	const double CardHeight = -150.0;
 	CardX -= CardHeight;
 	
 	double HitLocationX = Location.X;

@@ -26,6 +26,7 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	bool bIsCardHighlight;
 
 public:
+
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void AddCardStack(ACardStack* CardStack);
 
