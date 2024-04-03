@@ -31,14 +31,14 @@ ACard::ACard()
         //VisualMesh->BodyInstance.SetDOFLock(EDOFMode::SixDOF);
     }
    
-    static ConstructorHelpers::FObjectFinder<UFont> NanumFont(TEXT("/Script/Engine.Font'/Game/Fonts/NanumPen_Offline.NanumPen_Offline'"));
+    static ConstructorHelpers::FObjectFinder<UFont> NanumFont(TEXT("/Script/Engine.Font'/Game/Fonts/Hanbit_Offline.Hanbit_Offline'"));
 
     if (NanumFont.Succeeded())
     {
         CardFont = NanumFont.Object;
     }
 
-    static ConstructorHelpers::FObjectFinder<UMaterial> NanumFontMat(TEXT("/Script/Engine.Material'/Game/Fonts/NanumPen_Offline_Material.NanumPen_Offline_Material'"));
+    static ConstructorHelpers::FObjectFinder<UMaterial> NanumFontMat(TEXT("/Script/Engine.Material'/Game/Fonts/Hanbit_Offline_Material.Hanbit_Offline_Material'"));
 
     if (NanumFontMat.Succeeded())
     {
@@ -59,9 +59,9 @@ ACard::ACard()
     SellPriceText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("SellPriceText"));
     SellPriceText->SetHorizontalAlignment(EHTA_Center);
     SellPriceText->SetVerticalAlignment(EVRTA_TextCenter);
-    SellPriceText->SetRelativeLocationAndRotation(FVector(-222.5f, -140.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    SellPriceText->SetRelativeLocationAndRotation(FVector(-237.5f, -140.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
     SellPriceText->SetTextRenderColor(FColor::Black);
-    SellPriceText->SetWorldSize(FontSize);
+    SellPriceText->SetWorldSize(FontSize/1.5f);
     SellPriceText->SetMaterial(0, CardFontMat);
     SellPriceText->SetFont(CardFont);
     SellPriceText->SetText(FText::FromString(TEXT("99")));
@@ -70,9 +70,9 @@ ACard::ACard()
     AddTypeText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("AddTypeText"));
     AddTypeText->SetHorizontalAlignment(EHTA_Center);
     AddTypeText->SetVerticalAlignment(EVRTA_TextCenter);
-    AddTypeText->SetRelativeLocationAndRotation(FVector(-222.5f, 140.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    AddTypeText->SetRelativeLocationAndRotation(FVector(-237.5f, 140.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
     AddTypeText->SetTextRenderColor(FColor::Black);
-    AddTypeText->SetWorldSize(FontSize);
+    AddTypeText->SetWorldSize(FontSize/1.5f);
     AddTypeText->SetMaterial(0, CardFontMat);
     AddTypeText->SetFont(CardFont);
     AddTypeText->SetText(FText::FromString(TEXT("99")));
