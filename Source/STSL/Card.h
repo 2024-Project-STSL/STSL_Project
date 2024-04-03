@@ -6,7 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "MouseInputInterface.h"
 #include <Components/TextRenderComponent.h>
+#include <Components/WidgetComponent.h>
 #include "Data/CardData.h"
+#include "Engine/Font.h"
 #include "Card.generated.h"
 
 UENUM(BlueprintType)
@@ -33,6 +35,9 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere)
 	FCardData CardData;
 
+	UFont* CardFont;
+	UMaterial* CardFontMat;
+
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* VisualMesh;
 
@@ -48,11 +53,18 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere)
 	UTextRenderComponent* AddTypeText;
 
+	// 카드 이미지
+	UPROPERTY(VisibleAnywhere)
+	UWidgetComponent* WidgetComponent;
+
 	UPROPERTY(VisibleAnywhere)
 	FVector CardOffset;
 
 	UPROPERTY(EditDefaultsOnly)
 	float CardMass = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float FontSize = 80.0f;
 
 public:	
 	// Sets default values for this actor's properties

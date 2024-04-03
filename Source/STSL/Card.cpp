@@ -30,39 +30,66 @@ ACard::ACard()
         VisualMesh->BodyInstance.bLockZRotation = true;
         //VisualMesh->BodyInstance.SetDOFLock(EDOFMode::SixDOF);
     }
+   
+    static ConstructorHelpers::FObjectFinder<UFont> NanumFont(TEXT("/Script/Engine.Font'/Game/Fonts/NanumPen_Offline.NanumPen_Offline'"));
+
+    if (NanumFont.Succeeded())
+    {
+        CardFont = NanumFont.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UMaterial> NanumFontMat(TEXT("/Script/Engine.Material'/Game/Fonts/NanumPen_Offline_Material.NanumPen_Offline_Material'"));
+
+    if (NanumFontMat.Succeeded())
+    {
+        CardFontMat = NanumFontMat.Object;
+    }
 
     TitleText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("TitleText"));
     TitleText->SetHorizontalAlignment(EHTA_Center);
-    
-    TitleText->SetRelativeLocationAndRotation(FVector(180.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    TitleText->SetVerticalAlignment(EVRTA_TextCenter);
+    TitleText->SetRelativeLocationAndRotation(FVector(247.5f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
     TitleText->SetTextRenderColor(FColor::Black);
-    TitleText->SetWorldSize(80.0f);
+    TitleText->SetWorldSize(FontSize);
+    TitleText->SetMaterial(0, CardFontMat);
+    TitleText->SetFont(CardFont);
     TitleText->SetText(FText::FromString(TEXT("Dummy")));
     TitleText->SetupAttachment(VisualMesh);
 
     SellPriceText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("SellPriceText"));
     SellPriceText->SetHorizontalAlignment(EHTA_Center);
-
-    SellPriceText->SetRelativeLocationAndRotation(FVector(-250.0f, -115.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    SellPriceText->SetVerticalAlignment(EVRTA_TextCenter);
+    SellPriceText->SetRelativeLocationAndRotation(FVector(-222.5f, -140.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
     SellPriceText->SetTextRenderColor(FColor::Black);
-    SellPriceText->SetWorldSize(80.0f);
+    SellPriceText->SetWorldSize(FontSize);
+    SellPriceText->SetMaterial(0, CardFontMat);
+    SellPriceText->SetFont(CardFont);
     SellPriceText->SetText(FText::FromString(TEXT("99")));
     SellPriceText->SetupAttachment(VisualMesh);
 
     AddTypeText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("AddTypeText"));
     AddTypeText->SetHorizontalAlignment(EHTA_Center);
-
-    AddTypeText->SetRelativeLocationAndRotation(FVector(-250.0f, 115.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    AddTypeText->SetVerticalAlignment(EVRTA_TextCenter);
+    AddTypeText->SetRelativeLocationAndRotation(FVector(-222.5f, 140.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
     AddTypeText->SetTextRenderColor(FColor::Black);
-    AddTypeText->SetWorldSize(80.0f);
+    AddTypeText->SetWorldSize(FontSize);
+    AddTypeText->SetMaterial(0, CardFontMat);
+    AddTypeText->SetFont(CardFont);
     AddTypeText->SetText(FText::FromString(TEXT("99")));
     AddTypeText->SetupAttachment(VisualMesh);
+    
+    WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ImageWidget"));
+    WidgetComponent->SetupAttachment(VisualMesh);
+    WidgetComponent->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    // 스케일로 나누어 카드 전체의 스케일 변화에 대응
+    WidgetComponent->SetDrawSize(FVector2D(375.0f / GetActorScale().X, 375.0f / GetActorScale().X));
 
     static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CardDB.CardDB'"));
     if (DataTable.Succeeded())
     {
         CardDataTable = DataTable.Object;
     }
+
     LoadCard();
 }
 
@@ -81,13 +108,33 @@ void ACard::LoadCard()
         if (RowData != nullptr) CardData = *RowData;
     }
     TitleText->SetText(FText::FromString(CardData.CardName));
-    if (CardData.CardPrice != 0)
+    TitleText->SetWorldSize(FMath::Clamp(FontSize*6/CardData.CardName.Len(), 10.0f, 80.0f));
+    if (CardData.CardPrice >= 1)
     {
         SellPriceText->SetText(FText::AsNumber(CardData.CardPrice));
+    } else {
+        SellPriceText->SetText(FText::FromString(""));
     }
+
     if (CardData.AddType != AddType::nope)
     {
         AddTypeText->SetText(FText::AsNumber(CardData.AddTypeValue));
+    } else {
+        AddTypeText->SetText(FText::FromString(""));
+    }
+
+    // 동적으로 카드 이미지 로드
+    if (CardData.CardCode)
+    {
+        FString MaterialPath = "/Script/Engine.Material'/Game/CardImages/";
+        MaterialPath += FString::Printf(TEXT("%d_Mat.%d_Mat'"), CardData.CardCode, CardData.CardCode);
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, MaterialPath);
+        UMaterial* CardMaterial = LoadObject<UMaterial>(nullptr, *MaterialPath);
+        if (CardMaterial)
+        {
+            WidgetComponent->SetMaterial(0, CardMaterial);
+            WidgetComponent->RequestRedraw();
+        }
     }
 }
 
@@ -184,7 +231,7 @@ void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimiti
         ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
         ACard* OtherCard = Cast<ACard>(OtherActor);
 
-        // ���� ������ ī�峢���� �浹 ó�� ����
+        // 같은 스택의 카드끼리는 충돌 처리 없음
         if (CardStack == OtherCard->CardStack) return;
 
         CardStackActor->HandleStackCollision(OtherCard);
