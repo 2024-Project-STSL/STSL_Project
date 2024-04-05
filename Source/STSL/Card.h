@@ -38,24 +38,28 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UFont* CardFont;
 	UMaterial* CardFontMat;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* VisualMesh;
 
 	// 카드 제목 텍스트
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UTextRenderComponent* TitleText;
 
 	// 판매가
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UTextRenderComponent* SellPriceText;
 
 	// 추가 기능
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UTextRenderComponent* AddTypeText;
 
 	// 카드 이미지
-	UPROPERTY(VisibleAnywhere)
-	UWidgetComponent* WidgetComponent;
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UWidgetComponent* CardImageWidget;
+
+	// 조합 진행 바
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UWidgetComponent* CraftingProgressWidget;
 
 	UPROPERTY(VisibleAnywhere)
 	FVector CardOffset;

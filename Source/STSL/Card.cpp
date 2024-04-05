@@ -2,6 +2,7 @@
 
 #include "Card.h"
 #include "CardStack.h"
+#include "CraftingProgressBarWidget.h"
 #include <Kismet/GameplayStatics.h>
 
 // Sets default values
@@ -31,18 +32,18 @@ ACard::ACard()
         //VisualMesh->BodyInstance.SetDOFLock(EDOFMode::SixDOF);
     }
    
-    static ConstructorHelpers::FObjectFinder<UFont> NanumFont(TEXT("/Script/Engine.Font'/Game/Fonts/Hanbit_Offline.Hanbit_Offline'"));
+    static ConstructorHelpers::FObjectFinder<UFont> HanbitFont(TEXT("/Script/Engine.Font'/Game/Fonts/Hanbit_Offline.Hanbit_Offline'"));
 
-    if (NanumFont.Succeeded())
+    if (HanbitFont.Succeeded())
     {
-        CardFont = NanumFont.Object;
+        CardFont = HanbitFont.Object;
     }
 
-    static ConstructorHelpers::FObjectFinder<UMaterial> NanumFontMat(TEXT("/Script/Engine.Material'/Game/Fonts/Hanbit_Offline_Material.Hanbit_Offline_Material'"));
+    static ConstructorHelpers::FObjectFinder<UMaterial> HanbitFontMat(TEXT("/Script/Engine.Material'/Game/Fonts/Hanbit_Offline_Material.Hanbit_Offline_Material'"));
 
-    if (NanumFontMat.Succeeded())
+    if (HanbitFontMat.Succeeded())
     {
-        CardFontMat = NanumFontMat.Object;
+        CardFontMat = HanbitFontMat.Object;
     }
 
     TitleText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("TitleText"));
@@ -78,16 +79,28 @@ ACard::ACard()
     AddTypeText->SetText(FText::FromString(TEXT("99")));
     AddTypeText->SetupAttachment(VisualMesh);
     
-    WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ImageWidget"));
-    WidgetComponent->SetupAttachment(VisualMesh);
-    WidgetComponent->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    CardImageWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ImageWidget"));
+    CardImageWidget->SetupAttachment(VisualMesh);
+    CardImageWidget->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
     // 스케일로 나누어 카드 전체의 스케일 변화에 대응
-    WidgetComponent->SetDrawSize(FVector2D(375.0f / GetActorScale().X, 375.0f / GetActorScale().X));
+    CardImageWidget->SetDrawSize(FVector2D(375.0f / GetActorScale().X, 375.0f / GetActorScale().X));
 
     static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CardDB.CardDB'"));
     if (DataTable.Succeeded())
     {
         CardDataTable = DataTable.Object;
+    }
+
+    CraftingProgressWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("CraftingProgressWidget"));
+    CraftingProgressWidget->SetupAttachment(VisualMesh);
+
+    static ConstructorHelpers::FClassFinder<UUserWidget> CraftingProgressBarRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprint/CraftingProgressBar.CraftingProgressBar_C'"));
+    if (CraftingProgressBarRef.Succeeded())
+    {
+        CraftingProgressWidget->SetWidgetClass(CraftingProgressBarRef.Class);
+        CraftingProgressWidget->SetRelativeLocationAndRotation(FVector(330.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+        CraftingProgressWidget->SetDrawSize(FVector2D(400.0f, 50.0f));
+        CraftingProgressWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     }
 
     LoadCard();
@@ -132,8 +145,8 @@ void ACard::LoadCard()
         UMaterial* CardMaterial = LoadObject<UMaterial>(nullptr, *MaterialPath);
         if (CardMaterial)
         {
-            WidgetComponent->SetMaterial(0, CardMaterial);
-            WidgetComponent->RequestRedraw();
+            CardImageWidget->SetMaterial(0, CardMaterial);
+            CardImageWidget->RequestRedraw();
         }
     }
 }
