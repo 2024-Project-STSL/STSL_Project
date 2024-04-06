@@ -70,6 +70,9 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(EditDefaultsOnly)
 	float FontSize = 80.0f;
 
+	UPROPERTY(VisibleAnywhere)
+	bool bShowProgressBar = false;
+
 public:	
 	// Sets default values for this actor's properties
 	ACard();
@@ -80,6 +83,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CardID")
 	void SetCardID(int32 NewCardID) { CardData.CardCode = NewCardID; LoadCard(); }
+
+	UFUNCTION(BlueprintCallable)
+	void SetShowProgressBar(bool NewShowProgressBar);
 
 protected:
 	// Called when the game starts or when spawned
@@ -122,4 +128,7 @@ public:
 
 	// 벡터만큼 카드 밀어내기
 	void Push(FVector Force);
+
+	void UpdateProgressBar(float Current);
+	void UpdateProgressBar(float Current, float Max);
 };

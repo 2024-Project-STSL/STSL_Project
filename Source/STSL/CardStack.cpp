@@ -15,6 +15,11 @@ ACardStack::ACardStack()
 
 	RootComponent = SceneComponent;
 
+	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/RecipeDB.RecipeDB'"));
+	if (DataTable.Succeeded())
+	{
+		CraftingRecipeTable = DataTable.Object;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -32,6 +37,74 @@ void ACardStack::RemoveFromGamemode()
 	if (SLGameMode != nullptr)
 	{
 		SLGameMode->RemoveCardStack(this);
+	}
+}
+
+bool ACardStack::CheckCraftingRecipe(FRecipeData* Recipe)
+{
+	if (Recipe != nullptr)
+	{
+		int ReqAmount = Recipe->ReqCardCode.Num();
+		int Amount = 0;
+		int ReqCardCount = 0; // 조합에 사용된 카드의 총 수량
+		for (int i = 0; i < ReqAmount; i++)
+		{
+			int ReqCardCode = Recipe->ReqCardCode[i];
+			int ReqCardAmount = Recipe->ReqValue[i];
+
+			if (!CardCount.Contains(ReqCardCode)) break;
+			if (CardCount[ReqCardCode] != ReqCardAmount) break;
+
+			Amount++;
+			ReqCardCount += ReqCardAmount;
+		}
+
+		// 조합법 외의 잡 카드가 있으면 조합법 무효
+		return (ReqAmount == Amount && ReqCardCount == Cards.Num());
+	}
+	else {
+		return false;
+	}
+}
+
+void ACardStack::UpdateCraftingRecipe()
+{
+	bool bIsCrafting = false;
+	bool bIsRecipeChanged = false;
+
+	for (const auto& Row : CraftingRecipeTable->GetRowMap())
+	{
+		int RecipeID = FCString::Atoi(*Row.Key.ToString());
+
+		const uint8* RowData = Row.Value;
+
+		FRecipeData* RecipeData = reinterpret_cast<FRecipeData*>(const_cast<uint8*>(RowData));
+		if (CheckCraftingRecipe(RecipeData))
+		{
+			bIsCrafting = true;
+			if (RecipeID != CardToCraft)
+			{
+				CardToCraft = RecipeID;
+				bIsRecipeChanged = true;
+			}
+			break;
+		}
+	}
+
+	SetShowProgressBar(bIsCrafting);
+	if (!bIsCrafting)
+	{
+		CardToCraft = -1;
+	}
+
+	if (bIsRecipeChanged)
+	{
+		// TODO : 각 카드 별로 제작 시간 변경
+
+		// 제작 진행도 초기화
+		CraftingProgress = 0.0f;
+
+		GetFirstCard()->UpdateProgressBar(CraftingProgress, TimeToCraft);
 	}
 }
 
@@ -57,6 +130,13 @@ void ACardStack::UpdatePosition()
 void ACardStack::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (CardToCraft != -1)
+	{
+		CraftingProgress += DeltaTime;
+		GetFirstCard()->UpdateProgressBar(CraftingProgress);
+	}
+
+
 }
 
 void ACardStack::AddCard(TArray<AActor*> NewCards)
@@ -112,9 +192,11 @@ void ACardStack::AddCard(AActor* CardActor)
 
 	}
 
+	UpdateCraftingRecipe();
+
 	int Length = Cards.Num();
 	// print the length to the screen
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Length: %d"), Length));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Length: %d"), Length));
 
 	if (Length == 1)
 	{
@@ -161,6 +243,11 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 	if (bDespawn)
 	{
 		CardActor->Destroy();
+	}
+
+	if (Cards.Num() > 0)
+	{
+		UpdateCraftingRecipe();
 	}
 }
 
@@ -244,12 +331,16 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 	}
 }
 
-bool ACardStack::IsCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
+bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 {
 	// TODO: 정확한 카드 스택 조건 구현
-	// 지금은 (상대의 마지막 카드 ID == 내 첫 카드 ID면 true)
-	ACard* FirstCard = Cast<ACard>(CardStack->Cards[0]);
-	return (FirstCard->GetCardID() == OtherStack->GetLastCard()->GetCardID());
+	
+	// (상대의 마지막 카드 ID == 내 첫 카드 ID면 true)
+	// ACard* FirstCard = Cast<ACard>(CardStack->Cards[0]);
+	// return (FirstCard->GetCardID() == OtherStack->GetLastCard()->GetCardID());
+
+	// 임시: 항상 true 반환
+	return true;
 }
 
 // 1번 Index 기준으로 나누어라 = 0번 Index까지 스택 하나, 1번 Index부터 스택 하나
@@ -300,7 +391,7 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 	UpdatePosition(); OtherCardStack->UpdatePosition();
 
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-	if (SLGameMode->GetDraggingStack() == this && IsCardStackable(this, OtherCardStack))
+	if (SLGameMode->GetDraggingStack() == this && GetCardStackable(this, OtherCardStack))
 		// 스택
 	{
 		TArray<AActor*> NewCards;
@@ -327,7 +418,7 @@ void ACardStack::PushCards(FVector Force)
 
 void ACardStack::GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVector& OtherVector) const
 {
-	FVector ActorLocation = Cards[0]->GetActorLocation();
+	FVector ActorLocation = GetFirstCard()->GetActorLocation();
 	FVector OtherLocation = Other->GetActorLocation();
 	FVector CollisionVector = (ActorLocation - OtherLocation).GetSafeNormal(0.0001f);
 	CollisionVector.Z = 0.0f;
@@ -335,4 +426,9 @@ void ACardStack::GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVec
 	SelfVector = CollisionVector;
 	CollisionVector *= OtherCollsionWeight;
 	OtherVector = CollisionVector;
+}
+
+void ACardStack::SetShowProgressBar(bool NewShowProgressBar)
+{
+	GetFirstCard()->SetShowProgressBar(NewShowProgressBar);
 }

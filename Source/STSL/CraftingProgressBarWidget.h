@@ -15,8 +15,8 @@ class STSL_API UCraftingProgressBarWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
-	UPROPERTY()
-	UProgressBar* CraftProgressBar;
+	UPROPERTY(meta=(BindWidget))
+	UProgressBar* CraftingProgressBar;
 
 	UPROPERTY(EditAnywhere)
 	float MaxProgress = 1.0f;
@@ -26,4 +26,7 @@ class STSL_API UCraftingProgressBarWidget : public UUserWidget
 
 public:
 	void NativeConstruct() override;
+
+	void SetProgress(float Current, float Max);
+	void SetProgress(float Current);
 };

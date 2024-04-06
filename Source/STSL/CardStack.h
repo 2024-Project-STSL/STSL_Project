@@ -7,6 +7,7 @@
 #include "Card.h"
 #include "MouseInputInterface.h"
 #include <Components/BoxComponent.h>
+#include "Data/RecipeData.h"
 #include "CardStack.generated.h"
 
 UCLASS()
@@ -16,6 +17,9 @@ class STSL_API ACardStack : public AActor
 
 	UPROPERTY(EditAnywhere, Category = "CardStack")
 	TArray<AActor*> Cards;
+
+	UPROPERTY(VisibleAnywhere, Category = "Crafting")
+	UDataTable* CraftingRecipeTable;
 
 	// X Offset between cards
 	UPROPERTY(EditDefaultsOnly, Category = "CardStack")
@@ -45,6 +49,18 @@ class STSL_API ACardStack : public AActor
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TMap<int32, int32> CardCount;
 
+	// 제작 중인 레시피 번호, -1일 경우 없음 
+	UPROPERTY(VisibleAnywhere)
+	int CardToCraft = -1;
+
+	// 카드 제작에 걸리는 시간
+	UPROPERTY(VisibleAnywhere)
+	float TimeToCraft = 5.0f;
+
+	// 현재 카드 제작 진행도
+	UPROPERTY(VisibleAnywhere)
+	float CraftingProgress = 0.0f;
+
 public:	
 	// Sets default values for this actor's properties
 	ACardStack();
@@ -60,6 +76,10 @@ protected:
 	void UpdatePosition();
 
 	void RemoveFromGamemode();
+
+	bool CheckCraftingRecipe(FRecipeData *Recipe);
+
+	void UpdateCraftingRecipe();
 
 public:	
 	// Called every frame
@@ -92,8 +112,12 @@ public:
 	void PushCards(FVector Force);
 
 	// 상대 스택에 이 스택이 쌓일 수 있는가?
-	static bool IsCardStackable(ACardStack* CardStack, ACardStack* OtherStack);
+	static bool GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack);
 
 	// 기준 index 이전의 스택을 나누어 새로운 스택으로 만듦
 	static void SplitCardStack(ACardStack* CardStack, int32 Index);
+
+	// 스택 위에 진행 바를 보여줄 것인가?
+	UFUNCTION(BlueprintCallable)
+	void SetShowProgressBar(bool NewShowProgressBar);
 };

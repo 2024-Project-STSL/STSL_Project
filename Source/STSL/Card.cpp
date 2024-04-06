@@ -103,6 +103,8 @@ ACard::ACard()
         CraftingProgressWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     }
 
+    SetShowProgressBar(bShowProgressBar);
+
     LoadCard();
 }
 
@@ -149,6 +151,12 @@ void ACard::LoadCard()
             CardImageWidget->RequestRedraw();
         }
     }
+}
+
+void ACard::SetShowProgressBar(bool NewShowProgressBar)
+{
+    bShowProgressBar = NewShowProgressBar;
+    CraftingProgressWidget->SetVisibility(bShowProgressBar);
 }
 
 // Called when the game starts or when spawned
@@ -256,5 +264,23 @@ void ACard::Push(FVector Force)
     if (VisualMesh->IsSimulatingPhysics())
     {
         SetActorLocation(GetActorLocation() + Force);
+    }
+}
+
+void ACard::UpdateProgressBar(float Current, float Max)
+{
+    UCraftingProgressBarWidget* CraftingProgressBar = Cast<UCraftingProgressBarWidget>(CraftingProgressWidget->GetWidget());
+    if (CraftingProgressBar != nullptr)
+    {
+        CraftingProgressBar->SetProgress(Current, Max);
+    }
+}
+
+void ACard::UpdateProgressBar(float Current)
+{
+    UCraftingProgressBarWidget* CraftingProgressBar = Cast<UCraftingProgressBarWidget>(CraftingProgressWidget->GetWidget());
+    if (CraftingProgressBar != nullptr)
+    {
+        CraftingProgressBar->SetProgress(Current);
     }
 }

@@ -26,7 +26,7 @@ void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* NewDragg
 		if (DraggingStack == nullptr) return;
 		for (ACardStack* CardStack : CardStacks)
 		{
-			if (CardStack != DraggingStack && ACardStack::IsCardStackable(DraggingStack, CardStack))
+			if (CardStack != DraggingStack && ACardStack::GetCardStackable(DraggingStack, CardStack))
 			{
 				CardStack->GetLastCard()->GetVisualMesh()->SetRenderCustomDepth(true);
 			}
