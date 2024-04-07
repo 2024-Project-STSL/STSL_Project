@@ -108,6 +108,42 @@ void ACardStack::UpdateCraftingRecipe()
 	}
 }
 
+void ACardStack::CompleteCrafting()
+{
+	FName RowName = FName(*FString::FromInt(CraftingRecipeID));
+	CraftingProgress = 0.0f;
+	CraftingRecipeID = -1;
+
+	FRecipeData* RecipeData = CraftingRecipeTable->FindRow<FRecipeData>(RowName, TEXT(""));
+	if (RecipeData != nullptr)
+	{
+		// 같은 종류의 카드는 전부 사라지거나 전부 안 사라지므로,
+		// 레시피 대신 카드 별로 순회
+		// 카드가 사라지며 카드 index가 깨지지 않게 하기 위해 역순으로 순회
+		for (int i = Cards.Num()-1; i >= 0; i--)
+		{
+			ACard* Card = Cast<ACard>(Cards[i]);
+			int RecipeIndex = RecipeData->ReqCardCode.IndexOfByKey<int>(Card->GetCardID());
+			if (RecipeData->bIsDeleted[RecipeIndex])
+			{
+				RemoveCard(i, true);
+			}
+		}
+
+		// 카드는 '튀어나와야' 하므로, 사라지지 않은 남은 재료 스택과 쌓임이 보장되지 않음
+		// 따라서 새 스택을 생성해서 결과물 투여
+		FVector Location = GetActorLocation();
+
+		ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+		ACardStack* NewCardStack = SLGameMode->SpawnCard(Location, RecipeData->CardCode);
+		if (NewCardStack != nullptr)
+		{
+			Cast<ACard>(NewCardStack->Cards[0])->Push();
+		}
+	}
+
+}
+
 void ACardStack::UpdatePosition()
 {
 	if (Cards.Num() == 0) return;
@@ -134,6 +170,10 @@ void ACardStack::Tick(float DeltaTime)
 	{
 		CraftingProgress += DeltaTime;
 		GetFirstCard()->UpdateProgressBar(CraftingProgress);
+		if (CraftingProgress >= MakeTime)
+		{
+			CompleteCrafting();
+		}
 	}
 
 
@@ -248,6 +288,11 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 	if (Cards.Num() > 0)
 	{
 		UpdateCraftingRecipe();
+	}
+	else
+	{
+		RemoveFromGamemode();
+		Destroy();
 	}
 }
 
@@ -428,7 +473,7 @@ void ACardStack::GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVec
 	OtherVector = CollisionVector;
 }
 
-void ACardStack::SetShowProgressBar(bool NewShowProgressBar)
+void ACardStack::SetShowProgressBar(bool NewShowProgressBar) const
 {
 	GetFirstCard()->SetShowProgressBar(NewShowProgressBar);
 }

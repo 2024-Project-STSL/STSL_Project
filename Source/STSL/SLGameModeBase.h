@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "CardStack.h"
+#include "Card.h"
 #include "SLGameModeBase.generated.h"
 
 /**
@@ -38,4 +39,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	ACardStack* GetDraggingStack() const { return DraggingStack; };
+
+	UFUNCTION(BlueprintCallable, Category = "CardStack", BlueprintPure = false)
+	ACardStack* SpawnCard(FVector Location, int CardID) const;
 };

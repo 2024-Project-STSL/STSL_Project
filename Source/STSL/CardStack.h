@@ -81,6 +81,8 @@ protected:
 
 	void UpdateCraftingRecipe();
 
+	void CompleteCrafting();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -119,5 +121,5 @@ public:
 
 	// 스택 위에 진행 바를 보여줄 것인가?
 	UFUNCTION(BlueprintCallable)
-	void SetShowProgressBar(bool NewShowProgressBar);
+	void SetShowProgressBar(bool NewShowProgressBar) const;
 };

@@ -259,6 +259,15 @@ void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimiti
     }
 }
 
+// 힘을 지정하지 않은 Push()는 카드 소환 튀어나오기 연출에 사용
+void ACard::Push()
+{
+    float RandomX = FMath::RandRange(-1 * PushVector.X, PushVector.X);
+    float RandomY = FMath::RandRange(-1 * PushVector.X, PushVector.X);
+    FVector RandomPushVector = FVector(RandomX, RandomY, PushVector.Z);
+    VisualMesh->AddImpulse(RandomPushVector);
+}
+
 void ACard::Push(FVector Force)
 {
     if (VisualMesh->IsSimulatingPhysics())

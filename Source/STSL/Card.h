@@ -73,6 +73,10 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere)
 	bool bShowProgressBar = false;
 
+	// 제작 완료된 카드가 날아갈 힘 - -X~X, -Y~Y, 0~Z
+	UPROPERTY(EditDefaultsOnly)
+	FVector PushVector = FVector(1000.0f, 1000.0f, 3000.0f);
+
 public:	
 	// Sets default values for this actor's properties
 	ACard();
@@ -128,6 +132,7 @@ public:
 
 	// 벡터만큼 카드 밀어내기
 	void Push(FVector Force);
+	void Push();
 
 	void UpdateProgressBar(float Current);
 	void UpdateProgressBar(float Current, float Max);
