@@ -50,15 +50,15 @@ class STSL_API ACardStack : public AActor
 	TMap<int32, int32> CardCount;
 
 	// 제작 중인 레시피 번호, -1일 경우 없음 
-	UPROPERTY(VisibleAnywhere)
-	int CardToCraft = -1;
+	UPROPERTY(VisibleAnywhere, Category = "Crafting")
+	int CraftingRecipeID = -1;
 
 	// 카드 제작에 걸리는 시간
-	UPROPERTY(VisibleAnywhere)
-	float TimeToCraft = 5.0f;
+	UPROPERTY(VisibleAnywhere, Category = "Crafting")
+	float MakeTime = 5.0f;
 
 	// 현재 카드 제작 진행도
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Crafting")
 	float CraftingProgress = 0.0f;
 
 public:	

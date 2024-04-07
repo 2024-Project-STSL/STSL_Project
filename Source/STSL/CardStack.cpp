@@ -82,9 +82,9 @@ void ACardStack::UpdateCraftingRecipe()
 		if (CheckCraftingRecipe(RecipeData))
 		{
 			bIsCrafting = true;
-			if (RecipeID != CardToCraft)
+			if (RecipeID != CraftingRecipeID)
 			{
-				CardToCraft = RecipeID;
+				CraftingRecipeID = RecipeID;
 				bIsRecipeChanged = true;
 			}
 			break;
@@ -94,7 +94,7 @@ void ACardStack::UpdateCraftingRecipe()
 	SetShowProgressBar(bIsCrafting);
 	if (!bIsCrafting)
 	{
-		CardToCraft = -1;
+		CraftingRecipeID = -1;
 	}
 
 	if (bIsRecipeChanged)
@@ -104,7 +104,7 @@ void ACardStack::UpdateCraftingRecipe()
 		// 제작 진행도 초기화
 		CraftingProgress = 0.0f;
 
-		GetFirstCard()->UpdateProgressBar(CraftingProgress, TimeToCraft);
+		GetFirstCard()->UpdateProgressBar(CraftingProgress, MakeTime);
 	}
 }
 
@@ -130,7 +130,7 @@ void ACardStack::UpdatePosition()
 void ACardStack::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (CardToCraft != -1)
+	if (CraftingRecipeID != -1)
 	{
 		CraftingProgress += DeltaTime;
 		GetFirstCard()->UpdateProgressBar(CraftingProgress);
