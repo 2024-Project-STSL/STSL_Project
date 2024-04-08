@@ -73,6 +73,9 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere)
 	bool bShowProgressBar = false;
 
+	UPROPERTY(VisibleAnywhere)
+	bool bFloating = false;
+	
 	// 제작 완료된 카드가 날아갈 힘 - -X~X, -Y~Y, 0~Z
 	UPROPERTY(EditDefaultsOnly)
 	FVector PushVector = FVector(1000.0f, 1000.0f, 3000.0f);

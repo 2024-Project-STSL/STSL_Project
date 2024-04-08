@@ -144,21 +144,31 @@ void ACardStack::CompleteCrafting()
 
 }
 
-void ACardStack::UpdatePosition()
+void ACardStack::UpdatePosition(bool bFalling)
 {
 	if (Cards.Num() == 0) return;
 
 	// 자신의 위치를 첫 카드의 위치로
 	FVector Location = Cards[0]->GetActorLocation();
-	SetActorLocation(Location);
+	SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
+
+	float Offset = 0.0f;
 
 	// 물리 엔진에 의해 틀어지는 카드들의 위치 보정
 	for (int32 i = 0; i < Cards.Num(); i++)
 	{
+		if (bFalling)
+		{
+			Cast<ACard>(Cards[i])->GetVisualMesh()->SetSimulatePhysics(false);
+			Offset = HeightOffset;
+		}
+		else {
+			Offset = ZOffset;
+		}
 		FVector NewLocation = GetActorLocation();
 		NewLocation.X += XOffset * i;
-		NewLocation.Z += ZOffset * i;
-		Cards[i]->SetActorLocation(NewLocation);
+		NewLocation.Z += Offset * i;
+		Cards[i]->SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
 	}
 }
 

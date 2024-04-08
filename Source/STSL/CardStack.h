@@ -27,7 +27,7 @@ class STSL_API ACardStack : public AActor
 
 	// Z Offset between cards
 	UPROPERTY(EditDefaultsOnly, Category = "CardStack")
-	float ZOffset = 5.0f;
+	float ZOffset = 2.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Move")
 	float HoveringHeight = 10.0f;
@@ -121,5 +121,5 @@ public:
 
 	// 자신의 위치를 첫 카드의 위치로 반영하고
 	// 물리 엔진에 의해 조금씩 틀어지는 카드 위치 보정
-	void UpdatePosition();
+	void UpdatePosition(bool bFalling = false);
 };

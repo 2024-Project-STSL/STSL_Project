@@ -12,7 +12,7 @@ ACard::ACard()
 	PrimaryActorTick.bCanEverTick = true;
 
     VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-    VisualMesh->SetupAttachment(RootComponent);
+    RootComponent = VisualMesh;
 
     static ConstructorHelpers::FObjectFinder<UStaticMesh> CardVisualAsset(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/DummyCard.DummyCard'"));
     // static ConstructorHelpers::FObjectFinder<UPhysicalMaterial> CardPhysicalMeterial(TEXT("/Script/PhysicsCore.PhysicalMaterial'/Game/Material/CardPhysicalMaterial1.CardPhysicalMaterial1'"));
@@ -27,6 +27,7 @@ ACard::ACard()
         VisualMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
         VisualMesh->SetNotifyRigidBodyCollision(true);
         VisualMesh->SetMassOverrideInKg(NAME_None, CardMass, true);
+        VisualMesh->SetLinearDamping(1.0f);
         //VisualMesh->SetPhysMaterialOverride(CardPhysicalMeterial.Object);
         VisualMesh->BodyInstance.bLockXRotation = true;
         VisualMesh->BodyInstance.bLockYRotation = true;
@@ -208,6 +209,7 @@ void ACard::MoveToCursor()
 
 void ACard::StartHover(float HoveringHeight) 
 {
+    bFloating = true;
     VisualMesh->SetSimulatePhysics(false);
     FVector Location = GetActorLocation();
     Location.Z = HoveringHeight;
@@ -229,6 +231,7 @@ FVector ACard::GetMouseHitLocation() const
 
 void ACard::StartCardDrag()
 {
+    bFloating = true;
     VisualMesh->SetSimulatePhysics(false);
     FVector ActorLocation = GetActorLocation();
     FVector HitLocation = GetMouseHitLocation();
@@ -259,6 +262,15 @@ void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimiti
         if (CardStack == OtherCard->CardStack) return;
 
         CardStackActor->HandleStackCollision(OtherCard);
+    }
+    else if (OtherActor->GetName() == TEXT("Floor"))
+    {
+        ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
+        if (bFloating)
+        {
+            CardStackActor->UpdatePosition(true);
+            bFloating = false;
+        }
     }
 }
 
