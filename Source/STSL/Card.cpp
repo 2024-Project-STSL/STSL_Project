@@ -22,6 +22,8 @@ ACard::ACard()
         VisualMesh->SetStaticMesh(CardVisualAsset.Object);
         VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
         VisualMesh->SetSimulatePhysics(true);
+        VisualMesh->BodyInstance.bUseCCD = true;
+        VisualMesh->BodyInstance.UpdateInstanceSimulatePhysics();
         VisualMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
         VisualMesh->SetNotifyRigidBodyCollision(true);
         VisualMesh->SetMassOverrideInKg(NAME_None, CardMass, true);
@@ -227,6 +229,7 @@ FVector ACard::GetMouseHitLocation() const
 
 void ACard::StartCardDrag()
 {
+    VisualMesh->SetSimulatePhysics(false);
     FVector ActorLocation = GetActorLocation();
     FVector HitLocation = GetMouseHitLocation();
     CardOffset = ActorLocation - HitLocation;

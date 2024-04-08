@@ -71,10 +71,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// 자신의 위치를 첫 카드의 위치로 반영하고
-	// 물리 엔진에 의해 조금씩 틀어지는 카드 위치 보정
-	void UpdatePosition();
-
 	void RemoveFromGamemode();
 
 	bool CheckCraftingRecipe(FRecipeData *Recipe);
@@ -122,4 +118,8 @@ public:
 	// 스택 위에 진행 바를 보여줄 것인가?
 	UFUNCTION(BlueprintCallable)
 	void SetShowProgressBar(bool NewShowProgressBar) const;
+
+	// 자신의 위치를 첫 카드의 위치로 반영하고
+	// 물리 엔진에 의해 조금씩 틀어지는 카드 위치 보정
+	void UpdatePosition();
 };

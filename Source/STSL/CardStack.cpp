@@ -190,7 +190,7 @@ void ACardStack::AddCard(TArray<AActor*> NewCards)
 // Add a card to the stack
 void ACardStack::AddCard(AActor* CardActor)
 {
-	UpdatePosition();
+	// UpdatePosition();
 
 	ACard* Card = Cast<ACard>(CardActor);
 	// 마우스 이동을 받는 중에는 합쳐질 수 없게 비활성화
@@ -300,9 +300,11 @@ AActor* ACardStack::FindMouseSender(FVector Location) const
 {
 	double CardX = Cards[0]->GetActorLocation().X;
 	
-	// 임시
-	const double CardHeight = -150.0;
-	CardX -= CardHeight;
+	FVector Origin;
+	FVector BoxExtent;
+	Cards[0]->GetActorBounds(true, Origin, BoxExtent);
+	const double CardHeight = BoxExtent.X;
+	CardX += CardHeight;
 	
 	double HitLocationX = Location.X;
 	
@@ -360,7 +362,10 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 				CardActor->EndHover();
 				break;
 			case ECardMovement::StartDrag:
-				CardActor->StartCardDrag();
+				if (SenderIndex == 0)
+				{
+					CardActor->StartCardDrag();
+				}
 				break;
 			case ECardMovement::EndDrag:
 				CardActor->EndCardDrag();
@@ -398,9 +403,9 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 
 	for (int32 i = Index; i < CardStack->Cards.Num(); i++)
 	{
-		FString CardName = CardStack->Cards[i]->GetName();
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("%d"), i));
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, CardName);
+		// FString CardName = CardStack->Cards[i]->GetName();
+		// GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("%d"), i));
+		// GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, CardName);
 		NewCards.Add(CardStack->Cards[i]);
 	}
 
@@ -424,7 +429,8 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 	
 	NewCardStack->UpdatePosition();
 	// 분리된 카드의 아래쪽 호버 해제
-	CardStack->HandleStackMove(CardStack->GetLastCard(), ECardMovement::EndHover);
+	CardStack->HandleStackMove(CardStack->GetFirstCard(), ECardMovement::EndHover);
+	// 드래그 시작한 스택의 위치 재 보정
 	NewCardStack->HandleStackMove(NewCardStack->GetFirstCard(), ECardMovement::StartDrag);
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(CardStack));
 	SLGameMode->SetCardHighlight(true, NewCardStack);
@@ -475,5 +481,14 @@ void ACardStack::GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVec
 
 void ACardStack::SetShowProgressBar(bool NewShowProgressBar) const
 {
-	GetFirstCard()->SetShowProgressBar(NewShowProgressBar);
+	if (NewShowProgressBar)
+	{
+		GetFirstCard()->SetShowProgressBar(true);
+	}
+	else {
+		for (AActor* CardActor : Cards)
+		{
+			Cast<ACard>(CardActor)->SetShowProgressBar(false);
+		}
+	}
 }
