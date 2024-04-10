@@ -161,6 +161,18 @@ void ACard::SetShowProgressBar(bool NewShowProgressBar)
     CraftingProgressWidget->SetVisibility(bShowProgressBar);
 }
 
+void ACard::SetAddTypeValue(int Value)
+{
+    CardData.AddTypeValue = Value;
+    if (CardData.AddTypeValue == 0)
+    {
+        if (CardData.AddType == AddType::dropvalue)
+        {
+            Cast<ACardStack>(CardStack)->RemoveCard(this, true);
+        }
+    }
+}
+
 // Called when the game starts or when spawned
 void ACard::BeginPlay()
 {

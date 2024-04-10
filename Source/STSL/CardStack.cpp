@@ -20,6 +20,12 @@ ACardStack::ACardStack()
 	{
 		CraftingRecipeTable = DataTable.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DropDataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/DropDB.DropDB'"));
+	if (DropDataTable.Succeeded())
+	{
+		DropTable = DropDataTable.Object;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -67,6 +73,19 @@ bool ACardStack::CheckCraftingRecipe(FRecipeData* Recipe)
 	}
 }
 
+bool ACardStack::CheckDropRecipe(FDropData* Recipe)
+{
+	// 스택의 맨 아래 카드가 사람인지 확인하고
+	if (Cards.Num() < 2) return false;
+	
+	// TODO: 지금은 ID=4(사람)이면 충분하지만 추후 직업을 가진 사람도 판단해야 함
+	if (GetLastCard()->GetCardID() != 4) return false;
+
+	if (Cast<ACard>(Cards[Cards.Num() - 2])->GetAddType() == AddType::dropvalue) return true;
+	
+	return false;
+}
+
 void ACardStack::UpdateCraftingRecipe()
 {
 	bool bIsCrafting = false;
@@ -88,6 +107,26 @@ void ACardStack::UpdateCraftingRecipe()
 				bIsRecipeChanged = true;
 			}
 			break;
+		}
+	}
+	if (!bIsCrafting) {
+		for (const auto& Row : DropTable->GetRowMap())
+		{
+			int RecipeID = FCString::Atoi(*Row.Key.ToString());
+
+			const uint8* RowData = Row.Value;
+
+			FDropData* RecipeData = reinterpret_cast<FDropData*>(const_cast<uint8*>(RowData));
+			if (CheckDropRecipe(RecipeData))
+			{
+				bIsCrafting = true;
+				if (RecipeID != CraftingRecipeID)
+				{
+					CraftingRecipeID = RecipeID;
+					bIsRecipeChanged = true;
+				}
+				break;
+			}
 		}
 	}
 
@@ -120,7 +159,7 @@ void ACardStack::CompleteCrafting()
 		// 같은 종류의 카드는 전부 사라지거나 전부 안 사라지므로,
 		// 레시피 대신 카드 별로 순회
 		// 카드가 사라지며 카드 index가 깨지지 않게 하기 위해 역순으로 순회
-		for (int i = Cards.Num()-1; i >= 0; i--)
+		for (int i = Cards.Num() - 1; i >= 0; i--)
 		{
 			ACard* Card = Cast<ACard>(Cards[i]);
 			int RecipeIndex = RecipeData->ReqCardCode.IndexOfByKey<int>(Card->GetCardID());
@@ -134,14 +173,64 @@ void ACardStack::CompleteCrafting()
 		// 따라서 새 스택을 생성해서 결과물 투여
 		FVector Location = GetActorLocation();
 
+		Location.Z += 10;
+
 		ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-		ACardStack* NewCardStack = SLGameMode->SpawnCard(Location, RecipeData->CardCode);
+		ACardStack* NewCardStack = nullptr;
+		NewCardStack = SLGameMode->SpawnCard(Location, RecipeData->CardCode);
 		if (NewCardStack != nullptr)
 		{
 			Cast<ACard>(NewCardStack->Cards[0])->Push();
 		}
 	}
+	UpdateCraftingRecipe();
+}
 
+void ACardStack::CompleteProducing()
+{
+	FName RowName = FName(*FString::FromInt(CraftingRecipeID));
+	CraftingProgress = 0.0f;
+	CraftingRecipeID = -1;
+
+	FDropData* DropData = DropTable->FindRow<FDropData>(RowName, TEXT(""));
+	if (DropData != nullptr)
+	{
+		// 카드는 '튀어나와야' 하므로, 사라지지 않은 남은 재료 스택과 쌓임이 보장되지 않음
+		// 따라서 새 스택을 생성해서 결과물 투여
+		FVector Location = GetActorLocation();
+
+		Location.Z += 10;
+
+		ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+		ACardStack* NewCardStack = nullptr;
+		int CardToSpawn = 0;
+		int TotalWeight = 0;
+		for (int CardWeight : DropData->DropWeight)
+		{
+			TotalWeight += CardWeight;
+		}
+		int RandomNumber = FMath::RandRange(1, TotalWeight);
+		for (int i = 0; i < DropData->DropCardCode.Num(); i++)
+		{
+			RandomNumber -= DropData->DropWeight[i];
+			if (RandomNumber < 1)
+			{
+				NewCardStack = SLGameMode->SpawnCard(Location, DropData->DropCardCode[i]);
+				break;
+			}
+		}
+		if (NewCardStack != nullptr)
+		{
+			Cast<ACard>(NewCardStack->Cards[0])->Push();
+		}
+		// 생산지 카드 = 뒤에서 2번째 카드
+		ACard* Card = Cast<ACard>(Cards[Cards.Num()-2]);
+		if (Card->GetAddType() == AddType::dropvalue)
+		{
+			Card->SetAddTypeValue(Card->GetAddTypeValue() - 1);
+		}
+	}
+	UpdateCraftingRecipe();
 }
 
 void ACardStack::UpdatePosition(bool bFalling)
@@ -182,7 +271,13 @@ void ACardStack::Tick(float DeltaTime)
 		GetFirstCard()->UpdateProgressBar(CraftingProgress);
 		if (CraftingProgress >= MakeTime)
 		{
-			CompleteCrafting();
+			if (CraftingRecipeID < 1000)
+			{
+				CompleteCrafting();
+			}
+			else {
+				CompleteProducing();
+			}
 		}
 	}
 

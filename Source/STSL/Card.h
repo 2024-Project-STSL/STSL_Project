@@ -94,6 +94,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetShowProgressBar(bool NewShowProgressBar);
 
+	UFUNCTION(BlueprintCallable)
+	AddType GetAddType() const { return CardData.AddType; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetAddTypeValue(int Value);
+
+	UFUNCTION(BlueprintCallable)
+	int GetAddTypeValue() const { return CardData.AddTypeValue; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

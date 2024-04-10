@@ -8,6 +8,7 @@
 #include "MouseInputInterface.h"
 #include <Components/BoxComponent.h>
 #include "Data/RecipeData.h"
+#include "Data/DropData.h"
 #include "CardStack.generated.h"
 
 UCLASS()
@@ -20,6 +21,9 @@ class STSL_API ACardStack : public AActor
 
 	UPROPERTY(VisibleAnywhere, Category = "Crafting")
 	UDataTable* CraftingRecipeTable;
+
+	UPROPERTY(VisibleAnywhere, Category = "Crafting")
+	UDataTable* DropTable;
 
 	// X Offset between cards
 	UPROPERTY(EditDefaultsOnly, Category = "CardStack")
@@ -75,9 +79,13 @@ protected:
 
 	bool CheckCraftingRecipe(FRecipeData *Recipe);
 
+	bool CheckDropRecipe(FDropData* Recipe);
+
 	void UpdateCraftingRecipe();
 
 	void CompleteCrafting();
+
+	void CompleteProducing();
 
 public:	
 	// Called every frame
