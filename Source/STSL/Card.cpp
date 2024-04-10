@@ -27,7 +27,6 @@ ACard::ACard()
         VisualMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
         VisualMesh->SetNotifyRigidBodyCollision(true);
         VisualMesh->SetMassOverrideInKg(NAME_None, CardMass, true);
-        VisualMesh->SetLinearDamping(1.0f);
         //VisualMesh->SetPhysMaterialOverride(CardPhysicalMeterial.Object);
         VisualMesh->BodyInstance.bLockXRotation = true;
         VisualMesh->BodyInstance.bLockYRotation = true;
@@ -213,7 +212,7 @@ void ACard::StartHover(float HoveringHeight)
     VisualMesh->SetSimulatePhysics(false);
     FVector Location = GetActorLocation();
     Location.Z = HoveringHeight;
-    SetActorLocation(Location);
+    SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
 }
 
 void ACard::EndHover()
@@ -281,6 +280,7 @@ void ACard::Push()
     float RandomY = FMath::RandRange(-1 * PushVector.X, PushVector.X);
     FVector RandomPushVector = FVector(RandomX, RandomY, PushVector.Z);
     VisualMesh->AddImpulse(RandomPushVector);
+    bFloating = true;
 }
 
 void ACard::Push(FVector Force)
