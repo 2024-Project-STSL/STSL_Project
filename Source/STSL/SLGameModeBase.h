@@ -41,5 +41,5 @@ public:
 	ACardStack* GetDraggingStack() const { return DraggingStack; };
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack", BlueprintPure = false)
-	ACardStack* SpawnCard(FVector Location, int CardID) const;
+	ACardStack* SpawnCard(FVector Location, int CardID);
 };

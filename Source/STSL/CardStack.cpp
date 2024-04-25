@@ -75,9 +75,9 @@ bool ACardStack::CheckCraftingRecipe(FRecipeData* Recipe)
 
 bool ACardStack::CheckDropRecipe(FDropData* Recipe)
 {
-	// 스택의 맨 아래 카드가 사람인지 확인하고
 	if (Cards.Num() < 2) return false;
-	
+
+	// 스택의 맨 아래 카드가 사람인지 확인하고
 	// TODO: 지금은 ID=4(사람)이면 충분하지만 추후 직업을 가진 사람도 판단해야 함
 	if (GetLastCard()->GetCardID() != 4) return false;
 

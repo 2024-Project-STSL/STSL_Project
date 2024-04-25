@@ -39,8 +39,10 @@ void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* NewDragg
 	}
 }
 
-ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID) const
+ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 {
+	DraggingStack = nullptr;
+
 	AActor* NewCardStackActor = GetWorld()->SpawnActor
 	(
 		ACardStack::StaticClass(),
