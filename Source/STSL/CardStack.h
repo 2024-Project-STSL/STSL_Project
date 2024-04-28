@@ -65,6 +65,10 @@ class STSL_API ACardStack : public AActor
 	UPROPERTY(VisibleAnywhere, Category = "Crafting")
 	float CraftingProgress = 0.0f;
 
+	// 생산된 카드의 주변 스택 검색 범위
+	UPROPERTY(EditAnywhere, Category = "CardStack")
+	float SearchDistance = 500.0f;
+
 public:	
 	// Sets default values for this actor's properties
 	ACardStack();
@@ -119,6 +123,9 @@ public:
 
 	// 상대 스택에 이 스택이 쌓일 수 있는가?
 	static bool GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack);
+	
+	// ExceptionStack: 검색 예외 스택, 생산된 카드에서는 생산지를 지정해 사용
+	ACardStack* GetNearestStackable(float StackSearchDistance, ACardStack* ExceptionStack = nullptr);
 
 	// 기준 index 이전의 스택을 나누어 새로운 스택으로 만듦
 	static void SplitCardStack(ACardStack* CardStack, int32 Index);

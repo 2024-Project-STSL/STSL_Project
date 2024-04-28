@@ -35,6 +35,9 @@ public:
 	void RemoveCardStack(ACardStack* CardStack);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	TArray<ACardStack*> GetAllCardStacks() const { return CardStacks; };
+
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void SetCardHighlight(bool bCardHighlight, ACardStack* NewDraggingStack = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")

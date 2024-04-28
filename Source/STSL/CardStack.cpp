@@ -203,7 +203,6 @@ void ACardStack::CompleteProducing()
 
 		ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
 		ACardStack* NewCardStack = nullptr;
-		int CardToSpawn = 0;
 		int TotalWeight = 0;
 		for (int CardWeight : DropData->DropWeight)
 		{
@@ -221,7 +220,14 @@ void ACardStack::CompleteProducing()
 		}
 		if (NewCardStack != nullptr)
 		{
-			Cast<ACard>(NewCardStack->Cards[0])->Push();
+			ACardStack* NearestStackable = NewCardStack->GetNearestStackable(SearchDistance, this);
+			if (NearestStackable != nullptr)
+			{
+				NearestStackable->AddCard(NewCardStack->Cards[0]);
+			}
+			else {
+				Cast<ACard>(NewCardStack->Cards[0])->Push();
+			}
 		}
 		// 생산지 카드 = 뒤에서 2번째 카드
 		ACard* Card = Cast<ACard>(Cards[Cards.Num()-2]);
@@ -496,6 +502,30 @@ bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 
 	// 임시: 항상 true 반환
 	return true;
+}
+
+ACardStack* ACardStack::GetNearestStackable(float StackSearchDistance, ACardStack* ExceptionStack)
+{
+	float MinDistance = StackSearchDistance;
+	ACardStack* NearestStackableStack = nullptr;
+
+	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+	TArray<ACardStack*> AllCardStacks = SLGameMode->GetAllCardStacks();
+	
+	for (ACardStack* CardStack : AllCardStacks)
+	{
+		if (CardStack == this) continue;
+		if (ExceptionStack != nullptr && ExceptionStack == CardStack) continue;
+
+		float Distance = GetDistanceTo(CardStack);
+		if (Distance <= MinDistance && CardStack->GetCardStackable(this, CardStack))
+		{
+			NearestStackableStack = CardStack;
+			MinDistance = Distance;
+		}
+	}
+
+	return NearestStackableStack;
 }
 
 // 1번 Index 기준으로 나누어라 = 0번 Index까지 스택 하나, 1번 Index부터 스택 하나

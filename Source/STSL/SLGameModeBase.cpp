@@ -16,7 +16,6 @@ void ASLGameModeBase::RemoveCardStack(ACardStack* CardStack)
 	CardStacks.Remove(CardStack);
 }
 
-
 void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* NewDraggingStack)
 {
 	bIsCardHighlight = bCardHighlight;
