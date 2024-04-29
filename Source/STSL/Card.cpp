@@ -166,7 +166,7 @@ void ACard::SetAddTypeValue(int Value)
     CardData.AddTypeValue = Value;
     if (CardData.AddTypeValue == 0)
     {
-        if (CardData.AddType == AddType::dropvalue)
+        if (CardData.AddType == AddType::dropable)
         {
             Cast<ACardStack>(CardStack)->RemoveCard(this, true);
         }

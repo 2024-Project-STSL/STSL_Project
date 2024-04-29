@@ -10,17 +10,21 @@ UENUM(BlueprintType)
 enum class CardType {
 	normal = 0,
 	resource,
-	living,
+	coin,
 	food,
-	gear
-
+	equip,
+	person,
+	enemy,
+	netural,
+	extendment,
+	production
 };
 
 UENUM(BlueprintType)
 enum class AddType {
 	nope = 0,
-	dropvalue,
-	foodvalue
+	dropable,
+	foodable
 };
 
 USTRUCT(Atomic, BlueprintType)

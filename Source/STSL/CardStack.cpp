@@ -81,7 +81,7 @@ bool ACardStack::CheckDropRecipe(FDropData* Recipe)
 	// TODO: 지금은 ID=4(사람)이면 충분하지만 추후 직업을 가진 사람도 판단해야 함
 	if (GetLastCard()->GetCardID() != 4) return false;
 
-	if (Cast<ACard>(Cards[Cards.Num() - 2])->GetAddType() == AddType::dropvalue) return true;
+	if (Cast<ACard>(Cards[Cards.Num() - 2])->GetAddType() == AddType::dropable) return true;
 	
 	return false;
 }
@@ -231,7 +231,7 @@ void ACardStack::CompleteProducing()
 		}
 		// 생산지 카드 = 뒤에서 2번째 카드
 		ACard* Card = Cast<ACard>(Cards[Cards.Num()-2]);
-		if (Card->GetAddType() == AddType::dropvalue)
+		if (Card->GetAddType() == AddType::dropable)
 		{
 			Card->SetAddTypeValue(Card->GetAddTypeValue() - 1);
 		}
