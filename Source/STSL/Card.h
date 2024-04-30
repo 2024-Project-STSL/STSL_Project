@@ -80,6 +80,8 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(EditDefaultsOnly)
 	FVector PushVector = FVector(1000.0f, 1000.0f, 3000.0f);
 
+	TMap<FString, float> WorldBorder;
+
 public:	
 	// Sets default values for this actor's properties
 	ACard();

@@ -3,6 +3,7 @@
 #include "Card.h"
 #include "CardStack.h"
 #include "CraftingProgressBarWidget.h"
+#include "SLGameModeBase.h"
 #include <Kismet/GameplayStatics.h>
 
 // Sets default values
@@ -178,6 +179,18 @@ void ACard::BeginPlay()
 {
 	Super::BeginPlay();
     VisualMesh->OnComponentHit.AddDynamic(this, &ACard::OnHit);
+
+    FVector Origin;
+    FVector BoxExtent;
+    GetActorBounds(true, Origin, BoxExtent);
+
+    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+    WorldBorder = SLGameMode->GetWorldBorder(true);
+
+    WorldBorder["Left"] += BoxExtent.Y;
+    WorldBorder["Right"] -= BoxExtent.Y;
+    WorldBorder["Down"] += BoxExtent.X;
+    WorldBorder["Up"] -= BoxExtent.X;
 }
 
 // Called every frame
@@ -258,6 +271,8 @@ void ACard::MoveCardToCursor(float FloatingHeight)
 {
     FVector HitLocation = GetMouseHitLocation();
     FVector NewLocation = (CardOffset + HitLocation);
+    NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorder["Down"], WorldBorder["Up"]);
+    NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorder["Left"], WorldBorder["Right"]);
     NewLocation.Z = FloatingHeight;
     SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
 }
