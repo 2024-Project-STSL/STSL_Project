@@ -27,20 +27,20 @@ class STSL_API ACardStack : public AActor
 
 	// X Offset between cards
 	UPROPERTY(EditDefaultsOnly, Category = "CardStack")
-	float XOffset = -50.0f;
+	float XOffset = -100.0f;
 
 	// Z Offset between cards
 	UPROPERTY(EditDefaultsOnly, Category = "CardStack")
-	float ZOffset = 2.0f;
+	float ZOffset = 4.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Move")
-	float HoveringHeight = 10.0f;
+	float HoveringHeight = 20.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Move")
-	float FloatingHeight = 20.0f;
+	float FloatingHeight = 40.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Move")
-	float HeightOffset = 0.2f;
+	float HeightOffset = 0.4f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float Collsionforce = 50.0f;

@@ -25,7 +25,7 @@ ACard::ACard()
         VisualMesh->SetSimulatePhysics(true);
         VisualMesh->BodyInstance.bUseCCD = true;
         VisualMesh->BodyInstance.UpdateInstanceSimulatePhysics();
-        VisualMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+        VisualMesh->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
         VisualMesh->SetNotifyRigidBodyCollision(true);
         VisualMesh->SetMassOverrideInKg(NAME_None, CardMass, true);
         //VisualMesh->SetPhysMaterialOverride(CardPhysicalMeterial.Object);
