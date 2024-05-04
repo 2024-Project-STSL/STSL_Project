@@ -127,7 +127,7 @@ void ACard::LoadCard()
     }
     TitleText->SetText(FText::FromString(CardData.CardName));
     TitleText->SetWorldSize(FMath::Clamp(FontSize*6/CardData.CardName.Len(), 10.0f, 80.0f));
-    if (CardData.CardPrice >= 1)
+    if (CardData.CardPrice >= 0)
     {
         SellPriceText->SetText(FText::AsNumber(CardData.CardPrice));
     } else {
@@ -185,12 +185,19 @@ void ACard::BeginPlay()
     GetActorBounds(true, Origin, BoxExtent);
 
     ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-    WorldBorder = SLGameMode->GetWorldBorder(true);
+   
+    WorldBorder = SLGameMode->GetWorldBorder(false);
+    WorldBorderWithoutBuyArea = SLGameMode->GetWorldBorder(true);
 
     WorldBorder["Left"] += BoxExtent.Y;
     WorldBorder["Right"] -= BoxExtent.Y;
     WorldBorder["Down"] += BoxExtent.X;
     WorldBorder["Up"] -= BoxExtent.X;
+
+    WorldBorderWithoutBuyArea["Left"] += BoxExtent.Y;
+    WorldBorderWithoutBuyArea["Right"] -= BoxExtent.Y;
+    WorldBorderWithoutBuyArea["Down"] += BoxExtent.X;
+    WorldBorderWithoutBuyArea["Up"] -= BoxExtent.X;
 }
 
 // Called every frame
@@ -289,14 +296,14 @@ void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimiti
 
         CardStackActor->HandleStackCollision(OtherCard);
     }
-    else if (OtherActor->GetName() == TEXT("Floor"))
+    else if (OtherActor->GetRootComponent()->GetName() == TEXT("SellAreaMesh"))
     {
         ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
-        if (bFloating)
-        {
-            CardStackActor->UpdatePosition(true);
-            bFloating = false;
-        }
+        Cast<IBuySellInterface>(OtherActor)->SellCard(CardStackActor);
+    }
+    else if (OtherActor->GetName() == TEXT("Floor"))
+    {
+        UpdateGroundPosition();
     }
 }
 
@@ -333,5 +340,19 @@ void ACard::UpdateProgressBar(float Current)
     if (CraftingProgressBar != nullptr)
     {
         CraftingProgressBar->SetProgress(Current);
+    }
+}
+
+void ACard::UpdateGroundPosition()
+{
+    ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
+    if (bFloating)
+    {
+        FVector NewLocation = GetActorLocation();
+        NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
+        NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorderWithoutBuyArea["Left"], WorldBorderWithoutBuyArea["Right"]);
+        SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
+        CardStackActor->UpdatePosition(true);
+        bFloating = false;
     }
 }

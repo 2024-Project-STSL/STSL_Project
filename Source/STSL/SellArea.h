@@ -7,10 +7,11 @@
 #include <Components/TextRenderComponent.h>
 #include <Components/WidgetComponent.h>
 #include "Engine/Font.h"
+#include "BuySellInterface.h"
 #include "SellArea.generated.h"
 
 UCLASS()
-class STSL_API ASellArea : public AActor
+class STSL_API ASellArea : public AActor, public IBuySellInterface
 {
 	GENERATED_BODY()
 	
@@ -39,5 +40,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void SellCard(ACardStack* CardStack) override;
 
 };

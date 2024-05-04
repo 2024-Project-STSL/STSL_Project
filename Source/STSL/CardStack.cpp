@@ -267,6 +267,36 @@ void ACardStack::UpdatePosition(bool bFalling)
 	}
 }
 
+bool ACardStack::GetIsSellable() const
+{
+	bool bSellable = true;
+	for (AActor* CardActor : Cards)
+	{
+		ACard* Card = Cast<ACard>(CardActor);
+		if (Card->GetCardPrice() == -1) 
+		{
+			bSellable = false;
+			break;
+		}
+	}
+	return bSellable;
+}
+
+int ACardStack::GetPriceSum() const
+{
+	int PriceSum = 0;
+	for (AActor* CardActor : Cards)
+	{
+		ACard* Card = Cast<ACard>(CardActor);
+		int Price = Card->GetCardPrice();
+		if (Price != -1)
+		{
+			PriceSum += Price;
+		}
+	}
+	return PriceSum;
+}
+
 // Called every frame
 void ACardStack::Tick(float DeltaTime)
 {
@@ -372,7 +402,7 @@ void ACardStack::RemoveCard(TArray<AActor*> NewCards, bool bDespawn)
 
 	for (int32 i = 0; i < NewCards.Num(); i++)
 	{
-		RemoveCard(NewCards[i]);
+		RemoveCard(NewCards[i], bDespawn);
 	}
 }
 
@@ -405,6 +435,11 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 		RemoveFromGamemode();
 		Destroy();
 	}
+}
+
+void ACardStack::RemoveAllCards(bool bDespawn)
+{
+	RemoveCard(Cards, bDespawn);
 }
 
 AActor* ACardStack::FindMouseSender(FVector Location) const

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MouseInputInterface.h"
+#include "BuySellInterface.h"
 #include <Components/TextRenderComponent.h>
 #include <Components/WidgetComponent.h>
 #include "Data/CardData.h"
@@ -81,6 +82,7 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	FVector PushVector = FVector(1000.0f, 1000.0f, 3000.0f);
 
 	TMap<FString, float> WorldBorder;
+	TMap<FString, float> WorldBorderWithoutBuyArea;
 
 public:	
 	// Sets default values for this actor's properties
@@ -104,6 +106,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int GetAddTypeValue() const { return CardData.AddTypeValue; }
+
+	UFUNCTION(BlueprintCallable)
+	int GetCardPrice() const { return CardData.CardPrice; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -150,4 +155,7 @@ public:
 
 	void UpdateProgressBar(float Current);
 	void UpdateProgressBar(float Current, float Max);
+
+	// 땅에 닿은 카드(스택)의 위치 재조정
+	void UpdateGroundPosition();
 };

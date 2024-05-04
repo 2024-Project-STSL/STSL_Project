@@ -104,6 +104,7 @@ public:
 	void RemoveCard(int32 Index, bool bDespawn = false);
 	void RemoveCard(AActor* Card, bool bDespawn = false);
 	void RemoveCard(TArray<AActor*> NewCards, bool bDespawn = false);
+	void RemoveAllCards(bool bDespawn = false);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	ACard* GetFirstCard() const { return Cast<ACard>(Cards[0]); }
@@ -137,4 +138,9 @@ public:
 	// 자신의 위치를 첫 카드의 위치로 반영하고
 	// 물리 엔진에 의해 조금씩 틀어지는 카드 위치 보정
 	void UpdatePosition(bool bFalling = false);
+
+	// 판매할 수 있는 스택인지 확인
+	bool GetIsSellable() const;
+
+	int GetPriceSum() const;
 };
