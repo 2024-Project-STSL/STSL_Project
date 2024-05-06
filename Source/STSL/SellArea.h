@@ -28,6 +28,9 @@ class STSL_API ASellArea : public AActor, public IBuySellInterface
 	UPROPERTY(EditAnywhere, Category = "Fonts")
 	float FontSize = 150.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Cards")
+	float CoinOffset = 1000.0f;
+
 public:	
 	// Sets default values for this actor's properties
 	ASellArea();
