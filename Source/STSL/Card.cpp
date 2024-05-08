@@ -321,7 +321,10 @@ void ACard::Push(FVector Force)
 {
     if (VisualMesh->IsSimulatingPhysics())
     {
-        SetActorLocation(GetActorLocation() + Force);
+        FVector NewLocation = GetActorLocation() + Force;
+        NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
+        NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorderWithoutBuyArea["Left"], WorldBorderWithoutBuyArea["Right"]);
+        SetActorLocation(NewLocation);
     }
 }
 
@@ -348,11 +351,58 @@ void ACard::UpdateGroundPosition()
     ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
     if (bFloating)
     {
-        FVector NewLocation = GetActorLocation();
+        FVector NewLocation, OldLocation;
+        NewLocation = OldLocation = GetActorLocation();
         NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
         NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorderWithoutBuyArea["Left"], WorldBorderWithoutBuyArea["Right"]);
+        
+        // 만약 좌표가 Clamp되었으면
+        if (FMath::Abs(NewLocation.X - OldLocation.X) > 0.001f || FMath::Abs(NewLocation.Y - OldLocation.Y) > 0.001f)
+        {
+            // 살짝 띄운 곳에 이동시켜 충돌 처리 등이 이루어지게
+            NewLocation.Z = 10.0f;
+            SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
+            CardStackActor->UpdatePosition(false);
+        }
+        else {
+            NewLocation.Z = 0.0f;
+            SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
+            CardStackActor->UpdatePosition(true);
+            bFloating = false;
+        }
+        
+        ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+        if (SLGameMode->GetDraggingStack() == CardStack)
+        {
+            SLGameMode->EmptyDraggingStack();
+        }
+    }
+}
+
+void ACard::UpdateWorldBorder(int Length)
+{
+    ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
+
+    FVector Origin;
+    FVector BoxExtent;
+    GetActorBounds(true, Origin, BoxExtent);
+
+    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+    
+    WorldBorder = SLGameMode->GetWorldBorder(false);
+    WorldBorder["Down"] += BoxExtent.X - CardStackActor->GetXOffset() * (Length - 1);
+
+    WorldBorderWithoutBuyArea = SLGameMode->GetWorldBorder(true);
+    WorldBorderWithoutBuyArea["Down"] += BoxExtent.X - CardStackActor->GetXOffset() * (Length - 1);
+
+    if (GetActorLocation().X < WorldBorder["Down"])
+    {
+        FVector NewLocation = GetActorLocation();
+        NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
+
+        // 살짝 띄운 곳에 이동시켜 충돌 처리 등이 이루어지게
+        NewLocation.Z = 10.0f;
         SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
-        CardStackActor->UpdatePosition(true);
-        bFloating = false;
+        CardStackActor->UpdatePosition(false);
     }
 }

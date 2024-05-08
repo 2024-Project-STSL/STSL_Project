@@ -53,6 +53,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	ACardStack* GetDraggingStack() const { return DraggingStack; };
 
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	void EmptyDraggingStack() { DraggingStack = nullptr; };
+
 	UFUNCTION(BlueprintCallable, Category = "CardStack", BlueprintPure = false)
 	ACardStack* SpawnCard(FVector Location, int CardID);
 };

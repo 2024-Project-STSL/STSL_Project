@@ -354,6 +354,7 @@ void ACardStack::AddCard(AActor* CardActor)
 		AActor* OldStackActor = Card->GetCardStack();
 
 		Card->SetCardStack(this);
+		GetFirstCard()->UpdateWorldBorder(Cards.Num());
 
 		if (OldStackActor != nullptr)
 		{
@@ -429,6 +430,7 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 	if (Cards.Num() > 0)
 	{
 		UpdateCraftingRecipe();
+		GetFirstCard()->UpdateWorldBorder(Cards.Num());
 	}
 	else
 	{
@@ -642,6 +644,14 @@ void ACardStack::GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVec
 	FVector ActorLocation = GetFirstCard()->GetActorLocation();
 	FVector OtherLocation = Other->GetActorLocation();
 	FVector CollisionVector = (ActorLocation - OtherLocation).GetSafeNormal(0.0001f);
+
+	// 영벡터 반환 시 임의 방향으로 충돌
+	if (CollisionVector.Size() < 0.0001f) {
+		CollisionVector.X = FMath::SRand() - 0.5f;
+		CollisionVector.Y = FMath::SRand() - 0.5f;
+		CollisionVector = CollisionVector.GetSafeNormal(0.0001f);
+	}
+
 	CollisionVector.Z = 0.0f;
 	CollisionVector *= Collsionforce;
 	SelfVector = CollisionVector;

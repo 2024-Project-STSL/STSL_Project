@@ -158,4 +158,6 @@ public:
 
 	// 땅에 닿은 카드(스택)의 위치 재조정
 	void UpdateGroundPosition();
+
+	void UpdateWorldBorder(int Length);
 };
