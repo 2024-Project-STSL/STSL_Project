@@ -297,6 +297,16 @@ int ACardStack::GetPriceSum() const
 	return PriceSum;
 }
 
+bool ACardStack::GetIsCoinStack() const
+{
+	for (AActor* CardActor : Cards)
+	{
+		ACard* Card = Cast<ACard>(CardActor);
+		if (Card->GetCardID() != 6) return false;
+	}
+	return true;
+}
+
 // Called every frame
 void ACardStack::Tick(float DeltaTime)
 {

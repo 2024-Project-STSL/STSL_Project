@@ -160,4 +160,5 @@ public:
 	void UpdateGroundPosition();
 
 	void UpdateWorldBorder(int Length);
+	void ResetWorldBorder();
 };

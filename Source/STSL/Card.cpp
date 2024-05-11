@@ -179,25 +179,7 @@ void ACard::BeginPlay()
 {
 	Super::BeginPlay();
     VisualMesh->OnComponentHit.AddDynamic(this, &ACard::OnHit);
-
-    FVector Origin;
-    FVector BoxExtent;
-    GetActorBounds(true, Origin, BoxExtent);
-
-    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-   
-    WorldBorder = SLGameMode->GetWorldBorder(false);
-    WorldBorderWithoutBuyArea = SLGameMode->GetWorldBorder(true);
-
-    WorldBorder["Left"] += BoxExtent.Y;
-    WorldBorder["Right"] -= BoxExtent.Y;
-    WorldBorder["Down"] += BoxExtent.X;
-    WorldBorder["Up"] -= BoxExtent.X;
-
-    WorldBorderWithoutBuyArea["Left"] += BoxExtent.Y;
-    WorldBorderWithoutBuyArea["Right"] -= BoxExtent.Y;
-    WorldBorderWithoutBuyArea["Down"] += BoxExtent.X;
-    WorldBorderWithoutBuyArea["Up"] -= BoxExtent.X;
+    ResetWorldBorder();
 }
 
 // Called every frame
@@ -296,10 +278,11 @@ void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimiti
 
         CardStackActor->HandleStackCollision(OtherCard);
     }
-    else if (OtherActor->GetRootComponent()->GetName() == TEXT("SellAreaMesh"))
+    else if (OtherActor->GetRootComponent()->GetName() == TEXT("CardAreaMesh"))
     {
         ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
         Cast<IBuySellInterface>(OtherActor)->SellCard(CardStackActor);
+        Cast<IBuySellInterface>(OtherActor)->BuyCard(CardStackActor);
     }
     else if (OtherActor->GetName() == TEXT("Floor"))
     {
@@ -389,11 +372,9 @@ void ACard::UpdateWorldBorder(int Length)
 
     ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
     
-    WorldBorder = SLGameMode->GetWorldBorder(false);
-    WorldBorder["Down"] += BoxExtent.X - CardStackActor->GetXOffset() * (Length - 1);
-
-    WorldBorderWithoutBuyArea = SLGameMode->GetWorldBorder(true);
-    WorldBorderWithoutBuyArea["Down"] += BoxExtent.X - CardStackActor->GetXOffset() * (Length - 1);
+    ResetWorldBorder();
+    WorldBorder["Down"] -= CardStackActor->GetXOffset() * (Length - 1);
+    WorldBorderWithoutBuyArea["Down"] -= CardStackActor->GetXOffset() * (Length - 1);
 
     if (GetActorLocation().X < WorldBorder["Down"])
     {
@@ -406,3 +387,26 @@ void ACard::UpdateWorldBorder(int Length)
         CardStackActor->UpdatePosition(false);
     }
 }
+
+void ACard::ResetWorldBorder()
+{
+    FVector Origin;
+    FVector BoxExtent;
+    GetActorBounds(true, Origin, BoxExtent);
+
+    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+
+    WorldBorder = SLGameMode->GetWorldBorder(false);
+    WorldBorderWithoutBuyArea = SLGameMode->GetWorldBorder(true);
+
+    WorldBorder["Left"] += BoxExtent.Y;
+    WorldBorder["Right"] -= BoxExtent.Y;
+    WorldBorder["Down"] += BoxExtent.X;
+    WorldBorder["Up"] -= BoxExtent.X;
+
+    WorldBorderWithoutBuyArea["Left"] += BoxExtent.Y;
+    WorldBorderWithoutBuyArea["Right"] -= BoxExtent.Y;
+    WorldBorderWithoutBuyArea["Down"] += BoxExtent.X;
+    WorldBorderWithoutBuyArea["Up"] -= BoxExtent.X;
+}
+

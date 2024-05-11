@@ -8,33 +8,30 @@
 #include <Components/WidgetComponent.h>
 #include "Engine/Font.h"
 #include "BuySellInterface.h"
-#include "CardArea.h"
-#include "SellArea.generated.h"
+#include "CardArea.generated.h"
 
 UCLASS()
-class STSL_API ASellArea : public ACardArea, public IBuySellInterface
+class STSL_API ACardArea : public AActor
 {
 	GENERATED_BODY()
-
-	UFont* CardFont;
-	UMaterial* CardFontMat;
 	
-	// 카드 제목 텍스트
+protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UTextRenderComponent* SellText;
+	UStaticMeshComponent* VisualMesh;
 
-	UPROPERTY(EditAnywhere, Category = "Fonts")
-	float FontSize = 150.0f;
+	UPROPERTY(EditAnywhere, Category = "Cards")
+	float OutputOffset = 1000.0f;
 
 public:	
 	// Sets default values for this actor's properties
-	ASellArea();
-
+	ACardArea();
 
 protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 public:	
-
-	virtual void SellCard(ACardStack* CardStack) override;
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 };
