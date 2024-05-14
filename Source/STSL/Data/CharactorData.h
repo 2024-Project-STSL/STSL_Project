@@ -19,7 +19,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int CharHealth;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int CharSpeed;
+	float CharSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int CharAttack;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
