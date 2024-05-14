@@ -17,7 +17,8 @@ enum class CardType {
 	enemy,
 	netural,
 	extendment,
-	production
+	production,
+	pack
 };
 
 UENUM(BlueprintType)

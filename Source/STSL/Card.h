@@ -28,19 +28,43 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere)
-	AActor* CardStack;
-
-	UPROPERTY(VisibleAnywhere)
 	class UDataTable* CardDataTable;
-
-	UPROPERTY(VisibleAnywhere)
-	FCardData CardData;
 
 	UFont* CardFont;
 	UMaterial* CardFontMat;
 
+	// 조합 진행 바
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UWidgetComponent* CraftingProgressWidget;
+
+	UPROPERTY(VisibleAnywhere)
+	FVector CardOffset;
+
+	UPROPERTY(EditDefaultsOnly)
+	float CardMass = 10.0f;
+
+	UPROPERTY(VisibleAnywhere)
+	bool bShowProgressBar = false;
+
+	UPROPERTY(VisibleAnywhere)
+	bool bFloating = false;
+	
+	// 제작 완료된 카드가 날아갈 힘 - -X~X, -Y~Y, 0~Z
+	UPROPERTY(EditDefaultsOnly)
+	FVector PushVector = FVector(1000.0f, 1000.0f, 3000.0f);
+
+	TMap<FString, float> WorldBorder;
+	TMap<FString, float> WorldBorderWithoutBuyArea;
+
+protected:
+	UPROPERTY(VisibleAnywhere)
+	AActor* CardStack;
+
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* VisualMesh;
+
+	UPROPERTY(VisibleAnywhere)
+	FCardData CardData;
 
 	// 카드 제목 텍스트
 	UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -58,31 +82,8 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UWidgetComponent* CardImageWidget;
 
-	// 조합 진행 바
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UWidgetComponent* CraftingProgressWidget;
-
-	UPROPERTY(VisibleAnywhere)
-	FVector CardOffset;
-
-	UPROPERTY(EditDefaultsOnly)
-	float CardMass = 10.0f;
-
 	UPROPERTY(EditDefaultsOnly)
 	float FontSize = 80.0f;
-
-	UPROPERTY(VisibleAnywhere)
-	bool bShowProgressBar = false;
-
-	UPROPERTY(VisibleAnywhere)
-	bool bFloating = false;
-	
-	// 제작 완료된 카드가 날아갈 힘 - -X~X, -Y~Y, 0~Z
-	UPROPERTY(EditDefaultsOnly)
-	FVector PushVector = FVector(1000.0f, 1000.0f, 3000.0f);
-
-	TMap<FString, float> WorldBorder;
-	TMap<FString, float> WorldBorderWithoutBuyArea;
 
 public:	
 	// Sets default values for this actor's properties
@@ -93,10 +94,13 @@ public:
 	int32 GetCardID() const { return CardData.CardCode; }
 
 	UFUNCTION(BlueprintCallable, Category = "CardID")
-	void SetCardID(int32 NewCardID) { CardData.CardCode = NewCardID; LoadCard(); }
+	virtual void SetCardID(int32 NewCardID) { CardData.CardCode = NewCardID; LoadCard(); }
 
 	UFUNCTION(BlueprintCallable)
 	void SetShowProgressBar(bool NewShowProgressBar);
+
+	UFUNCTION(BlueprintCallable)
+	CardType GetCardType() const { return CardData.CardType; }
 
 	UFUNCTION(BlueprintCallable)
 	AddType GetAddType() const { return CardData.AddType; }
@@ -117,7 +121,7 @@ protected:
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	void LoadCard();
+	virtual void LoadCard();
 
 public:	
 	// Called every frame
@@ -141,10 +145,10 @@ public:
 	void EndHover();
 
 	virtual void StartDrag() override;
-	void StartCardDrag();
+	virtual void StartCardDrag();
 
 	virtual void EndDrag() override;
-	void EndCardDrag();
+	virtual void EndCardDrag();
 
 	virtual void MoveToCursor() override;
 	void MoveCardToCursor(float FloatingHeight);

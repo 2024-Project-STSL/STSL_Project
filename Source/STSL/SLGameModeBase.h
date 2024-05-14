@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "CardStack.h"
 #include "Card.h"
+#include "CardPack.h"
 #include "SLGameModeBase.generated.h"
 
 /**
@@ -58,4 +59,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack", BlueprintPure = false)
 	ACardStack* SpawnCard(FVector Location, int CardID);
+
+	UFUNCTION(BlueprintCallable, Category = "CardStack", BlueprintPure = false)
+	ACardStack* SpawnCardPack(FVector Location, int PackID);
 };

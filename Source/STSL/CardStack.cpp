@@ -226,7 +226,7 @@ void ACardStack::CompleteProducing()
 				NearestStackable->AddCard(NewCardStack->Cards[0]);
 			}
 			else {
-				Cast<ACard>(NewCardStack->Cards[0])->Push();
+				NewCardStack->GetFirstCard()->Push();
 			}
 		}
 		// 생산지 카드 = 뒤에서 2번째 카드
@@ -541,6 +541,12 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 
 bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 {
+	// 카드팩은 스택할 수 없음
+	if (CardStack->GetFirstCard()->GetCardType() == CardType::pack || OtherStack->GetFirstCard()->GetCardType() == CardType::pack)
+	{
+		return false;
+	}
+
 	// TODO: 정확한 카드 스택 조건 구현
 	
 	// (상대의 마지막 카드 ID == 내 첫 카드 ID면 true)

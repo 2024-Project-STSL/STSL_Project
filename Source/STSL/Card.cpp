@@ -126,7 +126,7 @@ void ACard::LoadCard()
         if (RowData != nullptr) CardData = *RowData;
     }
     TitleText->SetText(FText::FromString(CardData.CardName));
-    TitleText->SetWorldSize(FMath::Clamp(FontSize*6/CardData.CardName.Len(), 10.0f, 80.0f));
+    TitleText->SetWorldSize(FMath::Clamp(FontSize * 6.0f / CardData.CardName.Len(), FontSize / 8.0f, FontSize));
     if (CardData.CardPrice >= 0)
     {
         SellPriceText->SetText(FText::AsNumber(CardData.CardPrice));

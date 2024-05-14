@@ -87,3 +87,31 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 
 	return NewCardStack;
 }
+
+ACardStack* ASLGameModeBase::SpawnCardPack(FVector Location, int PackID)
+{
+	DraggingStack = nullptr;
+
+	AActor* NewCardStackActor = GetWorld()->SpawnActor
+	(
+		ACardStack::StaticClass(),
+		&Location
+	);
+
+	if (NewCardStackActor == nullptr) return nullptr;
+	ACardStack* NewCardStack = Cast<ACardStack>(NewCardStackActor);
+
+	AActor* NewCardActor = GetWorld()->SpawnActor
+	(
+		ACardPack::StaticClass(),
+		&Location
+	);
+
+	if (NewCardActor == nullptr) return nullptr;
+	ACardPack* NewCard = Cast<ACardPack>(NewCardActor);
+
+	NewCard->SetCardID(PackID);
+	NewCardStack->AddCard(NewCardActor);
+
+	return NewCardStack;
+}
