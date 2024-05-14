@@ -77,13 +77,13 @@ bool ACardStack::CheckDropRecipe(FDropData* Recipe)
 {
 	if (Cards.Num() < 2) return false;
 
-	// 스택의 맨 아래 카드가 사람인지 확인하고
-	// TODO: 지금은 ID=4(사람)이면 충분하지만 추후 직업을 가진 사람도 판단해야 함
-	if (GetLastCard()->GetCardID() != 4) return false;
+	if (GetLastCard()->GetCardType() != CardType::person) return false;
 
-	if (Cast<ACard>(Cards[Cards.Num() - 2])->GetAddType() == AddType::dropable) return true;
+	ACard* ProductionCard = Cast<ACard>(Cards[Cards.Num() - 2]);
+
+	if (ProductionCard->GetAddType() != AddType::dropable) return false;
 	
-	return false;
+	return (ProductionCard->GetCardID() == Recipe->CardCode);
 }
 
 void ACardStack::UpdateCraftingRecipe()
