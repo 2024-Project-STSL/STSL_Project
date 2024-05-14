@@ -48,10 +48,10 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 
 	UPROPERTY(VisibleAnywhere)
 	bool bFloating = false;
-	
-	// 제작 완료된 카드가 날아갈 힘 - -X~X, -Y~Y, 0~Z
+
+	// 제작 완료된 카드가 날아갈 힘 - ±(X/2~X), ±(Y/2~Y), 0~Z
 	UPROPERTY(EditDefaultsOnly)
-	FVector PushVector = FVector(1000.0f, 1000.0f, 3000.0f);
+	FVector PushVector = FVector(6000.0f, 6000.0f, 3000.0f);
 
 	TMap<FString, float> WorldBorder;
 	TMap<FString, float> WorldBorderWithoutBuyArea;
@@ -84,6 +84,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	float FontSize = 80.0f;
+
+	// Push 이후 처음으로 땅에 떨어질 때까지 드래깅 방지
+	UPROPERTY(VisibleAnywhere)
+	bool bPreventDragging = false;
 
 public:	
 	// Sets default values for this actor's properties

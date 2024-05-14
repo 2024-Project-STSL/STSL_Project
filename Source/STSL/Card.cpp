@@ -201,6 +201,7 @@ void ACard::SendMovementToStack(ECardMovement Movement)
 
 void ACard::StartMouseHover()
 {
+    if (bPreventDragging) return;
     SendMovementToStack(ECardMovement::StartHover);
 }
 void ACard::EndMouseHover()
@@ -209,6 +210,7 @@ void ACard::EndMouseHover()
 }
 void ACard::StartDrag()
 {
+    if (bPreventDragging) return;
     SendMovementToStack(ECardMovement::StartDrag);
 }
 void ACard::EndDrag()
@@ -293,22 +295,22 @@ void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimiti
 // 힘을 지정하지 않은 Push()는 카드 소환 튀어나오기 연출에 사용
 void ACard::Push()
 {
-    float RandomX = FMath::RandRange(-1 * PushVector.X, PushVector.X);
-    float RandomY = FMath::RandRange(-1 * PushVector.X, PushVector.X);
+    float RandomX = FMath::RandRange(PushVector.X/2.0f, PushVector.X);
+    float RandomY = FMath::RandRange(PushVector.Y/2.0f, PushVector.Y);
+    RandomX *= FMath::RandBool() ? 1 : -1;
+    RandomY *= FMath::RandBool() ? 1 : -1;
     FVector RandomPushVector = FVector(RandomX, RandomY, PushVector.Z);
     VisualMesh->AddImpulse(RandomPushVector);
     bFloating = true;
+    bPreventDragging = true;
 }
 
 void ACard::Push(FVector Force)
 {
-    if (VisualMesh->IsSimulatingPhysics())
-    {
-        FVector NewLocation = GetActorLocation() + Force;
-        NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
-        NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorderWithoutBuyArea["Left"], WorldBorderWithoutBuyArea["Right"]);
-        SetActorLocation(NewLocation);
-    }
+    FVector NewLocation = GetActorLocation() + Force;
+    NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
+    NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorderWithoutBuyArea["Left"], WorldBorderWithoutBuyArea["Right"]);
+    SetActorLocation(NewLocation);
 }
 
 void ACard::UpdateProgressBar(float Current, float Max)
@@ -352,6 +354,7 @@ void ACard::UpdateGroundPosition()
             SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
             CardStackActor->UpdatePosition(true);
             bFloating = false;
+            bPreventDragging = false;
         }
         
         ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));

@@ -23,7 +23,7 @@ class STSL_API ACardPack : public ACard
 	UDataTable* CardPackDataTable;
 	
 	// 드래그를 시작한 포지션
-	FVector StartDragPos;
+	FVector2D StartDragPos;
 
 	// 과 드래그 끝 포지션이 이보다 작으면 카드팩 개봉
 	float OpenThreshold = 30.0f;

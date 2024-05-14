@@ -6,6 +6,7 @@
 #include "Card.h"
 #include "SLGameModeBase.h"
 #include <Kismet/GameplayStatics.h>
+#include <Blueprint/WidgetLayoutLibrary.h>
 
 void ACardPack::LoadCard()
 {
@@ -80,14 +81,15 @@ void ACardPack::SetCardID(int32 NewCardID)
 void ACardPack::StartCardDrag()
 {
     Super::StartCardDrag();
-    StartDragPos = GetActorLocation();
+    StartDragPos = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetWorld());
 }
 
 void ACardPack::EndCardDrag()
 {
     Super::EndCardDrag();
-    if (FVector2D(StartDragPos - GetActorLocation()).Length() < OpenThreshold)
+    if ((StartDragPos - UWidgetLayoutLibrary::GetMousePositionOnViewport(GetWorld())).Length() < OpenThreshold)
     {
+        bPreventDragging = true;
         SpawnCard();
     }
 }
@@ -101,7 +103,7 @@ void ACardPack::SpawnCard()
     FVector Location = GetActorLocation();
     Location.Z = 1.0f;
     SetActorLocation(Location);
-    Location.Z += 50.0f;
+    Location.Z += 10.0f;
 
     int TotalWeight = 0;
     for (int CardWeight : CardPackData.CardWeight)
