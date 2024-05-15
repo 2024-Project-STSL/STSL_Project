@@ -3,10 +3,18 @@
 
 #include "BuyArea.h"
 #include "CardStack.h"
+#include "SLGameModeBase.h"
+#include <Kismet/GameplayStatics.h>
 
 // Sets default values
 ABuyArea::ABuyArea()
 {
+    static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CardPackDB.CardPackDB'"));
+    if (DataTable.Succeeded())
+    {
+        CardPackDataTable = DataTable.Object;
+    }
+
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
@@ -32,7 +40,7 @@ ABuyArea::ABuyArea()
     PackNameText->SetWorldSize(NameFontSize);
     PackNameText->SetMaterial(0, CardFontMat);
     PackNameText->SetFont(CardFont);
-    PackNameText->SetText(FText::FromString(TEXT("Dummy")));
+    PackNameText->SetText(FText::FromString(CardPackData.PackName));
     PackNameText->SetupAttachment(VisualMesh);
 
     PackPriceText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("PriceText"));
@@ -43,8 +51,31 @@ ABuyArea::ABuyArea()
     PackPriceText->SetWorldSize(PriceFontSize);
     PackPriceText->SetMaterial(0, CardFontMat);
     PackPriceText->SetFont(CardFont);
-    PackPriceText->SetText(FText::AsNumber(TotalCardPrice));
+    PackPriceText->SetText(FText::AsNumber(CardPackData.PackPrice));
     PackPriceText->SetupAttachment(VisualMesh);
+
+    CurrentCardPrice = CardPackData.PackPrice;
+    LoadArea();
+}
+
+void ABuyArea::BeginPlay()
+{
+    LoadArea();
+}
+
+void ABuyArea::LoadArea()
+{
+    if (CardPackDataTable != nullptr)
+    {
+        FName RowName = FName(*FString::FromInt(CardPackData.PackCode));
+        FCardPackData* RowData = CardPackDataTable->FindRow<FCardPackData>(RowName, TEXT(""));
+        if (RowData != nullptr) CardPackData = *RowData;
+    }
+
+    PackNameText->SetText(FText::FromString(CardPackData.PackName));
+    PackNameText->SetWorldSize(FMath::Clamp(NameFontSize * 4.0f / CardPackData.PackName.Len(), NameFontSize / 8.0f, NameFontSize));
+    CurrentCardPrice = CardPackData.PackPrice;
+    UpdatePriceText();
 }
 
 void ABuyArea::UpdatePriceText()
@@ -64,8 +95,22 @@ void ABuyArea::BuyCard(ACardStack* CardStack)
     {
         // 코인 가격이 1이므로 코인 가격 = 개수
         CurrentCardPrice -= CardStack->GetPriceSum();
-        UpdatePriceText();
         CardStack->RemoveAllCards(true);
+
+        ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+        int Charge;
+        FVector Location = GetActorLocation();
+
+        if (CurrentCardPrice <= 0)
+        {
+            Charge = CurrentCardPrice * -1;
+            SpawnCoinStack(Location, Charge);
+            CurrentCardPrice = CardPackData.PackValue;
+            Location.X -= OutputOffset * 1.2f;
+            SLGameMode->SpawnCardPack(Location, CardPackData.PackCode);
+        }
+
+        UpdatePriceText();
     }
     else {
         CardStack->GetFirstCard()->UpdateGroundPosition();

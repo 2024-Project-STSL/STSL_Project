@@ -15,12 +15,17 @@ class STSL_API ACardArea : public AActor
 {
 	GENERATED_BODY()
 	
+	// 코인 카드의 ID
+	UPROPERTY(EditAnywhere)
+	int CoinID = 6;
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* VisualMesh;
 
 	UPROPERTY(EditAnywhere, Category = "Cards")
 	float OutputOffset = 1000.0f;
+
 
 public:	
 	// Sets default values for this actor's properties
@@ -29,6 +34,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	void SpawnCoinStack(FVector Location, int Amount);
 
 public:	
 	// Called every frame

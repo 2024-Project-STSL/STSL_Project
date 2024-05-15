@@ -2,6 +2,9 @@
 
 
 #include "CardArea.h"
+#include "CardStack.h"
+#include "SLGameModeBase.h"
+#include <Kismet/GameplayStatics.h>
 
 // Sets default values
 ACardArea::ACardArea()
@@ -28,6 +31,26 @@ void ACardArea::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ACardArea::SpawnCoinStack(FVector Location, int Amount)
+{
+    if (Amount > 0)
+    {
+        TArray<ACardStack*> NewCoins;
+
+        ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+        Location.X -= OutputOffset;
+
+        for (int i = 0; i < Amount; i++)
+        {
+            NewCoins.Add(SLGameMode->SpawnCard(Location, CoinID));
+        }
+        for (int i = 1; i < Amount; i++)
+        {
+            NewCoins[0]->AddCard(NewCoins[i]->GetFirstCard());
+        }
+    }
 }
 
 // Called every frame
