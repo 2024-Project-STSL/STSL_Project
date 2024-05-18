@@ -9,9 +9,14 @@
 #include "CardPack.h"
 #include "SLGameModeBase.generated.h"
 
-/**
- * 
- */
+UENUM(BluePrintType)
+enum class GamePlayState : uint8 
+{
+	PlayState = 0,
+	BreakState,
+	PauseState
+};
+
 UCLASS()
 class STSL_API ASLGameModeBase : public AGameModeBase
 {
@@ -33,8 +38,38 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	UPROPERTY(EditAnywhere, Category = "World")
 	float BuyAreaHeight = 800.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Time")
+	GamePlayState CurrentPlayState = GamePlayState::PlayState;
+
+	UPROPERTY(EditAnywhere, Category = "Time")
+	int Day = 1;
+
+	// 각 일차에 주어진 시간
+	UPROPERTY(EditAnywhere, Category = "Time")
+	float TimeForDay = 120.0f;
+
+	// 현재 경과한 시간
+	UPROPERTY(EditAnywhere, Category = "Time")
+	float Time = 0.0f;
+
+protected:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 public:
 	ASLGameModeBase();
+
+	UFUNCTION(BlueprintCallable, Category = "Time")
+	void PauseGame();
+
+	UFUNCTION(BlueprintCallable, Category = "Time")
+	void ResumeGame();
+
+	UFUNCTION(BlueprintCallable, Category = "Time")
+	GamePlayState GetPlayState() const { return CurrentPlayState; }
+
+	UFUNCTION(BlueprintCallable, Category = "Time")
+	float GetDayProgressPercent() const;
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void AddCardStack(ACardStack* CardStack);

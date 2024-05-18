@@ -1,13 +1,52 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SLGameModeBase.h"
+#include <Kismet/GameplayStatics.h>
+
+void ASLGameModeBase::Tick(float DeltaTime)
+{
+	if (CurrentPlayState == GamePlayState::PlayState)
+	{
+		Time += DeltaTime;
+	}
+	if (Time >= TimeForDay)
+	{
+		Time = 0;
+		CurrentPlayState = GamePlayState::BreakState;
+		UGameplayStatics::SetGamePaused(GetWorld(), true);
+	}
+}
 
 ASLGameModeBase::ASLGameModeBase()
 {
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
 	WorldBorder.Add(TEXT("Left"), -3000.0f);
 	WorldBorder.Add(TEXT("Right"), 3000.0f);
 	WorldBorder.Add(TEXT("Down"), -2000.0f);
 	WorldBorder.Add(TEXT("Up"), 2000.0f);
+}
+
+void ASLGameModeBase::PauseGame()
+{
+	if (CurrentPlayState == GamePlayState::PlayState)
+	{
+		CurrentPlayState = GamePlayState::PauseState;
+	}
+}
+
+void ASLGameModeBase::ResumeGame()
+{
+	if (CurrentPlayState == GamePlayState::PauseState)
+	{
+		CurrentPlayState = GamePlayState::PlayState;
+	}
+}
+
+float ASLGameModeBase::GetDayProgressPercent() const
+{
+	return FMath::Clamp(Time / TimeForDay, 0.0f, 1.0f);
 }
 
 void ASLGameModeBase::AddCardStack(ACardStack* CardStack)

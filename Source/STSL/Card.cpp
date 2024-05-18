@@ -310,7 +310,7 @@ void ACard::Push(FVector Force)
     FVector NewLocation = GetActorLocation() + Force;
     NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
     NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorderWithoutBuyArea["Left"], WorldBorderWithoutBuyArea["Right"]);
-    SetActorLocation(NewLocation);
+    SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
 }
 
 void ACard::UpdateProgressBar(float Current, float Max)

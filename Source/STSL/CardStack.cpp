@@ -311,7 +311,10 @@ bool ACardStack::GetIsCoinStack() const
 void ACardStack::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (CraftingRecipeID != -1)
+
+	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+
+	if (CraftingRecipeID != -1 && SLGameMode->GetPlayState() == GamePlayState::PlayState)
 	{
 		CraftingProgress += DeltaTime;
 		GetFirstCard()->UpdateProgressBar(CraftingProgress);
