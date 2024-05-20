@@ -22,6 +22,8 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+	UUserWidget* MainMenu;
+
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TArray<ACardStack*> CardStacks;
 
@@ -55,6 +57,9 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintCallable)
+	void CreateMenu();
 
 public:
 	ASLGameModeBase();

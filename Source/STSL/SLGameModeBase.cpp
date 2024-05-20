@@ -2,6 +2,7 @@
 
 #include "SLGameModeBase.h"
 #include <Kismet/GameplayStatics.h>
+#include "MainMenuBase.h"
 
 void ASLGameModeBase::Tick(float DeltaTime)
 {
@@ -17,6 +18,12 @@ void ASLGameModeBase::Tick(float DeltaTime)
 	}
 }
 
+void ASLGameModeBase::CreateMenu()
+{
+	MainMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/MainMenu.MainMenu_C'")));
+	MainMenu->AddToViewport();
+}
+
 ASLGameModeBase::ASLGameModeBase()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -26,6 +33,7 @@ ASLGameModeBase::ASLGameModeBase()
 	WorldBorder.Add(TEXT("Right"), 3000.0f);
 	WorldBorder.Add(TEXT("Down"), -2000.0f);
 	WorldBorder.Add(TEXT("Up"), 2000.0f);
+
 }
 
 void ASLGameModeBase::PauseGame()
@@ -34,6 +42,7 @@ void ASLGameModeBase::PauseGame()
 	{
 		CurrentPlayState = GamePlayState::PauseState;
 	}
+	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(CurrentPlayState);
 }
 
 void ASLGameModeBase::ResumeGame()
@@ -42,6 +51,7 @@ void ASLGameModeBase::ResumeGame()
 	{
 		CurrentPlayState = GamePlayState::PlayState;
 	}
+	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(CurrentPlayState);
 }
 
 float ASLGameModeBase::GetDayProgressPercent() const

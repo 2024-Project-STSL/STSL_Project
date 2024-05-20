@@ -97,7 +97,7 @@ ACard::ACard()
     CraftingProgressWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("CraftingProgressWidget"));
     CraftingProgressWidget->SetupAttachment(VisualMesh);
 
-    static ConstructorHelpers::FClassFinder<UUserWidget> CraftingProgressBarRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprint/CraftingProgressBar.CraftingProgressBar_C'"));
+    static ConstructorHelpers::FClassFinder<UUserWidget> CraftingProgressBarRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/CraftingProgressBar.CraftingProgressBar_C'"));
     if (CraftingProgressBarRef.Succeeded())
     {
         CraftingProgressWidget->SetWidgetClass(CraftingProgressBarRef.Class);
