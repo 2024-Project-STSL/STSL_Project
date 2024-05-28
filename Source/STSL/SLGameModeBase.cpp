@@ -6,15 +6,15 @@
 
 void ASLGameModeBase::Tick(float DeltaTime)
 {
+	if (CurrentPlayState == GamePlayState::BreakState) return;
+
 	if (CurrentPlayState == GamePlayState::PlayState)
 	{
 		Time += DeltaTime;
 	}
 	if (Time >= TimeForDay)
 	{
-		Time = 0;
-		CurrentPlayState = GamePlayState::BreakState;
-		UGameplayStatics::SetGamePaused(GetWorld(), true);
+		BreakGame();
 	}
 }
 
@@ -36,6 +36,41 @@ ASLGameModeBase::ASLGameModeBase()
 
 }
 
+void ASLGameModeBase::BreakGame()
+{
+	if (CurrentPlayState == GamePlayState::PlayState)
+	{
+		Time = 0;
+		CurrentPlayState = GamePlayState::BreakState;
+		BreakMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/BreakMenu.BreakMenu_C'")));
+		BreakMenu->AddToViewport();
+		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		{
+			CardStack->BreakGame();
+		}
+	}
+	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(CurrentPlayState);
+}
+
+void ASLGameModeBase::Eat()
+{
+	if (CurrentPlayState == GamePlayState::BreakState)
+	{
+		Day++;
+		BreakMenu->RemoveFromViewport();
+		TArray<TObjectPtr<ACard>> Person;
+		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		{
+			for (TObjectPtr<ACard> People : CardStack->GetPerson())
+			{
+				Person.Add(People);
+			}
+		}
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d food points needed."), Person.Num() * 2));
+		ResumeGame();
+	}
+}
+
 void ASLGameModeBase::PauseGame()
 {
 	if (CurrentPlayState == GamePlayState::PlayState)
@@ -50,6 +85,14 @@ void ASLGameModeBase::ResumeGame()
 	if (CurrentPlayState == GamePlayState::PauseState)
 	{
 		CurrentPlayState = GamePlayState::PlayState;
+	}
+	if (CurrentPlayState == GamePlayState::BreakState)
+	{
+		CurrentPlayState = GamePlayState::PlayState;
+		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		{
+			CardStack->ResumeGame();
+		}
 	}
 	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(CurrentPlayState);
 }

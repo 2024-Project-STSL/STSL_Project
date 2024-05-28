@@ -297,6 +297,22 @@ int ACardStack::GetPriceSum() const
 	return PriceSum;
 }
 
+TArray<ACard*> ACardStack::GetPerson() const
+{
+	TArray<ACard*> Person;
+	
+	for (TObjectPtr<AActor> CardActor : Cards)
+	{
+		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
+		if (Card->GetCardType() == CardType::person)
+		{
+			Person.Add(Card);
+		}
+	}
+
+	return Person;
+}
+
 bool ACardStack::GetIsCoinStack() const
 {
 	for (AActor* CardActor : Cards)
@@ -305,6 +321,24 @@ bool ACardStack::GetIsCoinStack() const
 		if (Card->GetCardID() != 6) return false;
 	}
 	return true;
+}
+
+void ACardStack::BreakGame()
+{
+	for (AActor* CardActor : Cards)
+	{
+		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
+		Card->BreakGame();
+	}
+}
+
+void ACardStack::ResumeGame()
+{
+	for (AActor* CardActor : Cards)
+	{
+		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
+		Card->ResumeGame();
+	}
 }
 
 // Called every frame
@@ -477,10 +511,12 @@ AActor* ACardStack::FindMouseSender(FVector Location) const
 
 void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 {
+	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+
+	if (SLGameMode->GetPlayState() == GamePlayState::BreakState) return;
+
 	// 마우스 입력을 보낸 카드 찾기
 	int32 SenderIndex = Cards.IndexOfByKey(Sender);
-
-	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
 
 	// 반복이 필요없는 구문들
 	switch (Movement)

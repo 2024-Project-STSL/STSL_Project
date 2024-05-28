@@ -413,3 +413,13 @@ void ACard::ResetWorldBorder()
     WorldBorderWithoutBuyArea["Up"] -= BoxExtent.X;
 }
 
+void ACard::BreakGame()
+{
+    bPhysicsBeforeBreak = VisualMesh->IsSimulatingPhysics();
+    VisualMesh->SetSimulatePhysics(false);
+}
+
+void ACard::ResumeGame()
+{
+    VisualMesh->SetSimulatePhysics(bPhysicsBeforeBreak);
+}

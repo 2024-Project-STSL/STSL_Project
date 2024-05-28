@@ -22,7 +22,8 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-	UUserWidget* MainMenu;
+	TObjectPtr<UUserWidget> MainMenu;
+	TObjectPtr<UUserWidget> BreakMenu;
 
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TArray<ACardStack*> CardStacks;
@@ -69,6 +70,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	void ResumeGame();
+
+	UFUNCTION(BlueprintCallable, Category = "Time")
+	void BreakGame();
+
+	UFUNCTION(BlueprintCallable, Category = "Time")
+	void Eat();
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	GamePlayState GetPlayState() const { return CurrentPlayState; }

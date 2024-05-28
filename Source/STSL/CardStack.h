@@ -144,6 +144,10 @@ public:
 	bool GetIsSellable() const;
 	int GetPriceSum() const;
 
+	TArray<ACard*> GetPerson() const;
+
 	bool GetIsCoinStack() const;
 
+	void BreakGame();
+	void ResumeGame();
 };

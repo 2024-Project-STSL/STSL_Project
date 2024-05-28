@@ -56,6 +56,8 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	TMap<FString, float> WorldBorder;
 	TMap<FString, float> WorldBorderWithoutBuyArea;
 
+	bool bPhysicsBeforeBreak = false;
+
 protected:
 	UPROPERTY(VisibleAnywhere)
 	AActor* CardStack;
@@ -169,4 +171,7 @@ public:
 
 	void UpdateWorldBorder(int Length);
 	void ResetWorldBorder();
+
+	void BreakGame();
+	void ResumeGame();
 };
