@@ -30,6 +30,9 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere)
 	class UDataTable* CardDataTable;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	TObjectPtr<UMaterialInstance> FoodCardMat;
+
 	UFont* CardFont;
 	UMaterial* CardFontMat;
 
@@ -174,4 +177,6 @@ public:
 
 	void BreakGame();
 	void ResumeGame();
+
+	bool Eat(TObjectPtr<ACard> Food);
 };

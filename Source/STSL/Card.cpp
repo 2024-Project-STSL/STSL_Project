@@ -35,6 +35,13 @@ ACard::ACard()
         //VisualMesh->BodyInstance.SetDOFLock(EDOFMode::SixDOF);
     }
    
+    static ConstructorHelpers::FObjectFinder<UMaterialInstance> FoodMat(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/Material/FoodCardMaterial.FoodCardMaterial'"));
+
+    if (FoodMat.Succeeded())
+    {
+        FoodCardMat = FoodMat.Object;
+    }
+
     static ConstructorHelpers::FObjectFinder<UFont> HanbitFont(TEXT("/Script/Engine.Font'/Game/Fonts/Hanbit_Offline.Hanbit_Offline'"));
 
     if (HanbitFont.Succeeded())
@@ -137,6 +144,10 @@ void ACard::LoadCard()
     if (CardData.AddType != AddType::nope)
     {
         AddTypeText->SetText(FText::AsNumber(CardData.AddTypeValue));
+        if (CardData.AddType == AddType::foodable)
+        {
+            VisualMesh->SetMaterial(0, FoodCardMat);
+        }
     } else {
         AddTypeText->SetText(FText::FromString(""));
     }
@@ -146,7 +157,7 @@ void ACard::LoadCard()
     {
         FString MaterialPath = "/Script/Engine.Material'/Game/CardImages/";
         MaterialPath += FString::Printf(TEXT("%d_Mat.%d_Mat'"), CardData.CardCode, CardData.CardCode);
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, MaterialPath);
+        // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, MaterialPath);
         UMaterial* CardMaterial = LoadObject<UMaterial>(nullptr, *MaterialPath);
         if (CardMaterial)
         {
@@ -422,4 +433,29 @@ void ACard::BreakGame()
 void ACard::ResumeGame()
 {
     VisualMesh->SetSimulatePhysics(bPhysicsBeforeBreak);
+}
+
+bool ACard::Eat(TObjectPtr<ACard> Food)
+{
+    if (CardData.CardType != CardType::person) return false;
+
+    // 사람 카드의 AddTypeValue를 요구 식량으로 사용
+    int FoodValue = Food->GetAddTypeValue();
+    int RequireFood = GetAddTypeValue();
+
+    if (FoodValue > RequireFood)
+    {
+        Food->CardData.AddTypeValue -= RequireFood;
+        Food->LoadCard();
+        return true;
+    }
+    else if (FoodValue == RequireFood) {
+        Cast<ACardStack>(Food->CardStack)->RemoveCard(Food, true);
+        return true;
+    }
+    else {
+        CardData.AddTypeValue -= FoodValue;
+        Cast<ACardStack>(Food->CardStack)->RemoveCard(Food, true);
+        return false;
+    }
 }

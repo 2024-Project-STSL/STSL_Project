@@ -297,20 +297,20 @@ int ACardStack::GetPriceSum() const
 	return PriceSum;
 }
 
-TArray<ACard*> ACardStack::GetPerson() const
+TArray<ACard*> ACardStack::GetCardsByType(CardType Type) const
 {
-	TArray<ACard*> Person;
+	TArray<ACard*> TargetCards;
 	
 	for (TObjectPtr<AActor> CardActor : Cards)
 	{
 		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
-		if (Card->GetCardType() == CardType::person)
+		if (Card->GetCardType() == Type)
 		{
-			Person.Add(Card);
+			TargetCards.Add(Card);
 		}
 	}
 
-	return Person;
+	return TargetCards;
 }
 
 bool ACardStack::GetIsCoinStack() const

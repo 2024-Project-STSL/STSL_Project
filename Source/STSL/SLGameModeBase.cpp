@@ -58,15 +58,47 @@ void ASLGameModeBase::Eat()
 	{
 		Day++;
 		BreakMenu->RemoveFromViewport();
-		TArray<TObjectPtr<ACard>> Person;
+
+		TArray<TObjectPtr<ACard>> People;
 		for (TObjectPtr<ACardStack> CardStack : CardStacks)
 		{
-			for (TObjectPtr<ACard> People : CardStack->GetPerson())
+			for (TObjectPtr<ACard> Person : CardStack->GetCardsByType(CardType::person))
 			{
-				Person.Add(People);
+				Person->SetAddTypeValue(2);
+				People.Add(Person);
 			}
 		}
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d food points needed."), Person.Num() * 2));
+		int RequireFood = People.Num() * 2;
+
+		TArray<TObjectPtr<ACard>> Foods;
+		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		{
+			for (TObjectPtr<ACard> Food : CardStack->GetCardsByType(CardType::food))
+			{
+				Foods.Add(Food);
+			}
+		}
+
+		int TotalFood = 0;
+		for (TObjectPtr<ACard> Food : Foods)
+		{
+			TotalFood += Food->GetAddTypeValue();
+		}
+
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d / %d food points needed."), TotalFood, RequireFood));
+
+		// TODO: 음식들을 우선순위별로 정렬하거나 우선순위를 파악
+
+		for (TObjectPtr<ACard> Person : People)
+		{
+			for (TObjectPtr<ACard> Food : Foods)
+			{
+				if (Person->Eat(Food)) break;
+				if (Foods.Num() == 0) break;
+			}
+			if (Foods.Num() == 0) break;
+		}
+
 		ResumeGame();
 	}
 }
