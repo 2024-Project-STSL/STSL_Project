@@ -12,6 +12,8 @@
 #include "Engine/Font.h"
 #include "Card.generated.h"
 
+DECLARE_DELEGATE(FCardAnimationCallback)
+
 UENUM(BlueprintType)
 enum class ECardMovement : uint8
 {
@@ -94,6 +96,17 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	bool bPreventDragging = false;
 
+	// 카드 강제 이동 시 목표 위치
+	FVector TargetLocation = FVector::ZeroVector;
+	FVector MovedLocation;
+
+	UPROPERTY(EditDefaultsOnly)
+	float TargetFollowSpeed = 5.0f;
+	
+	FCardAnimationCallback TargetCallback;
+
+	int FoodEaten = 0;
+
 public:	
 	// Sets default values for this actor's properties
 	ACard();
@@ -104,6 +117,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CardID")
 	virtual void SetCardID(int32 NewCardID) { CardData.CardCode = NewCardID; LoadCard(); }
+
+	UFUNCTION(BlueprintCallable)
+	void ResetFoodEaten() { FoodEaten = 0; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetShowProgressBar(bool NewShowProgressBar);
@@ -130,11 +146,10 @@ protected:
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	virtual void LoadCard();
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	virtual void LoadCard();
 
 	void SetCardStack(AActor* Stack);
 
@@ -178,5 +193,9 @@ public:
 	void BreakGame();
 	void ResumeGame();
 
-	bool Eat(TObjectPtr<ACard> Food);
+	void MoveBack(FCardAnimationCallback& Callback);
+
+	void MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback);
+
+	bool Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback);
 };

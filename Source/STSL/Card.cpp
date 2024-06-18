@@ -197,6 +197,20 @@ void ACard::BeginPlay()
 void ACard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+    if (bPreventDragging && TargetLocation != FVector::ZeroVector)
+    {
+        FVector OriginLocation;
+        FVector Location = OriginLocation = GetActorLocation();
+        Location += TargetFollowSpeed * DeltaTime * (TargetLocation - Location);
+        if ((Location - OriginLocation).Length() < 0.1f)
+        {
+            bPreventDragging = false;
+            TargetCallback.ExecuteIfBound();
+        }
+        else {
+            SetActorLocation(Location);
+        }
+    }
 }
 
 void ACard::SetCardStack(AActor* Stack)
@@ -435,7 +449,22 @@ void ACard::ResumeGame()
     VisualMesh->SetSimulatePhysics(bPhysicsBeforeBreak);
 }
 
-bool ACard::Eat(TObjectPtr<ACard> Food)
+void ACard::MoveBack(FCardAnimationCallback& Callback)
+{
+    bPreventDragging = true;
+    TargetLocation = MovedLocation;
+    TargetCallback = Callback;
+}
+
+void ACard::MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback)
+{
+    MovedLocation = GetActorLocation();
+    bPreventDragging = true;
+    TargetLocation = OtherCard->GetActorLocation();
+    TargetCallback = Callback;
+}
+
+bool ACard::Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback)
 {
     if (CardData.CardType != CardType::person) return false;
 
@@ -443,19 +472,18 @@ bool ACard::Eat(TObjectPtr<ACard> Food)
     int FoodValue = Food->GetAddTypeValue();
     int RequireFood = GetAddTypeValue();
 
-    if (FoodValue > RequireFood)
+    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+    TargetCallback.BindUObject(SLGameMode, &ASLGameModeBase::EatCompleted);
+
+    if (FoodEaten >= RequireFood)
     {
-        Food->CardData.AddTypeValue -= RequireFood;
-        Food->LoadCard();
+        TargetCallback.ExecuteIfBound();
         return true;
     }
-    else if (FoodValue == RequireFood) {
-        Cast<ACardStack>(Food->CardStack)->RemoveCard(Food, true);
-        return true;
-    }
-    else {
-        CardData.AddTypeValue -= FoodValue;
-        Cast<ACardStack>(Food->CardStack)->RemoveCard(Food, true);
-        return false;
-    }
+
+    FoodEaten += Food->CardData.AddTypeValue;
+    Food->CardData.AddTypeValue -= RequireFood;
+    Food->MoveToAnother(this, TargetCallback);
+    return true;
+
 }

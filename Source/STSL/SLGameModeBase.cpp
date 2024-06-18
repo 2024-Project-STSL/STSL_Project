@@ -57,9 +57,9 @@ void ASLGameModeBase::Eat()
 	if (CurrentPlayState == GamePlayState::BreakState)
 	{
 		Day++;
-		BreakMenu->RemoveFromViewport();
+		BreakMenu->RemoveFromParent();
 
-		TArray<TObjectPtr<ACard>> People;
+		People.Empty();
 		for (TObjectPtr<ACardStack> CardStack : CardStacks)
 		{
 			for (TObjectPtr<ACard> Person : CardStack->GetCardsByType(CardType::person))
@@ -70,7 +70,7 @@ void ASLGameModeBase::Eat()
 		}
 		int RequireFood = People.Num() * 2;
 
-		TArray<TObjectPtr<ACard>> Foods;
+		Foods.Empty();
 		for (TObjectPtr<ACardStack> CardStack : CardStacks)
 		{
 			for (TObjectPtr<ACard> Food : CardStack->GetCardsByType(CardType::food))
@@ -88,8 +88,10 @@ void ASLGameModeBase::Eat()
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d / %d food points needed."), TotalFood, RequireFood));
 
 		// TODO: 음식들을 우선순위별로 정렬하거나 우선순위를 파악
+		PersonIndex = 0; FoodIndex = 0;
 
-		for (TObjectPtr<ACard> Person : People)
+		EatNext();
+/*		for (TObjectPtr<ACard> Person : People)
 		{
 			for (TObjectPtr<ACard> Food : Foods)
 			{
@@ -99,8 +101,54 @@ void ASLGameModeBase::Eat()
 			if (Foods.Num() == 0) break;
 		}
 
-		ResumeGame();
+		ResumeGame();*/
 	}
+}
+
+void ASLGameModeBase::EatNext()
+{
+	if (FoodIndex == Foods.Num())
+	{
+		FoodIndex = 0;
+		PersonIndex++;
+		if (PersonIndex == People.Num())
+		{
+			ResumeGame();
+			return;
+		}
+	}
+
+	TObjectPtr<ACard> CurrentPerson = People[PersonIndex];
+	TObjectPtr<ACard> CurrentFood = Foods[FoodIndex];
+	FCardAnimationCallback Callback;
+	Callback.BindUObject(this, &ASLGameModeBase::EatCompleted);
+	CurrentPerson->Eat(CurrentFood, Callback);
+
+}
+
+void ASLGameModeBase::EatCompleted()
+{
+	TObjectPtr<ACard> CurrentFood = Foods[FoodIndex];
+	if (CurrentFood->GetAddTypeValue() <= 0)
+	{
+		TObjectPtr<ACardStack> FoodStack = Cast<ACardStack>(CurrentFood->GetCardStack());
+		FoodStack->RemoveCard(CurrentFood, true);
+
+		FoodIndex++;
+		EatNext();
+	}
+	else {
+		FCardAnimationCallback Callback;
+		Callback.BindUObject(this, &ASLGameModeBase::MoveBackCompleted);
+		CurrentFood->MoveBack(Callback);
+		CurrentFood->LoadCard();
+	}
+}
+
+void ASLGameModeBase::MoveBackCompleted()
+{
+	FoodIndex++;
+	EatNext();
 }
 
 void ASLGameModeBase::PauseGame()

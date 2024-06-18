@@ -55,6 +55,12 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	UPROPERTY(EditAnywhere, Category = "Time")
 	float Time = 0.0f;
 
+	UPROPERTY(VisibleAnywhere, Category = "CardStack")
+	TArray<ACard*> People;
+	UPROPERTY(VisibleAnywhere, Category = "CardStack")
+	TArray<ACard*> Foods;
+	int PersonIndex; int FoodIndex;
+
 protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -76,6 +82,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	void Eat();
+	void EatNext();
+	void EatCompleted();
+	void MoveBackCompleted();
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	GamePlayState GetPlayState() const { return CurrentPlayState; }
