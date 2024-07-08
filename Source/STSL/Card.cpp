@@ -244,6 +244,7 @@ void ACard::EndDrag()
 }
 void ACard::MoveToCursor()
 {
+    if (bPreventDragging) return;
     SendMovementToStack(ECardMovement::MoveToCursor);
 }
 
