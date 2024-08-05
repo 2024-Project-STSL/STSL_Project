@@ -198,4 +198,6 @@ public:
 	void MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback);
 
 	bool Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback);
+
+	void ResetFood() { FoodEaten = 0; }
 };

@@ -681,6 +681,7 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 		FVector SelfVector, OtherVector;
 		GetCardCollisionVector(OtherCard, SelfVector, OtherVector);
 		PushCards(SelfVector);
+		HandleStackMove(GetLastCard(), ECardMovement::EndHover);
 		OtherCardStack->PushCards(OtherVector);
 	}
 }
@@ -704,7 +705,6 @@ void ACardStack::GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVec
 	if (CollisionVector.Size() < 0.0001f) {
 		CollisionVector.X = FMath::SRand() - 0.5f;
 		CollisionVector.Y = FMath::SRand() - 0.5f;
-		CollisionVector = CollisionVector.GetSafeNormal(0.0001f);
 	}
 
 	CollisionVector.Z = 0.0f;

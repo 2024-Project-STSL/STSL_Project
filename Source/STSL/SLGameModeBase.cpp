@@ -64,7 +64,7 @@ void ASLGameModeBase::Eat()
 		{
 			for (TObjectPtr<ACard> Person : CardStack->GetCardsByType(CardType::person))
 			{
-				Person->SetAddTypeValue(2);
+				Person->ResetFood();
 				People.Add(Person);
 			}
 		}
@@ -133,9 +133,6 @@ void ASLGameModeBase::EatCompleted()
 	{
 		TObjectPtr<ACardStack> FoodStack = Cast<ACardStack>(CurrentFood->GetCardStack());
 		FoodStack->RemoveCard(CurrentFood, true);
-
-		FoodIndex++;
-		EatNext();
 	}
 	else {
 		FCardAnimationCallback Callback;
@@ -143,6 +140,8 @@ void ASLGameModeBase::EatCompleted()
 		CurrentFood->MoveBack(Callback);
 		CurrentFood->LoadCard();
 	}
+	FoodIndex++;
+	EatNext();
 }
 
 void ASLGameModeBase::MoveBackCompleted()

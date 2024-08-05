@@ -89,7 +89,7 @@ void ACardPack::EndCardDrag()
     Super::EndCardDrag();
     if ((StartDragPos - UWidgetLayoutLibrary::GetMousePositionOnViewport(GetWorld())).Length() < OpenThreshold)
     {
-        bPreventDragging = true;
+        VisualMesh->SetPhysicsLinearVelocity(FVector::Zero());
         SpawnCard();
     }
 }
@@ -101,9 +101,9 @@ void ACardPack::SpawnCard()
     ACardStack* NewCardStack = nullptr;
     
     FVector Location = GetActorLocation();
-    Location.Z = 1.0f;
+    Location.Z = 11.0f;
     SetActorLocation(Location);
-    Location.Z += 10.0f;
+    Location.Z -= 10.0f;
 
     int TotalWeight = 0;
     for (int CardWeight : CardPackData.CardWeight)

@@ -204,7 +204,6 @@ void ACard::Tick(float DeltaTime)
         Location += TargetFollowSpeed * DeltaTime * (TargetLocation - Location);
         if ((Location - OriginLocation).Length() < 0.1f)
         {
-            bPreventDragging = false;
             TargetCallback.ExecuteIfBound();
         }
         else {
@@ -226,7 +225,7 @@ void ACard::SendMovementToStack(ECardMovement Movement)
 
 void ACard::StartMouseHover()
 {
-    if (bPreventDragging) return;
+    if (bPreventDragging || bFloating) return;
     SendMovementToStack(ECardMovement::StartHover);
 }
 void ACard::EndMouseHover()
@@ -328,7 +327,6 @@ void ACard::Push()
     FVector RandomPushVector = FVector(RandomX, RandomY, PushVector.Z);
     VisualMesh->AddImpulse(RandomPushVector);
     bFloating = true;
-    bPreventDragging = true;
 }
 
 void ACard::Push(FVector Force)
@@ -366,13 +364,14 @@ void ACard::UpdateGroundPosition()
         NewLocation = OldLocation = GetActorLocation();
         NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
         NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorderWithoutBuyArea["Left"], WorldBorderWithoutBuyArea["Right"]);
-        
+
         // 만약 좌표가 Clamp되었으면
         if (FMath::Abs(NewLocation.X - OldLocation.X) > 0.001f || FMath::Abs(NewLocation.Y - OldLocation.Y) > 0.001f)
         {
             // 살짝 띄운 곳에 이동시켜 충돌 처리 등이 이루어지게
             NewLocation.Z = 10.0f;
             SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
+            VisualMesh->SetAllPhysicsLinearVelocity(FVector::Zero());
             CardStackActor->UpdatePosition(false);
         }
         else {
@@ -380,7 +379,6 @@ void ACard::UpdateGroundPosition()
             SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
             CardStackActor->UpdatePosition(true);
             bFloating = false;
-            bPreventDragging = false;
         }
         
         ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
@@ -441,18 +439,19 @@ void ACard::ResetWorldBorder()
 
 void ACard::BreakGame()
 {
+    bPreventDragging = true;
     bPhysicsBeforeBreak = VisualMesh->IsSimulatingPhysics();
     VisualMesh->SetSimulatePhysics(false);
 }
 
 void ACard::ResumeGame()
 {
+    bPreventDragging = false;
     VisualMesh->SetSimulatePhysics(bPhysicsBeforeBreak);
 }
 
 void ACard::MoveBack(FCardAnimationCallback& Callback)
 {
-    bPreventDragging = true;
     TargetLocation = MovedLocation;
     TargetCallback = Callback;
 }
@@ -460,7 +459,6 @@ void ACard::MoveBack(FCardAnimationCallback& Callback)
 void ACard::MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback)
 {
     MovedLocation = GetActorLocation();
-    bPreventDragging = true;
     TargetLocation = OtherCard->GetActorLocation();
     TargetCallback = Callback;
 }
