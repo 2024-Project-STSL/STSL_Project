@@ -51,6 +51,12 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere)
 	bool bShowProgressBar = false;
 
+	TMap<FString, float> WorldBorder;
+	TMap<FString, float> WorldBorderWithoutBuyArea;
+
+	bool bPhysicsBeforeBreak = false;
+
+protected:
 	UPROPERTY(VisibleAnywhere)
 	bool bFloating = false;
 
@@ -58,12 +64,6 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(EditDefaultsOnly)
 	FVector PushVector = FVector(6000.0f, 6000.0f, 3000.0f);
 
-	TMap<FString, float> WorldBorder;
-	TMap<FString, float> WorldBorderWithoutBuyArea;
-
-	bool bPhysicsBeforeBreak = false;
-
-protected:
 	UPROPERTY(VisibleAnywhere)
 	AActor* CardStack;
 
@@ -180,6 +180,9 @@ public:
 	// 벡터만큼 카드 밀어내기
 	void Push(FVector Force);
 	void Push();
+
+	// 순간이동
+	void Move(FVector Movement);
 
 	void UpdateProgressBar(float Current);
 	void UpdateProgressBar(float Current, float Max);

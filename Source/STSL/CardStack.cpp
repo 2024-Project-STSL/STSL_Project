@@ -680,18 +680,18 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 		// Ãæµ¹
 		FVector SelfVector, OtherVector;
 		GetCardCollisionVector(OtherCard, SelfVector, OtherVector);
-		PushCards(SelfVector);
+		MoveCards(SelfVector);
 		HandleStackMove(GetLastCard(), ECardMovement::EndHover);
-		OtherCardStack->PushCards(OtherVector);
+		OtherCardStack->MoveCards(OtherVector);
 	}
 }
 
-void ACardStack::PushCards(FVector Force)
+void ACardStack::MoveCards(FVector Force)
 {
 	for (AActor* Card : Cards)
 	{
 		ACard* CardActor = Cast<ACard>(Card);
-		CardActor->Push(Force * FApp::GetDeltaTime());
+		CardActor->Move(Force * FApp::GetDeltaTime());
 	}
 }
 

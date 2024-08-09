@@ -320,18 +320,23 @@ void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimiti
 // 힘을 지정하지 않은 Push()는 카드 소환 튀어나오기 연출에 사용
 void ACard::Push()
 {
-    float RandomX = FMath::RandRange(PushVector.X/2.0f, PushVector.X);
-    float RandomY = FMath::RandRange(PushVector.Y/2.0f, PushVector.Y);
-    RandomX *= FMath::RandBool() ? 1 : -1;
-    RandomY *= FMath::RandBool() ? 1 : -1;
-    FVector RandomPushVector = FVector(RandomX, RandomY, PushVector.Z);
-    VisualMesh->AddImpulse(RandomPushVector);
-    bFloating = true;
+    Push(PushVector);
 }
 
 void ACard::Push(FVector Force)
 {
-    FVector NewLocation = GetActorLocation() + Force;
+    float RandomX = FMath::RandRange(Force.X / 2.0f, Force.X);
+    float RandomY = FMath::RandRange(Force.Y / 2.0f, Force.Y);
+    RandomX *= FMath::RandBool() ? 1 : -1;
+    RandomY *= FMath::RandBool() ? 1 : -1;
+    FVector RandomPushVector = FVector(RandomX, RandomY, Force.Z);
+    VisualMesh->AddImpulse(RandomPushVector);
+    bFloating = true;
+}
+
+void ACard::Move(FVector Movement)
+{
+    FVector NewLocation = GetActorLocation() + Movement;
     NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
     NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorderWithoutBuyArea["Left"], WorldBorderWithoutBuyArea["Right"]);
     SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);

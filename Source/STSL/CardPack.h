@@ -28,8 +28,16 @@ class STSL_API ACardPack : public ACard
 	// 과 드래그 끝 포지션이 이보다 작으면 카드팩 개봉
 	float OpenThreshold = 30.0f;
 
+	// 카드팩 개봉 후 일정 시간 공중에 유지
+	UPROPERTY(EditAnyWhere)
+	float MaxFloatingTime = 1.0f;
+
+	UPROPERTY(VisibleAnyWhere)
+	float FloatingTime = 0.0f;
+
 protected:
 	void LoadCard() override;
+	void Tick(float DeltaTime) override;
 
 public:
 	ACardPack();

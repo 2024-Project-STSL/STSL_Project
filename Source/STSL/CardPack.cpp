@@ -60,6 +60,7 @@ ACardPack::ACardPack()
         CardPackDataTable = DataTable.Object;
     }
 
+    PushVector.Z = -1000.0;
     LoadCard();
 }
 
@@ -69,6 +70,19 @@ ACardPack::ACardPack(int32 PackID)
     CardPackData.PackCode = PackID;
     ACardPack();
 
+}
+
+void ACardPack::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+    if (FloatingTime > 0)
+    {
+        FloatingTime -= DeltaTime;
+        if (FloatingTime <= 0)
+        {
+            EndHover();
+        }
+    }
 }
 
 void ACardPack::SetCardID(int32 NewCardID)
@@ -91,6 +105,7 @@ void ACardPack::EndCardDrag()
     {
         VisualMesh->SetPhysicsLinearVelocity(FVector::Zero());
         SpawnCard();
+        StartHover(10.0f);
     }
 }
 

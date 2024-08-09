@@ -120,7 +120,7 @@ public:
 
 	// 카드 충돌 관련
 	void GetCardCollisionVector(AActor* Other, FVector& SelfVector, FVector& OtherVector) const;
-	void PushCards(FVector Force);
+	void MoveCards(FVector Force);
 	float GetXOffset() const { return XOffset; }
 
 	// 상대 스택에 이 스택이 쌓일 수 있는가?
