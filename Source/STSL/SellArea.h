@@ -11,6 +11,8 @@
 #include "CardArea.h"
 #include "SellArea.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSellCard);
+
 UCLASS()
 class STSL_API ASellArea : public ACardArea, public IBuySellInterface
 {
@@ -37,4 +39,6 @@ public:
 
 	virtual void SellCard(ACardStack* CardStack) override;
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnSellCard OnSellCard;
 };

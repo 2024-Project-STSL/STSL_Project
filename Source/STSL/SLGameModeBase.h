@@ -55,18 +55,33 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	UPROPERTY(EditAnywhere, Category = "Time")
 	float Time = 0.0f;
 
+	UPROPERTY(EditAnywhere, Category = "TurnEnd")
+	int CardLimit = 30;
+	
+	// 초과 카드 정산 중인가, 즉 플레이어가 임의로 시간을 진행시킬 수 있는가?
+	UPROPERTY(VisibleAnywhere, Category = "Time")
+	bool bSellingExcessiveCard = false;
+
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TArray<ACard*> People;
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TArray<ACard*> Foods;
 	int PersonIndex; int FoodIndex;
 
+	UPROPERTY(VisibleAnywhere)
+	AActor* SellAreaActor;
+
 protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void BeginPlay() override;
+
 	UFUNCTION(BlueprintCallable)
 	void CreateMenu();
+
+	UFUNCTION()
+	void OnSellCardHandler();
 
 public:
 	ASLGameModeBase();
@@ -80,17 +95,30 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	void BreakGame();
 
-	UFUNCTION(BlueprintCallable, Category = "Time")
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void Eat();
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void EatNext();
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void EatCompleted();
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void MoveBackCompleted();
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
+	void CheckExcessiveCards();
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
+	void EndDay();
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	GamePlayState GetPlayState() const { return CurrentPlayState; }
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	float GetDayProgressPercent() const;
+
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	int GetTotalCardAmount(bool ExcludeCoin) const;
+
+	UFUNCTION(BlueprintCallable, Category = "CardStack")
+	int GetExcessiveCardAmount() const { return GetTotalCardAmount(true) - CardLimit; }
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void AddCardStack(ACardStack* CardStack);

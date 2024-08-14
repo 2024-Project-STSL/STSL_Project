@@ -297,6 +297,22 @@ int ACardStack::GetPriceSum() const
 	return PriceSum;
 }
 
+int ACardStack::GetCardAmount(bool ExcludeCoin) const
+{
+	int Sum = Cards.Num();
+	int Coins = 0;
+	if (ExcludeCoin)
+	{
+		for (AActor* CardActor : Cards)
+		{
+			ACard* Card = Cast<ACard>(CardActor);
+			if (Card->GetCardID() == 6) Coins++;
+		}
+	}
+
+	return Sum - Coins;
+}
+
 TArray<ACard*> ACardStack::GetCardsByType(CardType Type) const
 {
 	TArray<ACard*> TargetCards;

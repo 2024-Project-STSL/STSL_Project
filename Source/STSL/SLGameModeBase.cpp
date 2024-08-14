@@ -1,8 +1,19 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SLGameModeBase.h"
+#include "SellArea.h"
 #include <Kismet/GameplayStatics.h>
 #include "MainMenuBase.h"
+
+void ASLGameModeBase::BeginPlay()
+{
+	Super::BeginPlay();
+	SellAreaActor = UGameplayStatics::GetActorOfClass(GetWorld(), ASellArea::StaticClass());
+	if (ASellArea* SellArea = Cast<ASellArea>(SellAreaActor))
+	{
+		SellArea->OnSellCard.AddDynamic(this, &ASLGameModeBase::OnSellCardHandler);
+	}
+}
 
 void ASLGameModeBase::Tick(float DeltaTime)
 {
@@ -44,6 +55,8 @@ void ASLGameModeBase::BreakGame()
 		CurrentPlayState = GamePlayState::BreakState;
 		BreakMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/BreakMenu.BreakMenu_C'")));
 		BreakMenu->AddToViewport();
+		BreakMenu->GetWidgetFromName(TEXT("EatButton"))->SetVisibility(ESlateVisibility::Visible);
+		BreakMenu->GetWidgetFromName(TEXT("CardIndicator"))->SetVisibility(ESlateVisibility::Hidden);
 		for (TObjectPtr<ACardStack> CardStack : CardStacks)
 		{
 			CardStack->BreakGame();
@@ -56,8 +69,7 @@ void ASLGameModeBase::Eat()
 {
 	if (CurrentPlayState == GamePlayState::BreakState)
 	{
-		Day++;
-		BreakMenu->RemoveFromParent();
+		BreakMenu->GetWidgetFromName(TEXT("EatButton"))->SetVisibility(ESlateVisibility::Hidden);
 
 		People.Empty();
 		for (TObjectPtr<ACardStack> CardStack : CardStacks)
@@ -91,17 +103,6 @@ void ASLGameModeBase::Eat()
 		PersonIndex = 0; FoodIndex = 0;
 
 		EatNext();
-/*		for (TObjectPtr<ACard> Person : People)
-		{
-			for (TObjectPtr<ACard> Food : Foods)
-			{
-				if (Person->Eat(Food)) break;
-				if (Foods.Num() == 0) break;
-			}
-			if (Foods.Num() == 0) break;
-		}
-
-		ResumeGame();*/
 	}
 }
 
@@ -113,7 +114,7 @@ void ASLGameModeBase::EatNext()
 		PersonIndex++;
 		if (PersonIndex == People.Num())
 		{
-			ResumeGame();
+			CheckExcessiveCards();
 			return;
 		}
 	}
@@ -150,11 +151,44 @@ void ASLGameModeBase::MoveBackCompleted()
 	EatNext();
 }
 
+void ASLGameModeBase::OnSellCardHandler()
+{
+	if (bSellingExcessiveCard) CheckExcessiveCards();
+}
+
+void ASLGameModeBase::CheckExcessiveCards()
+{
+	if (GetExcessiveCardAmount() < 1)
+	{
+		bSellingExcessiveCard = false;
+		EndDay();
+		return;
+	}
+	BreakMenu->GetWidgetFromName(TEXT("CardIndicator"))->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	bSellingExcessiveCard = true;
+	PauseGame();
+}
+
+void ASLGameModeBase::EndDay()
+{
+	Day++;
+	BreakMenu->RemoveFromParent();
+	ResumeGame();
+}
+
 void ASLGameModeBase::PauseGame()
 {
 	if (CurrentPlayState == GamePlayState::PlayState)
 	{
 		CurrentPlayState = GamePlayState::PauseState;
+	}
+	if (CurrentPlayState == GamePlayState::BreakState)
+	{
+		CurrentPlayState = GamePlayState::PauseState;
+		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		{
+			CardStack->ResumeGame();
+		}
 	}
 	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(CurrentPlayState);
 }
@@ -163,6 +197,7 @@ void ASLGameModeBase::ResumeGame()
 {
 	if (CurrentPlayState == GamePlayState::PauseState)
 	{
+		if (bSellingExcessiveCard) return;
 		CurrentPlayState = GamePlayState::PlayState;
 	}
 	if (CurrentPlayState == GamePlayState::BreakState)
@@ -179,6 +214,16 @@ void ASLGameModeBase::ResumeGame()
 float ASLGameModeBase::GetDayProgressPercent() const
 {
 	return FMath::Clamp(Time / TimeForDay, 0.0f, 1.0f);
+}
+
+int ASLGameModeBase::GetTotalCardAmount(bool ExcludeCoin = false) const
+{
+	int Sum = 0;
+	for (ACardStack* CardStack : CardStacks)
+	{
+		Sum += CardStack->GetCardAmount(ExcludeCoin);
+	}
+	return Sum;
 }
 
 void ASLGameModeBase::AddCardStack(ACardStack* CardStack)

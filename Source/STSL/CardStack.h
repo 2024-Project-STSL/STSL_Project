@@ -144,6 +144,8 @@ public:
 	bool GetIsSellable() const;
 	int GetPriceSum() const;
 
+	int GetCardAmount(bool ExcludeCoin = false) const;
+
 	TArray<ACard*> GetCardsByType(CardType Type) const;
 
 	bool GetIsCoinStack() const;
