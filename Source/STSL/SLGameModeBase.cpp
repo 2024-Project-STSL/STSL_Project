@@ -57,6 +57,16 @@ void ASLGameModeBase::BreakGame()
 		BreakMenu->AddToViewport();
 		BreakMenu->GetWidgetFromName(TEXT("EatButton"))->SetVisibility(ESlateVisibility::Visible);
 		BreakMenu->GetWidgetFromName(TEXT("CardIndicator"))->SetVisibility(ESlateVisibility::Hidden);
+		BreakMenu->GetWidgetFromName(TEXT("NextDayIndicator"))->SetVisibility(ESlateVisibility::Hidden);
+		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		{
+			CardStack->BreakGame();
+		}
+	}
+	if (CurrentPlayState == GamePlayState::PauseState && bSellingExcessiveCard)
+	{
+		bSellingExcessiveCard = false;
+		CurrentPlayState = GamePlayState::BreakState;
 		for (TObjectPtr<ACardStack> CardStack : CardStacks)
 		{
 			CardStack->BreakGame();
@@ -70,7 +80,6 @@ void ASLGameModeBase::Eat()
 	if (CurrentPlayState == GamePlayState::BreakState)
 	{
 		BreakMenu->GetWidgetFromName(TEXT("EatButton"))->SetVisibility(ESlateVisibility::Hidden);
-
 		People.Empty();
 		for (TObjectPtr<ACardStack> CardStack : CardStacks)
 		{
@@ -160,13 +169,19 @@ void ASLGameModeBase::CheckExcessiveCards()
 {
 	if (GetExcessiveCardAmount() < 1)
 	{
-		bSellingExcessiveCard = false;
-		EndDay();
+		CheckDayEnd();
 		return;
 	}
 	BreakMenu->GetWidgetFromName(TEXT("CardIndicator"))->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	bSellingExcessiveCard = true;
 	PauseGame();
+}
+
+void ASLGameModeBase::CheckDayEnd()
+{
+	BreakMenu->GetWidgetFromName(TEXT("CardIndicator"))->SetVisibility(ESlateVisibility::Hidden);
+	BreakMenu->GetWidgetFromName(TEXT("NextDayIndicator"))->SetVisibility(ESlateVisibility::Visible);
+	BreakGame();
 }
 
 void ASLGameModeBase::EndDay()

@@ -106,6 +106,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void CheckExcessiveCards();
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
+	void CheckDayEnd();
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void EndDay();
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
