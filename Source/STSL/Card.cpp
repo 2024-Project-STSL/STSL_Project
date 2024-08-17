@@ -89,6 +89,23 @@ ACard::ACard()
     AddTypeText->SetText(FText::FromString(TEXT("99")));
     AddTypeText->SetupAttachment(VisualMesh);
     
+    PriceIcon = CreateDefaultSubobject<UTextRenderComponent>(TEXT("PriceIcon"));
+    PriceIcon->SetHorizontalAlignment(EHTA_Center);
+    PriceIcon->SetVerticalAlignment(EVRTA_TextCenter);
+    PriceIcon->SetRelativeLocationAndRotation(FVector(-235.0f, -140.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+    PriceIcon->SetTextRenderColor(FColor::Black);
+    PriceIcon->SetWorldSize(FontSize / 0.8f);
+    PriceIcon->SetMaterial(0, CardFontMat);
+    PriceIcon->SetFont(CardFont);
+    PriceIcon->SetText(FText::FromString(TEXT("○")));
+    PriceIcon->SetupAttachment(VisualMesh);
+
+    HealthIcon = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthIcon"));
+    HealthIcon->SetupAttachment(VisualMesh);
+    HealthIcon->SetRelativeLocationAndRotation(FVector(-240.0f, 140.0f, 0.55f), FRotator(90.0f, 0.0f, 180.0f));
+    // 스케일로 나누어 카드 전체의 스케일 변화에 대응
+    HealthIcon->SetDrawSize(FVector2D(90.0f / GetActorScale().X, 90.0f / GetActorScale().X));
+
     CardImageWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ImageWidget"));
     CardImageWidget->SetupAttachment(VisualMesh);
     CardImageWidget->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
@@ -99,6 +116,12 @@ ACard::ACard()
     if (DataTable.Succeeded())
     {
         CardDataTable = DataTable.Object;
+    }
+
+    static ConstructorHelpers::FObjectFinder<UDataTable> CharDataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CharactorDB.CharactorDB'"));
+    if (CharDataTable.Succeeded())
+    {
+        CharactorDataTable = CharDataTable.Object;
     }
 
     CraftingProgressWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("CraftingProgressWidget"));
@@ -131,6 +154,11 @@ void ACard::LoadCard()
         FName RowName = FName(*FString::FromInt(CardData.CardCode));
         FCardData* RowData = CardDataTable->FindRow<FCardData>(RowName, TEXT(""));
         if (RowData != nullptr) CardData = *RowData;
+        if (CardData.IsCharactor())
+        {
+            FCharactorData* CharRowData = CharactorDataTable->FindRow<FCharactorData>(RowName, TEXT(""));
+            Health = CharRowData->CharHealth;
+        }
     }
     TitleText->SetText(FText::FromString(CardData.CardName));
     TitleText->SetWorldSize(FMath::Clamp(FontSize * 6.0f / CardData.CardName.Len(), FontSize / 8.0f, FontSize));
@@ -139,6 +167,7 @@ void ACard::LoadCard()
         SellPriceText->SetText(FText::AsNumber(CardData.CardPrice));
     } else {
         SellPriceText->SetText(FText::FromString(""));
+        PriceIcon->SetText(FText::FromString(""));
     }
 
     if (CardData.AddType != AddType::nope)
@@ -148,10 +177,27 @@ void ACard::LoadCard()
         {
             VisualMesh->SetMaterial(0, FoodCardMat);
         }
-    } else {
+    } 
+    else {
         AddTypeText->SetText(FText::FromString(""));
     }
 
+    if (CardData.IsCharactor())
+    {
+        AddTypeText->SetText(FText::AsNumber(Health));
+        // TODO : 하트 아이콘으로 변경
+        FString MaterialPath = "/Script/Engine.Material'/Game/CardImages/14_Mat.14_Mat'";
+        // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, MaterialPath);
+        UMaterial* HealthIconMaterial = LoadObject<UMaterial>(nullptr, *MaterialPath);
+        if (HealthIconMaterial)
+        {
+            HealthIcon->SetMaterial(0, HealthIconMaterial);
+            HealthIcon->RequestRedraw();
+        }
+    }
+    else {
+    }
+    
     // 동적으로 카드 이미지 로드
     if (CardData.CardCode)
     {

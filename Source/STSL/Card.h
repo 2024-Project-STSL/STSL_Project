@@ -9,6 +9,7 @@
 #include <Components/TextRenderComponent.h>
 #include <Components/WidgetComponent.h>
 #include "Data/CardData.h"
+#include "Data/CharactorData.h"
 #include "Engine/Font.h"
 #include "Card.generated.h"
 
@@ -31,6 +32,9 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 
 	UPROPERTY(VisibleAnywhere)
 	class UDataTable* CardDataTable;
+
+	UPROPERTY(VisibleAnywhere)
+	class UDataTable* CharactorDataTable;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UMaterialInstance> FoodCardMat;
@@ -85,6 +89,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UTextRenderComponent* AddTypeText;
 
+	// 가격 아이콘
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UTextRenderComponent* PriceIcon;
+
+	// 체력 아이콘 (생명체)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UWidgetComponent* HealthIcon;
+
 	// 카드 이미지
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UWidgetComponent* CardImageWidget;
@@ -105,7 +117,11 @@ protected:
 	
 	FCardAnimationCallback TargetCallback;
 
+	UPROPERTY(EditAnyWhere, Category = "Charactor")
 	int FoodEaten = 0;
+
+	UPROPERTY(EditAnyWhere, Category = "Charactor")
+	int Health = 0;
 
 public:	
 	// Sets default values for this actor's properties

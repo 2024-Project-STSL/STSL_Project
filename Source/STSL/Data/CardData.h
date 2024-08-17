@@ -50,4 +50,6 @@ public:
 
 	FCardData();
 	~FCardData();
+
+	bool IsCharactor() const;
 };

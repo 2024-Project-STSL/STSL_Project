@@ -10,3 +10,11 @@ FCardData::FCardData()
 FCardData::~FCardData()
 {
 }
+
+bool FCardData::IsCharactor() const
+{
+	if (CardType == CardType::person) return true;
+	if (CardType == CardType::netural) return true;
+	if (CardType == CardType::enemy) return true;
+	return false;
+}

@@ -29,6 +29,8 @@ void ACardPack::LoadCard()
     SellPriceText->SetText(FText::FromString(""));
     AddTypeText->SetText(FText::FromString(""));
 
+    PriceIcon->SetText(FText::FromString(""));
+
     // 동적으로 카드 이미지 로드
     if (CardData.CardCode)
     {
