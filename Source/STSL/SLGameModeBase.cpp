@@ -40,6 +40,12 @@ ASLGameModeBase::ASLGameModeBase()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CardDB.CardDB'"));
+	if (DataTable.Succeeded())
+	{
+		CardDataTable = DataTable.Object;
+	}
+
 	WorldBorder.Add(TEXT("Left"), -3000.0f);
 	WorldBorder.Add(TEXT("Right"), 3000.0f);
 	WorldBorder.Add(TEXT("Down"), -2000.0f);
@@ -85,7 +91,7 @@ void ASLGameModeBase::Eat()
 		{
 			for (TObjectPtr<ACard> Person : CardStack->GetCardsByType(CardType::person))
 			{
-				Person->ResetFood();
+				Cast<ACharactorCard>(Person)->ResetFood();
 				People.Add(Person);
 			}
 		}
@@ -128,7 +134,7 @@ void ASLGameModeBase::EatNext()
 		}
 	}
 
-	TObjectPtr<ACard> CurrentPerson = People[PersonIndex];
+	TObjectPtr<ACharactorCard> CurrentPerson = Cast<ACharactorCard>(People[PersonIndex]);
 	TObjectPtr<ACard> CurrentFood = Foods[FoodIndex];
 	FCardAnimationCallback Callback;
 	Callback.BindUObject(this, &ASLGameModeBase::EatCompleted);
@@ -303,10 +309,22 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 
 	if (NewCardStackActor == nullptr) return nullptr;
 	ACardStack* NewCardStack = Cast<ACardStack>(NewCardStackActor);
+	 
+	FName RowName = FName(*FString::FromInt(CardID));
+	FCardData* RowData = CardDataTable->FindRow<FCardData>(RowName, TEXT(""));
+	UClass* CardClass;
+
+	if (RowData != nullptr && RowData->IsCharactor())
+	{
+		CardClass = ACharactorCard::StaticClass();
+	}
+	else {
+		CardClass = ACard::StaticClass();
+	}
 
 	AActor* NewCardActor = GetWorld()->SpawnActor
 	(
-		ACard::StaticClass(),
+		CardClass,
 		&Location
 	);
 

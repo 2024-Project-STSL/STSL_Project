@@ -100,12 +100,6 @@ ACard::ACard()
     PriceIcon->SetText(FText::FromString(TEXT("○")));
     PriceIcon->SetupAttachment(VisualMesh);
 
-    HealthIcon = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthIcon"));
-    HealthIcon->SetupAttachment(VisualMesh);
-    HealthIcon->SetRelativeLocationAndRotation(FVector(-240.0f, 140.0f, 0.55f), FRotator(90.0f, 0.0f, 180.0f));
-    // 스케일로 나누어 카드 전체의 스케일 변화에 대응
-    HealthIcon->SetDrawSize(FVector2D(90.0f / GetActorScale().X, 90.0f / GetActorScale().X));
-
     CardImageWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ImageWidget"));
     CardImageWidget->SetupAttachment(VisualMesh);
     CardImageWidget->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
@@ -116,12 +110,6 @@ ACard::ACard()
     if (DataTable.Succeeded())
     {
         CardDataTable = DataTable.Object;
-    }
-
-    static ConstructorHelpers::FObjectFinder<UDataTable> CharDataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CharactorDB.CharactorDB'"));
-    if (CharDataTable.Succeeded())
-    {
-        CharactorDataTable = CharDataTable.Object;
     }
 
     CraftingProgressWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("CraftingProgressWidget"));
@@ -154,11 +142,6 @@ void ACard::LoadCard()
         FName RowName = FName(*FString::FromInt(CardData.CardCode));
         FCardData* RowData = CardDataTable->FindRow<FCardData>(RowName, TEXT(""));
         if (RowData != nullptr) CardData = *RowData;
-        if (CardData.IsCharactor())
-        {
-            FCharactorData* CharRowData = CharactorDataTable->FindRow<FCharactorData>(RowName, TEXT(""));
-            Health = CharRowData->CharHealth;
-        }
     }
     TitleText->SetText(FText::FromString(CardData.CardName));
     TitleText->SetWorldSize(FMath::Clamp(FontSize * 6.0f / CardData.CardName.Len(), FontSize / 8.0f, FontSize));
@@ -180,22 +163,6 @@ void ACard::LoadCard()
     } 
     else {
         AddTypeText->SetText(FText::FromString(""));
-    }
-
-    if (CardData.IsCharactor())
-    {
-        AddTypeText->SetText(FText::AsNumber(Health));
-        // TODO : 하트 아이콘으로 변경
-        FString MaterialPath = "/Script/Engine.Material'/Game/CardImages/14_Mat.14_Mat'";
-        // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, MaterialPath);
-        UMaterial* HealthIconMaterial = LoadObject<UMaterial>(nullptr, *MaterialPath);
-        if (HealthIconMaterial)
-        {
-            HealthIcon->SetMaterial(0, HealthIconMaterial);
-            HealthIcon->RequestRedraw();
-        }
-    }
-    else {
     }
     
     // 동적으로 카드 이미지 로드
@@ -369,14 +336,21 @@ void ACard::Push()
     Push(PushVector);
 }
 
-void ACard::Push(FVector Force)
+void ACard::Push(FVector Force, bool bPrecise)
 {
-    float RandomX = FMath::RandRange(Force.X / 2.0f, Force.X);
-    float RandomY = FMath::RandRange(Force.Y / 2.0f, Force.Y);
-    RandomX *= FMath::RandBool() ? 1 : -1;
-    RandomY *= FMath::RandBool() ? 1 : -1;
-    FVector RandomPushVector = FVector(RandomX, RandomY, Force.Z);
-    VisualMesh->AddImpulse(RandomPushVector);
+    VisualMesh->SetSimulatePhysics(true);
+    if (bPrecise)
+    {
+        VisualMesh->AddImpulse(Force);
+    } 
+    else {
+        float RandomX = FMath::RandRange(Force.X / 2.0f, Force.X);
+        float RandomY = FMath::RandRange(Force.Y / 2.0f, Force.Y);
+        RandomX *= FMath::RandBool() ? 1 : -1;
+        RandomY *= FMath::RandBool() ? 1 : -1;
+        FVector RandomPushVector = FVector(RandomX, RandomY, Force.Z);
+        VisualMesh->AddImpulse(RandomPushVector);
+    }
     bFloating = true;
 }
 
@@ -514,26 +488,3 @@ void ACard::MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback)
     TargetCallback = Callback;
 }
 
-bool ACard::Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback)
-{
-    if (CardData.CardType != CardType::person) return false;
-
-    // 사람 카드의 AddTypeValue를 요구 식량으로 사용
-    int FoodValue = Food->GetAddTypeValue();
-    int RequireFood = GetAddTypeValue();
-
-    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-    TargetCallback.BindUObject(SLGameMode, &ASLGameModeBase::EatCompleted);
-
-    if (FoodEaten >= RequireFood)
-    {
-        TargetCallback.ExecuteIfBound();
-        return true;
-    }
-
-    FoodEaten += Food->CardData.AddTypeValue;
-    Food->CardData.AddTypeValue -= RequireFood;
-    Food->MoveToAnother(this, TargetCallback);
-    return true;
-
-}

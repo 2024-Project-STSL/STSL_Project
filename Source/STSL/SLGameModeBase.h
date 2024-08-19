@@ -6,7 +6,9 @@
 #include "GameFramework/GameModeBase.h"
 #include "CardStack.h"
 #include "Card.h"
+#include "CharactorCard.h"
 #include "CardPack.h"
+#include "Data/CardData.h"
 #include "SLGameModeBase.generated.h"
 
 UENUM(BluePrintType)
@@ -24,6 +26,8 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	
 	TObjectPtr<UUserWidget> MainMenu;
 	TObjectPtr<UUserWidget> BreakMenu;
+
+	class UDataTable* CardDataTable;
 
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TArray<ACardStack*> CardStacks;

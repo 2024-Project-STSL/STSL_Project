@@ -33,9 +33,6 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere)
 	class UDataTable* CardDataTable;
 
-	UPROPERTY(VisibleAnywhere)
-	class UDataTable* CharactorDataTable;
-
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UMaterialInstance> FoodCardMat;
 
@@ -117,12 +114,6 @@ protected:
 	
 	FCardAnimationCallback TargetCallback;
 
-	UPROPERTY(EditAnyWhere, Category = "Charactor")
-	int FoodEaten = 0;
-
-	UPROPERTY(EditAnyWhere, Category = "Charactor")
-	int Health = 0;
-
 public:	
 	// Sets default values for this actor's properties
 	ACard();
@@ -133,9 +124,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CardID")
 	virtual void SetCardID(int32 NewCardID) { CardData.CardCode = NewCardID; LoadCard(); }
-
-	UFUNCTION(BlueprintCallable)
-	void ResetFoodEaten() { FoodEaten = 0; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetShowProgressBar(bool NewShowProgressBar);
@@ -175,7 +163,7 @@ public:
 	UStaticMeshComponent* GetVisualMesh() const { return VisualMesh; }
 
 	// 마우스 카드 이동 관련
-	void SendMovementToStack(ECardMovement Movement);
+	virtual void SendMovementToStack(ECardMovement Movement);
 	FVector GetMouseHitLocation() const;
 
 	virtual void StartMouseHover() override;
@@ -194,7 +182,7 @@ public:
 	void MoveCardToCursor(float FloatingHeight);
 
 	// 벡터만큼 카드 밀어내기
-	void Push(FVector Force);
+	void Push(FVector Force, bool bPrecise = false);
 	void Push();
 
 	// 순간이동
@@ -215,8 +203,4 @@ public:
 	void MoveBack(FCardAnimationCallback& Callback);
 
 	void MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback);
-
-	bool Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback);
-
-	void ResetFood() { FoodEaten = 0; }
 };

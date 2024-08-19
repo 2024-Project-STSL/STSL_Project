@@ -602,6 +602,20 @@ bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 		return false;
 	}
 
+	// 중립 생명체는 스택할 수 없음
+	// TODO: 전투 구현
+	if (CardStack->GetFirstCard()->GetCardType() == CardType::netural || OtherStack->GetFirstCard()->GetCardType() == CardType::netural)
+	{
+		return false;
+	}
+
+	// 적대 생명체는 스택할 수 없음
+	// TODO: 전투 구현
+	if (CardStack->GetFirstCard()->GetCardType() == CardType::enemy || OtherStack->GetFirstCard()->GetCardType() == CardType::enemy)
+	{
+		return false;
+	}
+
 	// TODO: 정확한 카드 스택 조건 구현
 	
 	// (상대의 마지막 카드 ID == 내 첫 카드 ID면 true)
