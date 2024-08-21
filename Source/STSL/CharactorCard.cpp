@@ -32,12 +32,24 @@ ACharactorCard::ACharactorCard()
     {
         EnemyCardMaterial = EnemyMat.Object;
     }
+
+    static ConstructorHelpers::FObjectFinder<UDataTable> DropDataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/DropDB.DropDB'"));
+    if (DropDataTable.Succeeded())
+    {
+        DropTable = DropDataTable.Object;
+    }
 }
 
 ACharactorCard::ACharactorCard(int32 CardID)
 {
 	ACharactorCard();
 	this->CardData.CardCode = CardID;
+}
+
+void ACharactorCard::BeginPlay()
+{
+    Super::BeginPlay();
+    CurrentDropCooldown = FMath::RandRange(MinDropCooldown, MaxDropCooldown);
 }
 
 void ACharactorCard::LoadCard()
@@ -79,10 +91,44 @@ void ACharactorCard::Tick(float DeltaTime)
     if (SLGameMode->GetPlayState() != GamePlayState::PlayState) return;
 
     CurrentMoveCooldown -= DeltaTime;
+    CurrentDropCooldown -= DeltaTime;
     if (CurrentMoveCooldown < 0)
     {
         CurrentMoveCooldown = MoveCooldown;
         CharactorMove();
+    }
+
+    if (CurrentDropCooldown < 0)
+    {
+        CurrentDropCooldown = FMath::RandRange(MinDropCooldown, MaxDropCooldown);
+        CharactorDrop();
+    }
+}
+
+void ACharactorCard::CharactorDrop()
+{
+    if (CardData.CardType != CardType::netural) return;
+
+    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+
+    FVector Location = GetActorLocation();
+
+    Location.Z += 10;
+
+    for (const auto& Row : DropTable->GetRowMap())
+    {
+        int RecipeID = FCString::Atoi(*Row.Key.ToString());
+
+        const uint8* RowData = Row.Value;
+
+        FDropData* DropData = reinterpret_cast<FDropData*>(const_cast<uint8*>(RowData));
+        if (DropData->CardCode == GetCardID())
+        {
+            // TODO: 여러 종류의 카드를 drop하는 중립 몬스터 추가 시 수정 필요
+            ACardStack* NewCardStack = SLGameMode->SpawnCard(Location, DropData->DropCardCode[0]);
+            NewCardStack->GetFirstCard()->Push();
+            break;
+        }
     }
 }
 

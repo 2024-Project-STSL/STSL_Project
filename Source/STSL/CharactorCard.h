@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/DropData.h"
 #include "Card.h"
 #include "CharactorCard.generated.h"
 
@@ -28,6 +29,18 @@ class STSL_API ACharactorCard : public ACard
 	ACharactorCard();
 	ACharactorCard(int32 CardID);
 
+	UPROPERTY(VisibleAnywhere, Category = "Crafting")
+	UDataTable* DropTable;
+
+	UPROPERTY(EditAnywhere, Category = "Crafting")
+	float MaxDropCooldown = 80.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Crafting")
+	float MinDropCooldown = 30.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Crafting")
+	float CurrentDropCooldown = 9999.9f;
+
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UMaterialInstance* NeturalCardMaterial;
 
@@ -35,6 +48,8 @@ class STSL_API ACharactorCard : public ACard
 	UMaterialInstance* EnemyCardMaterial;
 
 protected:
+	virtual void BeginPlay() override;
+
 	void LoadCard() override;
 
 	UPROPERTY(EditAnywhere, Category = "Charactor")
@@ -59,6 +74,8 @@ public:
 	void SendMovementToStack(ECardMovement Movement) override;
 
 	void CharactorMove();
+
+	void CharactorDrop();
 
 	bool Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback);
 
