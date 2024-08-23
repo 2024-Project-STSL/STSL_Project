@@ -88,6 +88,8 @@ bool ACardStack::CheckDropRecipe(FDropData* Recipe)
 
 void ACardStack::UpdateCraftingRecipe()
 {
+	if (GetFirstCard()->GetCardType() == CardType::portal) return;
+
 	bool bIsCrafting = false;
 	bool bIsRecipeChanged = false;
 
@@ -612,6 +614,13 @@ bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 	// 적대 생명체는 스택할 수 없음
 	// TODO: 전투 구현
 	if (CardStack->GetFirstCard()->GetCardType() == CardType::enemy || OtherStack->GetFirstCard()->GetCardType() == CardType::enemy)
+	{
+		return false;
+	}
+
+	// 수상한 포탈은 스택할 수 없음
+	// TODO: 넘어가기 구현
+	if (CardStack->GetFirstCard()->GetCardType() == CardType::portal || OtherStack->GetFirstCard()->GetCardType() == CardType::portal)
 	{
 		return false;
 	}

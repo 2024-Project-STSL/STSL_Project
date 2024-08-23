@@ -18,7 +18,8 @@ enum class CardType {
 	netural,
 	extendment,
 	production,
-	pack
+	pack,
+	portal
 };
 
 UENUM(BlueprintType)

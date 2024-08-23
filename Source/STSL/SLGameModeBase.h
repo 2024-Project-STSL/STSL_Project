@@ -7,6 +7,7 @@
 #include "CardStack.h"
 #include "Card.h"
 #include "CharactorCard.h"
+#include "PortalCard.h"
 #include "CardPack.h"
 #include "Data/CardData.h"
 #include "SLGameModeBase.generated.h"
@@ -59,12 +60,24 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	UPROPERTY(EditAnywhere, Category = "Time")
 	float Time = 0.0f;
 
-	UPROPERTY(EditAnywhere, Category = "TurnEnd")
-	int CardLimit = 30;
-	
 	// 초과 카드 정산 중인가, 즉 플레이어가 임의로 시간을 진행시킬 수 있는가?
 	UPROPERTY(VisibleAnywhere, Category = "Time")
 	bool bSellingExcessiveCard = false;
+
+	UPROPERTY(EditAnywhere, Category = "Portal")
+	int PortalStartingDay = 12;
+
+	UPROPERTY(EditAnywhere, Category = "Portal")
+	int PortalIntervalDay = 6;
+
+	UPROPERTY(EditAnywhere, Category = "Portal")
+	int InitSpawnCount = 2;
+
+	UPROPERTY(EditAnywhere, Category = "Portal")
+	int MaxSpawnCount = 5;
+
+	UPROPERTY(EditAnywhere, Category = "TurnEnd")
+	int CardLimit = 30;
 
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TArray<ACard*> People;
@@ -113,6 +126,9 @@ public:
 	void CheckDayEnd();
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void EndDay();
+
+	UFUNCTION(BlueprintCallable, Category = "Time")
+	int GetPortalSpawnCount() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	GamePlayState GetPlayState() const { return CurrentPlayState; }

@@ -194,7 +194,19 @@ void ASLGameModeBase::EndDay()
 {
 	Day++;
 	BreakMenu->RemoveFromParent();
+	if ((Day - PortalStartingDay) % PortalIntervalDay == 0)
+	{
+		FVector Location(500.0f, 0.0f, 0.0f);
+		SpawnCard(Location, 33);
+	}
 	ResumeGame();
+}
+
+int ASLGameModeBase::GetPortalSpawnCount() const
+{
+	int SpawnCount = 0;
+	SpawnCount = (Day - PortalStartingDay) / PortalIntervalDay + InitSpawnCount;
+	return FMath::Min(SpawnCount, MaxSpawnCount);
 }
 
 void ASLGameModeBase::PauseGame()
@@ -317,6 +329,9 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 	if (RowData != nullptr && RowData->IsCharactor())
 	{
 		CardClass = ACharactorCard::StaticClass();
+	}
+	else if (RowData->CardType == CardType::portal) {
+		CardClass = APortalCard::StaticClass();
 	}
 	else {
 		CardClass = ACard::StaticClass();
