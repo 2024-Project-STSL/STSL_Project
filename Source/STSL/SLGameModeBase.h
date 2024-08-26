@@ -7,6 +7,7 @@
 #include "CardStack.h"
 #include "Card.h"
 #include "CharactorCard.h"
+#include "PersonCard.h"
 #include "PortalCard.h"
 #include "CardPack.h"
 #include "Data/CardData.h"

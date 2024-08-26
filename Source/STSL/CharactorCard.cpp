@@ -157,30 +157,6 @@ void ACharactorCard::SendMovementToStack(ECardMovement Movement)
     }
 }
 
-bool ACharactorCard::Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback)
-{
-    if (CardData.CardType != CardType::person) return false;
-
-    // 사람 카드의 AddTypeValue를 요구 식량으로 사용
-    int FoodValue = Food->GetAddTypeValue();
-    int RequireFood = GetAddTypeValue();
-
-    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-    TargetCallback.BindUObject(SLGameMode, &ASLGameModeBase::EatCompleted);
-
-    if (FoodEaten >= RequireFood)
-    {
-        TargetCallback.ExecuteIfBound();
-        return true;
-    }
-
-    FoodEaten += Food->GetAddTypeValue();
-    Food->SetAddTypeValue(Food->GetAddTypeValue() - RequireFood);
-    Food->MoveToAnother(this, TargetCallback);
-    return true;
-
-}
-
 void ACharactorCard::PushTowardPeople()
 {
     float MinDistance = 999999.9f;

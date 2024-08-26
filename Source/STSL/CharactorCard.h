@@ -26,9 +26,6 @@ class STSL_API ACharactorCard : public ACard
 	UPROPERTY(VisibleAnywhere)
 	class UDataTable* CharactorDataTable;
 
-	ACharactorCard();
-	ACharactorCard(int32 CardID);
-
 	UPROPERTY(VisibleAnywhere, Category = "Crafting")
 	UDataTable* DropTable;
 
@@ -58,12 +55,6 @@ protected:
 	float CurrentMoveCooldown = 0.0f;
 
 	UPROPERTY(EditAnyWhere, Category = "Charactor")
-	int FoodEaten = 0;
-
-	UFUNCTION(BlueprintCallable)
-	void ResetFoodEaten() { FoodEaten = 0; }
-
-	UPROPERTY(EditAnyWhere, Category = "Charactor")
 	int Health = 0;
 
 	void Tick(float DeltaTime) override;
@@ -71,13 +62,13 @@ protected:
 	void PushTowardPeople();
 
 public:
+
+	ACharactorCard();
+	ACharactorCard(int32 CardID);
+
 	void SendMovementToStack(ECardMovement Movement) override;
 
 	void CharactorMove();
 
 	void CharactorDrop();
-
-	bool Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback);
-
-	void ResetFood() { FoodEaten = 0; }
 };

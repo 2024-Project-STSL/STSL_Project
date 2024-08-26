@@ -91,7 +91,7 @@ void ASLGameModeBase::Eat()
 		{
 			for (TObjectPtr<ACard> Person : CardStack->GetCardsByType(CardType::person))
 			{
-				Cast<ACharactorCard>(Person)->ResetFood();
+				Cast<APersonCard>(Person)->ResetFood();
 				People.Add(Person);
 			}
 		}
@@ -134,7 +134,7 @@ void ASLGameModeBase::EatNext()
 		}
 	}
 
-	TObjectPtr<ACharactorCard> CurrentPerson = Cast<ACharactorCard>(People[PersonIndex]);
+	TObjectPtr<APersonCard> CurrentPerson = Cast<APersonCard>(People[PersonIndex]);
 	TObjectPtr<ACard> CurrentFood = Foods[FoodIndex];
 	FCardAnimationCallback Callback;
 	Callback.BindUObject(this, &ASLGameModeBase::EatCompleted);
@@ -301,7 +301,8 @@ void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* NewDragg
 				CardStack->GetLastCard()->GetVisualMesh()->SetRenderCustomDepth(true);
 			}
 		}
-	} else {
+	} 
+	else {
 		for (ACardStack* CardStack : CardStacks)
 		{
 			CardStack->GetLastCard()->GetVisualMesh()->SetRenderCustomDepth(false);
@@ -324,17 +325,27 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 	 
 	FName RowName = FName(*FString::FromInt(CardID));
 	FCardData* RowData = CardDataTable->FindRow<FCardData>(RowName, TEXT(""));
-	UClass* CardClass;
+	UClass* CardClass = ACard::StaticClass();
 
-	if (RowData != nullptr && RowData->IsCharactor())
+	if (RowData != nullptr)
 	{
-		CardClass = ACharactorCard::StaticClass();
-	}
-	else if (RowData->CardType == CardType::portal) {
-		CardClass = APortalCard::StaticClass();
-	}
-	else {
-		CardClass = ACard::StaticClass();
+		if (RowData->IsCharactor())
+		{
+			if (RowData->CardType == CardType::person)
+			{
+				CardClass = APersonCard::StaticClass();
+			}
+			else {
+				CardClass = ACharactorCard::StaticClass();
+			}
+		}
+		else if (RowData->CardType == CardType::portal)
+		{
+			CardClass = APortalCard::StaticClass();
+		}
+		else {
+			CardClass = ACard::StaticClass();
+		}
 	}
 
 	AActor* NewCardActor = GetWorld()->SpawnActor
