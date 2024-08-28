@@ -475,6 +475,11 @@ void ACard::ResumeGame()
     VisualMesh->SetSimulatePhysics(bPhysicsBeforeBreak);
 }
 
+void ACard::Remove()
+{
+    Cast<ACardStack>(CardStack)->RemoveCard(this, true);
+}
+
 void ACard::MoveBack(FCardAnimationCallback& Callback)
 {
     TargetLocation = MovedLocation;

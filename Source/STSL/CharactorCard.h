@@ -49,13 +49,17 @@ protected:
 
 	void LoadCard() override;
 
+	// 장비, 입은 피해 등이 적용되기 전의 원본 스탯
+	UPROPERTY(EditAnywhere, Category = "Charactor")
+	FCharactorData CharactorBaseStat;
+
+	UPROPERTY(EditAnywhere, Category = "Charactor")
+	FCharactorData CharactorStat;
+
 	UPROPERTY(EditAnywhere, Category = "Charactor")
 	float MoveCooldown = 5.0f;
 	UPROPERTY(EditAnywhere, Category = "Charactor")
 	float CurrentMoveCooldown = 0.0f;
-
-	UPROPERTY(EditAnyWhere, Category = "Charactor")
-	int Health = 0;
 
 	void Tick(float DeltaTime) override;
 

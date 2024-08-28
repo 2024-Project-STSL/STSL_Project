@@ -58,7 +58,8 @@ void ACharactorCard::LoadCard()
 
     FName RowName = FName(*FString::FromInt(CardData.CardCode));
     FCharactorData* CharRowData = CharactorDataTable->FindRow<FCharactorData>(RowName, TEXT(""));
-    Health = CharRowData->CharHealth;
+    CharactorBaseStat = *CharRowData;
+    CharactorStat = *CharRowData;
 
     if (CardData.CardType == CardType::netural)
     {
@@ -70,7 +71,7 @@ void ACharactorCard::LoadCard()
         VisualMesh->SetMaterial(0, EnemyCardMaterial);
     }
 
-    AddTypeText->SetText(FText::AsNumber(Health));
+    AddTypeText->SetText(FText::AsNumber(CharactorStat.CharHealth));
     // TODO : 하트 아이콘으로 변경
     FString MaterialPath = "/Script/Engine.Material'/Game/CardImages/14_Mat.14_Mat'";
     // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, MaterialPath);
