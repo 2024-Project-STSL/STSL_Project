@@ -119,6 +119,9 @@ public:
 	ACard();
 	ACard(int32 CardID);
 
+	UFUNCTION(BlueprintCallable)
+	void SetFloating(bool NewFloating) { bFloating = NewFloating; }
+
 	UFUNCTION(BlueprintCallable, Category = "CardID")
 	int32 GetCardID() const { return CardData.CardCode; }
 

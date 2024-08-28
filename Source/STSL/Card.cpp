@@ -238,7 +238,7 @@ void ACard::SendMovementToStack(ECardMovement Movement)
 
 void ACard::StartMouseHover()
 {
-    if (bPreventDragging || bFloating) return;
+    if (bPreventDragging) return;
     SendMovementToStack(ECardMovement::StartHover);
 }
 void ACard::EndMouseHover()

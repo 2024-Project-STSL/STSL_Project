@@ -257,6 +257,7 @@ void ACardStack::UpdatePosition(bool bFalling)
 		if (bFalling)
 		{
 			Cast<ACard>(Cards[i])->GetVisualMesh()->SetSimulatePhysics(false);
+			Cast<ACard>(Cards[i])->SetFloating(false);
 			Offset = HeightOffset;
 		}
 		else {
@@ -419,6 +420,7 @@ void ACardStack::AddCard(AActor* CardActor)
 		AActor* OldStackActor = Card->GetCardStack();
 
 		Card->SetCardStack(this);
+		Card->SetFloating(false);
 		GetFirstCard()->UpdateWorldBorder(Cards.Num());
 
 		if (OldStackActor != nullptr)
@@ -711,7 +713,6 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 	if (SLGameMode->GetDraggingStack() == this && GetCardStackable(this, OtherCardStack))
 		// 스택
 	{
-		TArray<AActor*> NewCards;
 		OtherCardStack->AddCard(Cards);
 		// 합쳐진 스택의 호버 해제
 		OtherCardStack->HandleStackMove(OtherCardStack->GetLastCard(), ECardMovement::EndHover);
