@@ -10,6 +10,7 @@
 #include "PersonCard.h"
 #include "PortalCard.h"
 #include "CardPack.h"
+#include "MainActor.h"
 #include "Data/CardData.h"
 #include "SLGameModeBase.generated.h"
 
@@ -36,7 +37,7 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 
 	// 가장 최근 마우스에 의해 드래그 시작된 스택
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
-	ACardStack* DraggingStack;
+	TObjectPtr<ACardStack> DraggingStack;
 
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	bool bIsCardHighlight;
@@ -87,7 +88,7 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	int PersonIndex; int FoodIndex;
 
 	UPROPERTY(VisibleAnywhere)
-	AActor* SellAreaActor;
+	TObjectPtr<AActor> SellAreaActor;
 
 protected:
 	// Called every frame

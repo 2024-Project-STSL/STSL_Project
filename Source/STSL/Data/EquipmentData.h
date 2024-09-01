@@ -11,7 +11,7 @@
  */
 
 UENUM(BlueprintType)
-enum class EquipType 
+enum class EquipType : uint8
 {
 	SubArmor = 0,
 	MainArmor,
@@ -19,7 +19,7 @@ enum class EquipType
 };
 
 UENUM(BlueprintType)
-enum class StatType 
+enum class StatType : uint8
 {
 	Attack = 0,
 	Speed,

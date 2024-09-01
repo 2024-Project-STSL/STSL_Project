@@ -33,6 +33,8 @@ class STSL_API APersonCard : public ACharactorCard
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UWidgetComponent> EquipmentIndicator;
 
+	TObjectPtr<AActor> MainActor;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -50,6 +52,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void Equip(AActor* Card);
+
+	UFUNCTION(BlueprintCallable)
+	void Unequip(EquipType TargetSlot);
 
 	UFUNCTION(BlueprintCallable)
 	void AddEquipmentStat(FEquipmentData Equipment);

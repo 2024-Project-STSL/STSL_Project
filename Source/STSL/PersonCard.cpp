@@ -4,12 +4,14 @@
 #include "PersonCard.h"
 #include "SLGameModeBase.h"
 #include "EquipmentMenuBase.h"
+#include "EquipmentWidgetComponent.h"
 #include "Card.h"
 #include <Kismet/GameplayStatics.h>
 
 APersonCard::APersonCard()
 {
-    EquipmentIndicator = CreateDefaultSubobject<UWidgetComponent>(TEXT("EquipmentWidget"));
+    
+    EquipmentIndicator = CreateDefaultSubobject<UEquipmentWidgetComponent>(TEXT("EquipmentWidget"));
     EquipmentIndicator->SetupAttachment(VisualMesh);
     
     static ConstructorHelpers::FClassFinder<UUserWidget> CraftingProgressBarRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/EquipMentMenu.EquipMentMenu_C'"));
@@ -18,7 +20,7 @@ APersonCard::APersonCard()
         EquipmentIndicator->SetWidgetClass(CraftingProgressBarRef.Class);
         EquipmentIndicator->SetRelativeLocationAndRotation(FVector(-387.5f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
         EquipmentIndicator->SetDrawSize(FVector2D(400.0f, 265.5f));
-        EquipmentIndicator->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        EquipmentIndicator->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     }
 
     static ConstructorHelpers::FObjectFinder<UDataTable> EquipDataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/EquipmentDB.EquipmentDB'"));
@@ -35,7 +37,10 @@ APersonCard::APersonCard()
 void APersonCard::BeginPlay()
 {
     Super::BeginPlay();
-    Cast<UEquipmentMenuBase>(EquipmentIndicator->GetWidget())->SetShowEquipmentDetail(false);
+    TObjectPtr<UEquipmentMenuBase> EquipmentMenu = Cast<UEquipmentMenuBase>(EquipmentIndicator->GetWidget());
+    EquipmentMenu->SetShowEquipmentDetail(false);
+    EquipmentMenu->OnUnequip.BindUFunction(this, TEXT("Unequip"));
+    MainActor = UGameplayStatics::GetActorOfClass(GetWorld(), AMainActor::StaticClass());
 }
 
 void APersonCard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -112,6 +117,52 @@ void APersonCard::Equip(AActor* Card)
     UpdateStat();
 
     CardObject->Remove();
+}
+
+void APersonCard::Unequip(EquipType TargetSlot)
+{
+    int TargetID = -1;
+    FVector TargetOffset = FVector::Zero();
+
+    switch (TargetSlot)
+    {
+    case EquipType::Weapon:
+        TargetID = Weapon.CardCode;
+        TargetOffset = FVector(-315.0f, -100.0f, 50.0f);
+        Weapon.CardCode = -1;
+        break;
+    case EquipType::MainArmor:
+        TargetID = MainArmor.CardCode;
+        TargetOffset = FVector(-315.0f, 100.0f, 50.0f);
+        MainArmor.CardCode = -1;
+        break;
+    case EquipType::SubArmor:
+        TargetID = SubArmor.CardCode;
+        TargetOffset = FVector(-315.0f, 100.0f, 50.0f);
+        SubArmor.CardCode = -1;
+        break;
+    default:
+        TargetID = -1;
+        break;
+    }
+
+    if (TargetID == -1) return;
+
+    Cast<UEquipmentMenuBase>(EquipmentIndicator->GetWidget())->UpdateEquipmentMenu(Weapon.CardCode, MainArmor.CardCode, SubArmor.CardCode);
+    UpdateStat();
+
+    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+    FVector TargetCardLocation = GetActorLocation() + TargetOffset;
+    ACardStack* TargetStack = SLGameMode->SpawnCard(TargetCardLocation, TargetID);
+
+    SendMovementToStack(ECardMovement::EndDrag);
+    FVector NewLocation = GetActorLocation();
+    NewLocation.Z = 1.0f;
+    SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
+
+    TargetStack->GetFirstCard()->SendMovementToStack(ECardMovement::StartDrag);
+    Cast<AMainActor>(MainActor)->SetMouseDraggingActor(TargetStack->GetFirstCard());
+
 }
 
 void APersonCard::AddEquipmentStat(FEquipmentData Equipment)

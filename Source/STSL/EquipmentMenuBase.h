@@ -5,16 +5,23 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Data/EquipmentData.h"
+#include "Components/TextBlock.h"
+#include <Components/Image.h>
 #include "EquipmentMenuBase.generated.h"
 
 /**
  * 
  */
 
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnUnequip, EquipType, EquipSlot);
+
 UCLASS()
 class STSL_API UEquipmentMenuBase : public UUserWidget
 {
 	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere)
+	class UDataTable* CardDataTable;
 
 	UPROPERTY(VisibleAnyWhere, Category = "Equipment")
 	bool bShowEquipmentDetail = false;
@@ -40,6 +47,27 @@ class STSL_API UEquipmentMenuBase : public UUserWidget
 	UPROPERTY(VisibleAnywhere, Category = "Icon")
 	FSlateBrush CircleOff;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> WeaponName;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> WeaponImage;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ArmorName;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> ArmorImage;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> SubArmorName;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> SubArmorImage;
+
+protected:
+	virtual void NativeTick(const FGeometry& MyGeometry, float DeltaTime) override;
+
 public:
 
 	UEquipmentMenuBase(const FObjectInitializer& ObjectInitializer);
@@ -48,8 +76,22 @@ public:
 	void SetShowEquipmentDetail(bool Showing);
 
 	UFUNCTION(BlueprintCallable)
-	void SetSlotIndicator(EquipType TargetSlot, bool Showing) const;
+	bool GetShowEquipmentDetail() const { return bShowEquipmentDetail; }
+
+	UFUNCTION(BlueprintCallable)
+	void ResetShowDetailTime() { CurrentShowDetailTime = ShowDetailTime; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetSlotIndicator(EquipType TargetSlot, bool Equipped) const;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateDetail(int NewCode, UTextBlock* TargetText, UImage* TargetImage);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateEquipmentMenu(int NewWeapon, int NewArmor, int NewSubArmor);
+
+	UFUNCTION(BlueprintCallable)
+	void SendUnequip(EquipType TargetSlot) const;
+
+	FOnUnequip OnUnequip;
 };
