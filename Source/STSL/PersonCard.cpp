@@ -13,7 +13,26 @@ APersonCard::APersonCard()
     
     EquipmentIndicator = CreateDefaultSubobject<UEquipmentWidgetComponent>(TEXT("EquipmentWidget"));
     EquipmentIndicator->SetupAttachment(VisualMesh);
-    
+
+    OverlapArea = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Overlap"));
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> CardOverlapAsset(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/DummyCard.DummyCard'"));
+    // static ConstructorHelpers::FObjectFinder<UPhysicalMaterial> CardPhysicalMeterial(TEXT("/Script/PhysicsCore.PhysicalMaterial'/Game/Material/CardPhysicalMaterial1.CardPhysicalMaterial1'"));
+
+    if (CardOverlapAsset.Succeeded())
+    {
+        OverlapArea->SetStaticMesh(CardOverlapAsset.Object);
+        OverlapArea->SetRelativeLocation(FVector(0.0f, 0.0f, 50.0f));
+        OverlapArea->BodyInstance.UpdateInstanceSimulatePhysics();
+        OverlapArea->SetRelativeScale3D(FVector(1.0f, 1.0f, 100.0f));
+        OverlapArea->SetNotifyRigidBodyCollision(true);
+        OverlapArea->BodyInstance.bLockXRotation = true;
+        OverlapArea->BodyInstance.bLockYRotation = true;
+        OverlapArea->BodyInstance.bLockZRotation = true;
+        OverlapArea->SetVisibility(false);
+        OverlapArea->SetCollisionProfileName(TEXT("OverlapAll"));
+    }
+    OverlapArea->SetupAttachment(VisualMesh);
+
     static ConstructorHelpers::FClassFinder<UUserWidget> CraftingProgressBarRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/EquipMentMenu.EquipMentMenu_C'"));
     if (CraftingProgressBarRef.Succeeded())
     {
@@ -37,6 +56,7 @@ APersonCard::APersonCard()
 void APersonCard::BeginPlay()
 {
     Super::BeginPlay();
+    OverlapArea->OnComponentBeginOverlap.AddDynamic(this, &APersonCard::OnOverlapBegin);
     TObjectPtr<UEquipmentMenuBase> EquipmentMenu = Cast<UEquipmentMenuBase>(EquipmentIndicator->GetWidget());
     EquipmentMenu->SetShowEquipmentDetail(false);
     EquipmentMenu->OnUnequip.BindUFunction(this, TEXT("Unequip"));
@@ -48,7 +68,7 @@ void APersonCard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UP
     if (OtherActor->IsA<ACard>())
     {
         ACard* OtherCard = Cast<ACard>(OtherActor);
-        if (OtherCard->GetCardType() == CardType::equip)
+        if (OtherCard->GetCardType() == CardType::equip && (OtherCard != LastEquipment || CurrentEquipmentCooldown < 0.0f))
         {
             Equip(OtherCard);
             return;
@@ -87,26 +107,36 @@ bool APersonCard::Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback)
 
 }
 
+void APersonCard::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+    CurrentEquipmentCooldown -= DeltaTime;
+}
+
 void APersonCard::Equip(AActor* Card)
 {
-    TObjectPtr<ACard> CardObject = Cast<ACard>(Card);
+    TObjectPtr<ACard> CardActor = Cast<ACard>(Card);
 
-    if (CardObject->GetCardType() != CardType::equip) return;
+    if (CardActor->GetCardType() != CardType::equip) return;
 
-    int NewEquipID = CardObject->GetCardID();
+    int NewEquipID = CardActor->GetCardID();
 
     FName RowName = FName(*FString::FromInt(NewEquipID));
     FEquipmentData* EquipRowData = EquipmentDataTable->FindRow<FEquipmentData>(RowName, TEXT(""));
+    FEquipmentData OldEquipment;
 
     switch (EquipRowData->EquipType)
     {
     case EquipType::Weapon:
+        OldEquipment = Weapon;
         Weapon = *EquipRowData;
         break;
     case EquipType::MainArmor:
+        OldEquipment = MainArmor;
         MainArmor = *EquipRowData;
         break;
     case EquipType::SubArmor:
+        OldEquipment = SubArmor;
         SubArmor = *EquipRowData;
         break;
     default:
@@ -116,7 +146,20 @@ void APersonCard::Equip(AActor* Card)
     Cast<UEquipmentMenuBase>(EquipmentIndicator->GetWidget())->UpdateEquipmentMenu(Weapon.CardCode, MainArmor.CardCode, SubArmor.CardCode);
     UpdateStat();
 
-    CardObject->Remove();
+    CardActor->Remove();
+
+    if (OldEquipment.CardCode != -1)
+    {
+        FVector TargetCardLocation = GetActorLocation();
+        TargetCardLocation.Z += 30.0f;
+
+        ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+        ACardStack* TargetStack = SLGameMode->SpawnCard(TargetCardLocation, OldEquipment.CardCode);
+        TargetStack->GetFirstCard()->Push(FVector(-4000.0f, 0.0f, 3000.0f), true);
+
+        LastEquipment = TargetStack->GetFirstCard();
+        CurrentEquipmentCooldown = LastEquipmentCooldown;
+    }
 }
 
 void APersonCard::Unequip(EquipType TargetSlot)
@@ -180,6 +223,18 @@ void APersonCard::AddEquipmentStat(FEquipmentData Equipment)
         break;
     default:
         break;
+    }
+}
+
+void APersonCard::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (OtherActor->IsA<ACard>())
+    {
+        ACard* OtherCard = Cast<ACard>(OtherActor);
+        if (OtherCard->GetCardType() == CardType::equip)
+        {
+            Cast<UEquipmentMenuBase>(EquipmentIndicator->GetWidget())->SetShowEquipmentDetail(true);
+        }
     }
 }
 

@@ -308,7 +308,7 @@ void ACard::MoveCardToCursor(float FloatingHeight)
 
 void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (OtherActor->IsA<ACard>())
+    if (OtherActor->IsA<ACard>() && CardStack != nullptr)
     {
         ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
         ACard* OtherCard = Cast<ACard>(OtherActor);

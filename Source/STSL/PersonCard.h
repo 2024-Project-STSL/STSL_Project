@@ -24,6 +24,9 @@ class STSL_API APersonCard : public ACharactorCard
 	UPROPERTY(EditAnyWhere, Category = "Equipment")
 	FEquipmentData Weapon;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UStaticMeshComponent* OverlapArea;
+
 	UPROPERTY(EditAnyWhere, Category = "Equipment")
 	FEquipmentData MainArmor;
 
@@ -35,9 +38,23 @@ class STSL_API APersonCard : public ACharactorCard
 
 	TObjectPtr<AActor> MainActor;
 
+	UPROPERTY(VisibleAnywhere, Category = "Equipment")
+	TObjectPtr<AActor> LastEquipment = nullptr;
+
+	UPROPERTY(EditAnyWhere, Category = "Equipment")
+	float CurrentEquipmentCooldown = -1.0f;
+
+	UPROPERTY(EditAnyWhere, Category = "Equipment")
+	float LastEquipmentCooldown = 5.0f;
+
 protected:
 	virtual void BeginPlay() override;
 
+	void Tick(float DeltaTime) override;
+
+	UFUNCTION()
+	virtual void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
 	virtual void OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 
 public:
