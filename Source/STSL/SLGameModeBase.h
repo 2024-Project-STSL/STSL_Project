@@ -11,6 +11,7 @@
 #include "PortalCard.h"
 #include "CardPack.h"
 #include "MainActor.h"
+#include "BattleManager.h"
 #include "Data/CardData.h"
 #include "SLGameModeBase.generated.h"
 
@@ -137,6 +138,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	float GetDayProgressPercent() const;
+
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
+	void StartBattle(ACardStack* FirstStack, ACardStack* SecondStack) const;
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	int GetTotalCardAmount(bool ExcludeCoin) const;

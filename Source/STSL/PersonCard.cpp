@@ -240,7 +240,10 @@ void APersonCard::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
 
 void APersonCard::UpdateStat()
 {
+    int OldHealth = CharactorStat.CharHealth;
     CharactorStat = CharactorBaseStat;
+    CharactorStat.CharHealth = OldHealth;
+
     AddEquipmentStat(Weapon);
     AddEquipmentStat(MainArmor);
     AddEquipmentStat(SubArmor);

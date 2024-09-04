@@ -24,6 +24,8 @@ public:
 	int CharAttack;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int CharDefence;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float CharCritRate;
 
 	FCharactorData();
 	~FCharactorData();

@@ -126,6 +126,9 @@ public:
 	// 상대 스택에 이 스택이 쌓일 수 있는가?
 	static bool GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack);
 	
+	// 두 스택의 충돌이 전투를 유발하는가?
+	static bool GetCardBattleable(ACardStack* CardStack, ACardStack* OtherStack);
+
 	// ExceptionStack: 검색 예외 스택, 생산된 카드에서는 생산지를 지정해 사용
 	ACardStack* GetNearestStackable(float StackSearchDistance, ACardStack* ExceptionStack = nullptr);
 
@@ -147,6 +150,8 @@ public:
 	int GetCardAmount(bool ExcludeCoin = false) const;
 
 	TArray<ACard*> GetCardsByType(CardType Type) const;
+
+	TArray<ACard*> GetAllCharactors() const;
 
 	bool GetIsCoinStack() const;
 

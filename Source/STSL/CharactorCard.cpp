@@ -133,6 +133,20 @@ void ACharactorCard::CharactorDrop()
     }
 }
 
+void ACharactorCard::CharactorDeath(EDeathReason Reason)
+{
+    OnDeath.Broadcast(this);
+    Remove();
+}
+
+void ACharactorCard::CharactorDamage(int Damage)
+{
+    CharactorStat.CharHealth -= Damage;
+    AddTypeText->SetText(FText::AsNumber(CharactorStat.CharHealth));
+
+    if (CharactorStat.CharHealth <= 0) CharactorDeath(EDeathReason::Damaged);
+}
+
 void ACharactorCard::CharactorMove()
 {
     switch (CardData.CardType)

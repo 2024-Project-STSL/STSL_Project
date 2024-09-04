@@ -7,9 +7,31 @@
 #include "Card.h"
 #include "CharactorCard.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, ACharactorCard*, DeadCard);
+
 /**
  * 
  */
+UENUM(BlueprintType)
+enum class EBattleState : uint8
+{
+	Idle = 0,
+	Wait,
+	Ready,
+	Select,
+	Attack,
+	Hit,
+	Dead
+};
+
+UENUM(BlueprintType)
+enum class EDeathReason : uint8
+{
+	Hunger = 0,
+	Damaged,
+	Unknown
+};
+
 UENUM(BlueprintType)
 enum class ECharactorMovement : uint8
 {
@@ -44,6 +66,9 @@ class STSL_API ACharactorCard : public ACard
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UMaterialInstance* EnemyCardMaterial;
 
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	EBattleState BattleState;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -75,4 +100,19 @@ public:
 	void CharactorMove();
 
 	void CharactorDrop();
+
+	void CharactorDamage(int Damage);
+
+	void CharactorDeath(EDeathReason Reason);
+
+	UFUNCTION(BlueprintCallable, Category = "Charactor")
+	FCharactorData GetCharactorStat() const { return CharactorStat; }
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	EBattleState GetBattleState() const { return BattleState; }
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	void SetBattleState(EBattleState NewBattleState) { BattleState = NewBattleState; }
+
+	FOnDeath OnDeath;
 };

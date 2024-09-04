@@ -249,6 +249,32 @@ float ASLGameModeBase::GetDayProgressPercent() const
 	return FMath::Clamp(Time / TimeForDay, 0.0f, 1.0f);
 }
 
+void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStack) const
+{
+	TArray<ACharactorCard*> FirstTeam;
+	TArray<ACharactorCard*> SecondTeam;
+
+	for (AActor* FirstActor : FirstStack->GetAllCharactors())
+	{
+		FirstTeam.Add(Cast<ACharactorCard>(FirstActor));
+	}
+
+	for (AActor* SecondActor : SecondStack->GetAllCharactors())
+	{
+		SecondTeam.Add(Cast<ACharactorCard>(SecondActor));
+	}
+
+	FVector Location = FVector::Zero();
+
+	AActor* NewBattleManager = GetWorld()->SpawnActor
+	(
+		ABattleManager::StaticClass(),
+		&Location
+	);
+
+	Cast<ABattleManager>(NewBattleManager)->SetTeam(FirstTeam, SecondTeam);
+}
+
 int ASLGameModeBase::GetTotalCardAmount(bool ExcludeCoin = false) const
 {
 	int Sum = 0;

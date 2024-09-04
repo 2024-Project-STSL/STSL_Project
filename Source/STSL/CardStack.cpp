@@ -332,6 +332,21 @@ TArray<ACard*> ACardStack::GetCardsByType(CardType Type) const
 	return TargetCards;
 }
 
+TArray<ACard*> ACardStack::GetAllCharactors() const
+{
+	TArray<ACard*> TargetCards;
+
+	for (TObjectPtr<AActor> CardActor : Cards)
+	{
+		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
+		if (Card->IsCharactor())
+		{
+			TargetCards.Add(Card);
+		}
+	}
+	return TargetCards;
+}
+
 bool ACardStack::GetIsCoinStack() const
 {
 	for (AActor* CardActor : Cards)
@@ -607,14 +622,12 @@ bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 	}
 
 	// 중립 생명체는 스택할 수 없음
-	// TODO: 전투 구현
 	if (CardStack->GetFirstCard()->GetCardType() == CardType::netural || OtherStack->GetFirstCard()->GetCardType() == CardType::netural)
 	{
 		return false;
 	}
 
 	// 적대 생명체는 스택할 수 없음
-	// TODO: 전투 구현
 	if (CardStack->GetFirstCard()->GetCardType() == CardType::enemy || OtherStack->GetFirstCard()->GetCardType() == CardType::enemy)
 	{
 		return false;
@@ -635,6 +648,24 @@ bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 
 	// 임시: 항상 true 반환
 	return true;
+}
+
+bool ACardStack::GetCardBattleable(ACardStack* CardStack, ACardStack* OtherStack)
+{
+	// TODO: 모든 전투 개시 조건 반영
+	if (CardStack->GetFirstCard()->IsA(ACharactorCard::StaticClass()) && OtherStack->GetFirstCard()->IsA(ACharactorCard::StaticClass()))
+	{
+		if (CardStack->GetFirstCard()->GetCardType() != OtherStack->GetFirstCard()->GetCardType())
+		{
+			ACharactorCard* FirstChar = Cast<ACharactorCard>(CardStack->GetFirstCard());
+			ACharactorCard* SecondChar = Cast<ACharactorCard>(OtherStack->GetFirstCard());
+			if (FirstChar->GetBattleState() == EBattleState::Idle && SecondChar->GetBattleState() == EBattleState::Idle)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 ACardStack* ACardStack::GetNearestStackable(float StackSearchDistance, ACardStack* ExceptionStack)
@@ -710,19 +741,28 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 	UpdatePosition(); OtherCardStack->UpdatePosition();
 
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-	if (SLGameMode->GetDraggingStack() == this && GetCardStackable(this, OtherCardStack))
-		// 스택
-	{
-		OtherCardStack->AddCard(Cards);
-		// 합쳐진 스택의 호버 해제
-		OtherCardStack->HandleStackMove(OtherCardStack->GetLastCard(), ECardMovement::EndHover);
-	} else {
-		// 충돌
-		FVector SelfVector, OtherVector;
-		GetCardCollisionVector(OtherCard, SelfVector, OtherVector);
-		MoveCards(SelfVector);
-		HandleStackMove(GetLastCard(), ECardMovement::EndHover);
-		OtherCardStack->MoveCards(OtherVector);
+	if (SLGameMode->GetDraggingStack() == this) {
+
+		if (GetCardStackable(this, OtherCardStack))
+			// 스택
+		{
+			OtherCardStack->AddCard(Cards);
+			// 합쳐진 스택의 호버 해제
+			OtherCardStack->HandleStackMove(OtherCardStack->GetLastCard(), ECardMovement::EndHover);
+		}
+		else if (GetCardBattleable(this, OtherCardStack))
+		{
+			// 전투
+			SLGameMode->StartBattle(this, OtherCardStack);
+		}
+		else {
+			// 충돌
+			FVector SelfVector, OtherVector;
+			GetCardCollisionVector(OtherCard, SelfVector, OtherVector);
+			MoveCards(SelfVector);
+			HandleStackMove(GetLastCard(), ECardMovement::EndHover);
+			OtherCardStack->MoveCards(OtherVector);
+		}
 	}
 }
 

@@ -165,6 +165,8 @@ public:
 
 	UStaticMeshComponent* GetVisualMesh() const { return VisualMesh; }
 
+	bool IsCharactor() const { return CardData.IsCharactor(); }
+
 	// 마우스 카드 이동 관련
 	virtual void SendMovementToStack(ECardMovement Movement);
 	FVector GetMouseHitLocation() const;
