@@ -332,14 +332,14 @@ TArray<ACard*> ACardStack::GetCardsByType(CardType Type) const
 	return TargetCards;
 }
 
-TArray<ACard*> ACardStack::GetAllCharactors() const
+TArray<ACard*> ACardStack::GetAllCharacters() const
 {
 	TArray<ACard*> TargetCards;
 
 	for (TObjectPtr<AActor> CardActor : Cards)
 	{
 		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
-		if (Card->IsCharactor())
+		if (Card->IsCharacter())
 		{
 			TargetCards.Add(Card);
 		}
@@ -653,12 +653,12 @@ bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 bool ACardStack::GetCardBattleable(ACardStack* CardStack, ACardStack* OtherStack)
 {
 	// TODO: 모든 전투 개시 조건 반영
-	if (CardStack->GetFirstCard()->IsA(ACharactorCard::StaticClass()) && OtherStack->GetFirstCard()->IsA(ACharactorCard::StaticClass()))
+	if (CardStack->GetFirstCard()->IsA(ACharacterCard::StaticClass()) && OtherStack->GetFirstCard()->IsA(ACharacterCard::StaticClass()))
 	{
 		if (CardStack->GetFirstCard()->GetCardType() != OtherStack->GetFirstCard()->GetCardType())
 		{
-			ACharactorCard* FirstChar = Cast<ACharactorCard>(CardStack->GetFirstCard());
-			ACharactorCard* SecondChar = Cast<ACharactorCard>(OtherStack->GetFirstCard());
+			ACharacterCard* FirstChar = Cast<ACharacterCard>(CardStack->GetFirstCard());
+			ACharacterCard* SecondChar = Cast<ACharacterCard>(OtherStack->GetFirstCard());
 			if (FirstChar->GetBattleState() == EBattleState::Idle && SecondChar->GetBattleState() == EBattleState::Idle)
 			{
 				return true;

@@ -11,7 +11,7 @@ FCardData::~FCardData()
 {
 }
 
-bool FCardData::IsCharactor() const
+bool FCardData::IsCharacter() const
 {
 	if (CardType == CardType::person) return true;
 	if (CardType == CardType::netural) return true;

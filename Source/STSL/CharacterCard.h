@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "Data/DropData.h"
 #include "Card.h"
-#include "CharactorCard.generated.h"
+#include "CharacterCard.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, ACharactorCard*, DeadCard);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, ACharacterCard*, DeadCard);
 
 /**
  * 
@@ -33,7 +33,7 @@ enum class EDeathReason : uint8
 };
 
 UENUM(BlueprintType)
-enum class ECharactorMovement : uint8
+enum class ECharacterMovement : uint8
 {
 	Static = 0,
 	RandomJump,
@@ -41,12 +41,12 @@ enum class ECharactorMovement : uint8
 };
 
 UCLASS()
-class STSL_API ACharactorCard : public ACard
+class STSL_API ACharacterCard : public ACard
 {
 	GENERATED_BODY()
 	
 	UPROPERTY(VisibleAnywhere)
-	class UDataTable* CharactorDataTable;
+	class UDataTable* CharacterDataTable;
 
 	UPROPERTY(VisibleAnywhere, Category = "Crafting")
 	UDataTable* DropTable;
@@ -75,15 +75,15 @@ protected:
 	void LoadCard() override;
 
 	// 장비, 입은 피해 등이 적용되기 전의 원본 스탯
-	UPROPERTY(EditAnywhere, Category = "Charactor")
-	FCharactorData CharactorBaseStat;
+	UPROPERTY(EditAnywhere, Category = "Character")
+	FCharacterData CharacterBaseStat;
 
-	UPROPERTY(EditAnywhere, Category = "Charactor")
-	FCharactorData CharactorStat;
+	UPROPERTY(EditAnywhere, Category = "Character")
+	FCharacterData CharacterStat;
 
-	UPROPERTY(EditAnywhere, Category = "Charactor")
+	UPROPERTY(EditAnywhere, Category = "Character")
 	float MoveCooldown = 5.0f;
-	UPROPERTY(EditAnywhere, Category = "Charactor")
+	UPROPERTY(EditAnywhere, Category = "Character")
 	float CurrentMoveCooldown = 0.0f;
 
 	void Tick(float DeltaTime) override;
@@ -92,27 +92,27 @@ protected:
 
 public:
 
-	ACharactorCard();
-	ACharactorCard(int32 CardID);
+	ACharacterCard();
+	ACharacterCard(int32 CardID);
 
 	void SendMovementToStack(ECardMovement Movement) override;
 
-	void CharactorMove();
+	void CharacterMove();
 
-	void CharactorDrop();
+	void CharacterDrop();
 
-	void CharactorDamage(int Damage);
+	void CharacterDamage(int Damage);
 
-	void CharactorDeath(EDeathReason Reason);
+	void CharacterDeath(EDeathReason Reason);
 
-	UFUNCTION(BlueprintCallable, Category = "Charactor")
-	FCharactorData GetCharactorStat() const { return CharactorStat; }
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	FCharacterData GetCharacterStat() const { return CharacterStat; }
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	EBattleState GetBattleState() const { return BattleState; }
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
-	void SetBattleState(EBattleState NewBattleState) { BattleState = NewBattleState; }
+	void SetBattleState(EBattleState NewBattleState);
 
 	FOnDeath OnDeath;
 };

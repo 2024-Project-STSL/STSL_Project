@@ -251,17 +251,17 @@ float ASLGameModeBase::GetDayProgressPercent() const
 
 void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStack) const
 {
-	TArray<ACharactorCard*> FirstTeam;
-	TArray<ACharactorCard*> SecondTeam;
+	TArray<ACharacterCard*> FirstTeam;
+	TArray<ACharacterCard*> SecondTeam;
 
-	for (AActor* FirstActor : FirstStack->GetAllCharactors())
+	for (AActor* FirstActor : FirstStack->GetAllCharacters())
 	{
-		FirstTeam.Add(Cast<ACharactorCard>(FirstActor));
+		FirstTeam.Add(Cast<ACharacterCard>(FirstActor));
 	}
 
-	for (AActor* SecondActor : SecondStack->GetAllCharactors())
+	for (AActor* SecondActor : SecondStack->GetAllCharacters())
 	{
-		SecondTeam.Add(Cast<ACharactorCard>(SecondActor));
+		SecondTeam.Add(Cast<ACharacterCard>(SecondActor));
 	}
 
 	FVector Location = FVector::Zero();
@@ -355,14 +355,14 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 
 	if (RowData != nullptr)
 	{
-		if (RowData->IsCharactor())
+		if (RowData->IsCharacter())
 		{
 			if (RowData->CardType == CardType::person)
 			{
 				CardClass = APersonCard::StaticClass();
 			}
 			else {
-				CardClass = ACharactorCard::StaticClass();
+				CardClass = ACharacterCard::StaticClass();
 			}
 		}
 		else if (RowData->CardType == CardType::portal)

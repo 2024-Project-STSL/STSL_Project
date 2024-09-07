@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CharactorCard.h"
+#include "CharacterCard.h"
 #include "Data/EquipmentData.h"
 #include "PersonCard.generated.h"
 
@@ -11,7 +11,7 @@
  * 
  */
 UCLASS()
-class STSL_API APersonCard : public ACharactorCard
+class STSL_API APersonCard : public ACharacterCard
 {
 	GENERATED_BODY()
 

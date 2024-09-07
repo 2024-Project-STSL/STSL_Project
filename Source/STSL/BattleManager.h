@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "CharactorCard.h"
+#include "CharacterCard.h"
 #include "BattleManager.generated.h"
 
 UCLASS()
@@ -13,36 +13,37 @@ class STSL_API ABattleManager : public AActor
 	GENERATED_BODY()
 	
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
-	TArray<ACharactorCard*> FirstTeam;
+	TArray<ACharacterCard*> FirstTeam;
 
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
-	TArray<ACharactorCard*> SecondTeam;
+	TArray<ACharacterCard*> SecondTeam;
 
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
-	TObjectPtr<ACharactorCard> CurrentAttacker = nullptr;
+	TObjectPtr<ACharacterCard> CurrentAttacker = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
-	TObjectPtr<ACharactorCard> CurrentVictim = nullptr;
-
+	TObjectPtr<ACharacterCard> CurrentVictim = nullptr;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void GetAttacker(TArray<ACharacterCard*> Candidates);
+
 public:	
 	// Sets default values for this actor's properties
 	ABattleManager();
-	ABattleManager(TArray<ACharactorCard*> Team1, TArray<ACharactorCard*> Team2);
+	ABattleManager(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2);
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	void Attack(ACharactorCard* Attacker, ACharactorCard* Victim);
+	void Attack(ACharacterCard* Attacker, ACharacterCard* Victim);
 
 	UFUNCTION(BlueprintCallable)
-	void SetTeam(TArray<ACharactorCard*> Team1, TArray<ACharactorCard*> Team2);
+	void SetTeam(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2);
 
 	UFUNCTION(BlueprintCallable)
-	void HandleDeath(ACharactorCard* DeadCard);
+	void HandleDeath(ACharacterCard* DeadCard);
 };

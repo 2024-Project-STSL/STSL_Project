@@ -1,24 +1,24 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CharactorCard.h"
+#include "CharacterCard.h"
 #include "SLGameModeBase.h"
 #include <Kismet/GameplayStatics.h>
 
-ACharactorCard::ACharactorCard()
+ACharacterCard::ACharacterCard()
 {
     CurrentMoveCooldown = MoveCooldown;
 
     HealthIcon = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthIcon"));
     HealthIcon->SetupAttachment(VisualMesh);
     HealthIcon->SetRelativeLocationAndRotation(FVector(-240.0f, 140.0f, 0.55f), FRotator(90.0f, 0.0f, 180.0f));
-    // ½ºÄÉÀÏ·Î ³ª´©¾î Ä«µå ÀüÃ¼ÀÇ ½ºÄÉÀÏ º¯È­¿¡ ´ëÀÀ
+    // ìŠ¤ì¼€ì¼ë¡œ ë‚˜ëˆ„ì–´ ì¹´ë“œ ì „ì²´ì˜ ìŠ¤ì¼€ì¼ ë³€í™”ì— ëŒ€ì‘
     HealthIcon->SetDrawSize(FVector2D(90.0f / GetActorScale().X, 90.0f / GetActorScale().X));
 
-    static ConstructorHelpers::FObjectFinder<UDataTable> CharDataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CharactorDB.CharactorDB'"));
+    static ConstructorHelpers::FObjectFinder<UDataTable> CharDataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CharacterDB.CharacterDB'"));
     if (CharDataTable.Succeeded())
     {
-        CharactorDataTable = CharDataTable.Object;
+        CharacterDataTable = CharDataTable.Object;
     }
 
     static ConstructorHelpers::FObjectFinder<UMaterialInstance> NeturalMat(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/Material/NeturalCardMaterial.NeturalCardMaterial'"));
@@ -40,26 +40,26 @@ ACharactorCard::ACharactorCard()
     }
 }
 
-ACharactorCard::ACharactorCard(int32 CardID)
+ACharacterCard::ACharacterCard(int32 CardID)
 {
-	ACharactorCard();
+	ACharacterCard();
 	this->CardData.CardCode = CardID;
 }
 
-void ACharactorCard::BeginPlay()
+void ACharacterCard::BeginPlay()
 {
     Super::BeginPlay();
     CurrentDropCooldown = FMath::RandRange(MinDropCooldown, MaxDropCooldown);
 }
 
-void ACharactorCard::LoadCard()
+void ACharacterCard::LoadCard()
 {
     Super::LoadCard();
 
     FName RowName = FName(*FString::FromInt(CardData.CardCode));
-    FCharactorData* CharRowData = CharactorDataTable->FindRow<FCharactorData>(RowName, TEXT(""));
-    CharactorBaseStat = *CharRowData;
-    CharactorStat = *CharRowData;
+    FCharacterData* CharRowData = CharacterDataTable->FindRow<FCharacterData>(RowName, TEXT(""));
+    CharacterBaseStat = *CharRowData;
+    CharacterStat = *CharRowData;
 
     if (CardData.CardType == CardType::netural)
     {
@@ -71,8 +71,8 @@ void ACharactorCard::LoadCard()
         VisualMesh->SetMaterial(0, EnemyCardMaterial);
     }
 
-    AddTypeText->SetText(FText::AsNumber(CharactorStat.CharHealth));
-    // TODO : ÇÏÆ® ¾ÆÀÌÄÜÀ¸·Î º¯°æ
+    AddTypeText->SetText(FText::AsNumber(CharacterStat.CharHealth));
+    // TODO : í•˜íŠ¸ ì•„ì´ì½˜ìœ¼ë¡œ ë³€ê²½
     FString MaterialPath = "/Script/Engine.Material'/Game/CardImages/14_Mat.14_Mat'";
     // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, MaterialPath);
     UMaterial* HealthIconMaterial = LoadObject<UMaterial>(nullptr, *MaterialPath);
@@ -83,7 +83,7 @@ void ACharactorCard::LoadCard()
     }
 }
 
-void ACharactorCard::Tick(float DeltaTime)
+void ACharacterCard::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     
@@ -96,17 +96,17 @@ void ACharactorCard::Tick(float DeltaTime)
     if (CurrentMoveCooldown < 0)
     {
         CurrentMoveCooldown = MoveCooldown;
-        CharactorMove();
+        CharacterMove();
     }
 
     if (CurrentDropCooldown < 0)
     {
         CurrentDropCooldown = FMath::RandRange(MinDropCooldown, MaxDropCooldown);
-        CharactorDrop();
+        CharacterDrop();
     }
 }
 
-void ACharactorCard::CharactorDrop()
+void ACharacterCard::CharacterDrop()
 {
     if (CardData.CardType != CardType::netural) return;
 
@@ -125,7 +125,7 @@ void ACharactorCard::CharactorDrop()
         FDropData* DropData = reinterpret_cast<FDropData*>(const_cast<uint8*>(RowData));
         if (DropData->CardCode == GetCardID())
         {
-            // TODO: ¿©·¯ Á¾·ùÀÇ Ä«µå¸¦ dropÇÏ´Â Áß¸³ ¸ó½ºÅÍ Ãß°¡ ½Ã ¼öÁ¤ ÇÊ¿ä
+            // TODO: ì—¬ëŸ¬ ì¢…ë¥˜ì˜ ì¹´ë“œë¥¼ dropí•˜ëŠ” ì¤‘ë¦½ ëª¬ìŠ¤í„° ì¶”ê°€ ì‹œ ìˆ˜ì • í•„ìš”
             ACardStack* NewCardStack = SLGameMode->SpawnCard(Location, DropData->DropCardCode[0]);
             NewCardStack->GetFirstCard()->Push();
             break;
@@ -133,21 +133,21 @@ void ACharactorCard::CharactorDrop()
     }
 }
 
-void ACharactorCard::CharactorDeath(EDeathReason Reason)
+void ACharacterCard::CharacterDeath(EDeathReason Reason)
 {
     OnDeath.Broadcast(this);
     Remove();
 }
 
-void ACharactorCard::CharactorDamage(int Damage)
+void ACharacterCard::CharacterDamage(int Damage)
 {
-    CharactorStat.CharHealth -= Damage;
-    AddTypeText->SetText(FText::AsNumber(CharactorStat.CharHealth));
+    CharacterStat.CharHealth -= Damage;
+    AddTypeText->SetText(FText::AsNumber(CharacterStat.CharHealth));
 
-    if (CharactorStat.CharHealth <= 0) CharactorDeath(EDeathReason::Damaged);
+    if (CharacterStat.CharHealth <= 0) CharacterDeath(EDeathReason::Damaged);
 }
 
-void ACharactorCard::CharactorMove()
+void ACharacterCard::CharacterMove()
 {
     switch (CardData.CardType)
     {
@@ -164,7 +164,7 @@ void ACharactorCard::CharactorMove()
     }
 }
 
-void ACharactorCard::SendMovementToStack(ECardMovement Movement)
+void ACharacterCard::SendMovementToStack(ECardMovement Movement)
 {
     if (CardData.CardType == CardType::person)
     {
@@ -172,7 +172,7 @@ void ACharactorCard::SendMovementToStack(ECardMovement Movement)
     }
 }
 
-void ACharactorCard::PushTowardPeople()
+void ACharacterCard::PushTowardPeople()
 {
     float MinDistance = 999999.9f;
     ACard* NearestPerson = nullptr;
@@ -203,4 +203,9 @@ void ACharactorCard::PushTowardPeople()
     MoveVector *= PushVector.Size();
     MoveVector.Z = PushVector.Z;
     Push(MoveVector, true);
+}
+
+void ACharacterCard::SetBattleState(EBattleState NewBattleState)
+{
+    BattleState = NewBattleState;
 }

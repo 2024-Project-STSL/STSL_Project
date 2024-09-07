@@ -4,14 +4,14 @@
 
 #include "Engine/DataTable.h"
 #include "CoreMinimal.h"
-#include "CharactorData.generated.h"
+#include "CharacterData.generated.h"
 
 /**
  * 
  */
 
 USTRUCT(Atomic, BlueprintType)
-struct STSL_API FCharactorData : public FTableRowBase {
+struct STSL_API FCharacterData : public FTableRowBase {
 	GENERATED_USTRUCT_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -27,6 +27,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float CharCritRate;
 
-	FCharactorData();
-	~FCharactorData();
+	FCharacterData();
+	~FCharacterData();
 };

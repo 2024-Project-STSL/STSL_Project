@@ -11,7 +11,7 @@ ABattleManager::ABattleManager()
 
 }
 
-ABattleManager::ABattleManager(TArray<ACharactorCard*> Team1, TArray<ACharactorCard*> Team2)
+ABattleManager::ABattleManager(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2)
 {
 	ABattleManager();
 	FirstTeam = Team1;
@@ -22,7 +22,7 @@ ABattleManager::ABattleManager(TArray<ACharactorCard*> Team1, TArray<ACharactorC
 void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -38,13 +38,13 @@ void ABattleManager::Tick(float DeltaTime)
 	if (FirstTeam.Num() == 0 || SecondTeam.Num() == 0) Destroy();
 }
 
-void ABattleManager::Attack(ACharactorCard* Attacker, ACharactorCard* Victim)
+void ABattleManager::Attack(ACharacterCard* Attacker, ACharacterCard* Victim)
 {
 	CurrentAttacker = Attacker;
 	CurrentVictim = Victim;
 
-	FCharactorData AttackerStat = Attacker->GetCharactorStat();
-	FCharactorData VictimStat = Victim->GetCharactorStat();
+	FCharacterData AttackerStat = Attacker->GetCharacterStat();
+	FCharacterData VictimStat = Victim->GetCharacterStat();
 
 	bool Crit = FMath::RandRange(0.0f, 1.0f) < AttackerStat.CharCritRate;
 	float FinalDamage = 0.0f;
@@ -59,30 +59,30 @@ void ABattleManager::Attack(ACharactorCard* Attacker, ACharactorCard* Victim)
 	}
 
 	FinalDamage = FMath::Max(0.0f, AttackerStat.CharAttack * DamageMulti - VictimStat.CharDefence);
-	Victim->CharactorDamage(FMath::CeilToInt(FinalDamage));
+	Victim->CharacterDamage(FMath::CeilToInt(FinalDamage));
 
 	CurrentAttacker = nullptr;
 	CurrentVictim = nullptr;
 }
 
-void ABattleManager::HandleDeath(ACharactorCard* DeadCard)
+void ABattleManager::HandleDeath(ACharacterCard* DeadCard)
 {
 	FirstTeam.Remove(DeadCard);
 	SecondTeam.Remove(DeadCard);
 }
 
-void ABattleManager::SetTeam(TArray<ACharactorCard*> Team1, TArray<ACharactorCard*> Team2)
+void ABattleManager::SetTeam(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2)
 {
 	FirstTeam = Team1;
 	SecondTeam = Team2;
 
-	for (ACharactorCard* FirstChar : FirstTeam)
+	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
 	{
 		FirstChar->SetBattleState(EBattleState::Wait);
 		FirstChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
 	}
 
-	for (ACharactorCard* SecondChar : SecondTeam)
+	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
 	{
 		SecondChar->SetBattleState(EBattleState::Wait);
 		SecondChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);

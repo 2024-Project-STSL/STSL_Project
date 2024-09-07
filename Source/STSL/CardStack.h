@@ -151,7 +151,7 @@ public:
 
 	TArray<ACard*> GetCardsByType(CardType Type) const;
 
-	TArray<ACard*> GetAllCharactors() const;
+	TArray<ACard*> GetAllCharacters() const;
 
 	bool GetIsCoinStack() const;
 

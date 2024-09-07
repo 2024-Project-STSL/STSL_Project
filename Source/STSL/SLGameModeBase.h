@@ -6,7 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "CardStack.h"
 #include "Card.h"
-#include "CharactorCard.h"
+#include "CharacterCard.h"
 #include "PersonCard.h"
 #include "PortalCard.h"
 #include "CardPack.h"

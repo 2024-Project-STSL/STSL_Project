@@ -213,13 +213,13 @@ void APersonCard::AddEquipmentStat(FEquipmentData Equipment)
     switch (Equipment.StatType)
     {
     case StatType::Attack:
-        CharactorStat.CharAttack += Weapon.StatValue;
+        CharacterStat.CharAttack += Weapon.StatValue;
         break;
     case StatType::Defence:
-        CharactorStat.CharDefence += Weapon.StatValue;
+        CharacterStat.CharDefence += Weapon.StatValue;
         break;
     case StatType::Speed:
-        CharactorStat.CharSpeed += Weapon.StatValue;
+        CharacterStat.CharSpeed += Weapon.StatValue;
         break;
     default:
         break;
@@ -240,9 +240,9 @@ void APersonCard::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
 
 void APersonCard::UpdateStat()
 {
-    int OldHealth = CharactorStat.CharHealth;
-    CharactorStat = CharactorBaseStat;
-    CharactorStat.CharHealth = OldHealth;
+    int OldHealth = CharacterStat.CharHealth;
+    CharacterStat = CharacterBaseStat;
+    CharacterStat.CharHealth = OldHealth;
 
     AddEquipmentStat(Weapon);
     AddEquipmentStat(MainArmor);

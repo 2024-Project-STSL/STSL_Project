@@ -9,7 +9,7 @@
 #include <Components/TextRenderComponent.h>
 #include <Components/WidgetComponent.h>
 #include "Data/CardData.h"
-#include "Data/CharactorData.h"
+#include "Data/CharacterData.h"
 #include "Engine/Font.h"
 #include "Card.generated.h"
 
@@ -165,7 +165,7 @@ public:
 
 	UStaticMeshComponent* GetVisualMesh() const { return VisualMesh; }
 
-	bool IsCharactor() const { return CardData.IsCharactor(); }
+	bool IsCharacter() const { return CardData.IsCharacter(); }
 
 	// 마우스 카드 이동 관련
 	virtual void SendMovementToStack(ECardMovement Movement);
