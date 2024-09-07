@@ -253,23 +253,30 @@ void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStac
 {
 	TArray<ACharacterCard*> FirstTeam;
 	TArray<ACharacterCard*> SecondTeam;
+	TArray<AActor*> AllActors;
 
 	for (AActor* FirstActor : FirstStack->GetAllCharacters())
 	{
 		FirstTeam.Add(Cast<ACharacterCard>(FirstActor));
+		AllActors.Add(FirstActor);
 	}
 
 	for (AActor* SecondActor : SecondStack->GetAllCharacters())
 	{
 		SecondTeam.Add(Cast<ACharacterCard>(SecondActor));
+		AllActors.Add(SecondActor);
 	}
 
-	FVector Location = FVector::Zero();
+	FVector Center = FVector::Zero();
+	FVector BoxExtent;
+
+	UGameplayStatics::GetActorArrayBounds(AllActors, false, Center, BoxExtent);
+	Center.Z = 0.0f;
 
 	AActor* NewBattleManager = GetWorld()->SpawnActor
 	(
 		ABattleManager::StaticClass(),
-		&Location
+		&Center
 	);
 
 	Cast<ABattleManager>(NewBattleManager)->SetTeam(FirstTeam, SecondTeam);

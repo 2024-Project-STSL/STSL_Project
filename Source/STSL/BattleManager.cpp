@@ -2,6 +2,8 @@
 
 
 #include "BattleManager.h"
+#include <Kismet/GameplayStatics.h>
+#include "SLGameModeBase.h"
 
 // Sets default values
 ABattleManager::ABattleManager()
@@ -9,6 +11,25 @@ ABattleManager::ABattleManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	BattleCube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	RootComponent = BattleCube;
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> BattleCubeMesh(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/BattleCube.BattleCube'"));
+
+	if (BattleCubeMesh.Succeeded())
+	{
+		BattleCube->SetStaticMesh(BattleCubeMesh.Object);
+		BattleCube->SetSimulatePhysics(false);
+		BattleCube->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+		BattleCube->SetCollisionProfileName("NoCollision");
+
+		static ConstructorHelpers::FObjectFinder<UMaterial> BattleCubeMaterial(TEXT("/Script/Engine.Material'/Game/Material/BattleCubeMaterial.BattleCubeMaterial'"));
+
+		if (BattleCubeMaterial.Succeeded())
+		{
+			BattleCube->SetMaterial(0, BattleCubeMaterial.Object);
+		}
+	}
 }
 
 ABattleManager::ABattleManager(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2)
@@ -25,23 +46,158 @@ void ABattleManager::BeginPlay()
 
 }
 
+ACharacterCard* ABattleManager::GetAttacker(TArray<ACharacterCard*> Candidates)
+{
+	// 조건 1: 속도가 가장 빠른 카드
+	float MaxSpeed = 0.0f;
+	for (TObjectPtr<ACharacterCard> Candidate : Candidates)
+	{
+		MaxSpeed = FMath::Max(MaxSpeed, Candidate->GetCharacterStat().CharSpeed);
+	}
+	
+	TArray<ACharacterCard*> MaxSpeedCharacter;
+	for (TObjectPtr<ACharacterCard> Candidate : Candidates)
+	{
+		if (MaxSpeed == Candidate->GetCharacterStat().CharSpeed)
+		{
+			MaxSpeedCharacter.Add(Candidate);
+		}
+	}
+
+	if (MaxSpeedCharacter.Num() == 1) return MaxSpeedCharacter[0];
+
+	// 조건 2: 사람 카드 & 조건 3: 순번이 빠른 카드
+	// Candidates가 항상 순번대로 들어오므로 가장 먼저 조건 2에 해당되는 카드를 반환
+	for (TObjectPtr<ACharacterCard> Candidate : MaxSpeedCharacter)
+	{
+		if (Candidate->GetCardType() == CardType::person)
+		{
+			return Candidate;
+		}
+	}
+
+	// 사람 카드가 없으면 속도가 빠른 카드 중 순번이 빠른 카드 반환
+	return MaxSpeedCharacter[0];
+}
+
+ACharacterCard* ABattleManager::GetVictim(ACharacterCard* Attacker)
+{
+	int TeamIndex, CardIndex;
+	if (FirstTeam.Find(Attacker) != INDEX_NONE)
+	{
+		TeamIndex = 1;
+		CardIndex = FirstTeam.IndexOfByKey(Attacker);
+	} else if (SecondTeam.Find(Attacker) != INDEX_NONE)
+	{
+		TeamIndex = 2;
+		CardIndex = SecondTeam.IndexOfByKey(Attacker);
+	}
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("%d"), TeamIndex));
+	TArray<int> OpponentWeight;
+	int TotalWeight = 0;
+
+	if (TeamIndex == 1)
+	{
+		float CardCenter = (FirstTeam.Num() - 1) / 2.0f;
+		float OpponentCenter = (SecondTeam.Num() - 1) / 2.0f;
+		for (int i = 0; i < SecondTeam.Num(); i++)
+		{
+			if (FMath::Abs((CardIndex - CardCenter) - (i - OpponentCenter)) < 0.6f)
+			{
+				OpponentWeight.Add(4);
+				TotalWeight += 4;
+			}
+			else {
+				OpponentWeight.Add(1);
+				TotalWeight += 1;
+			}
+		}
+	}
+	else {
+		float MyCenter = (SecondTeam.Num() - 1) / 2.0f;
+		float OpponentCenter = (FirstTeam.Num() - 1) / 2.0f;
+		for (int i = 0; i < FirstTeam.Num(); i++)
+		{
+			if (FMath::Abs((CardIndex - MyCenter) - (i - OpponentCenter)) < 0.6f)
+			{
+				OpponentWeight.Add(4);
+				TotalWeight += 4;
+			}
+			else {
+				OpponentWeight.Add(1);
+				TotalWeight += 1;
+			}
+		}
+	}
+
+	int RandomNumber = FMath::RandRange(1, TotalWeight);
+	int VictimIndex = -1;
+	for (int i = 0; i < OpponentWeight.Num(); i++)
+	{
+		RandomNumber -= OpponentWeight[i];
+		if (RandomNumber < 1)
+		{
+			VictimIndex = i;
+			break;
+		}
+	}
+
+	TObjectPtr<ACharacterCard> Victim;
+	if (TeamIndex == 1)
+	{
+		Victim = SecondTeam[VictimIndex];
+	}
+	else {
+		Victim = FirstTeam[VictimIndex];
+	}
+
+	return Victim;
+}
+
 // Called every frame
 void ABattleManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	while (FirstTeam.Num() != 0 && SecondTeam.Num() != 0)
+
+	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+
+	if (SLGameMode->GetPlayState() != GamePlayState::PlayState) return;
+
+	if (FirstTeam.Num() == 0 || SecondTeam.Num() == 0) EndBattle();
+
+	TArray<ACharacterCard*> AttackerCandidate;
+	if (CurrentAttacker == nullptr)
 	{
-		Attack(FirstTeam[0], SecondTeam[0]);
-		if (FirstTeam.Num() == 0 || SecondTeam.Num() == 0) break;
-		Attack(SecondTeam[0], FirstTeam[0]);
+		for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
+		{
+			if (FirstChar->AddAttackGauge(DeltaTime))
+			{
+				AttackerCandidate.Add(FirstChar);
+			}
+		}
+		for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
+		{
+			if (SecondChar->AddAttackGauge(DeltaTime))
+			{
+				AttackerCandidate.Add(SecondChar);
+			}
+		}
 	}
-	if (FirstTeam.Num() == 0 || SecondTeam.Num() == 0) Destroy();
+	if (AttackerCandidate.Num() > 0)
+	{
+		TObjectPtr<ACharacterCard> Attacker = GetAttacker(AttackerCandidate);
+		Attack(Attacker, GetVictim(Attacker));
+		Attacker->ResetAttackGauge();
+	}
 }
 
 void ABattleManager::Attack(ACharacterCard* Attacker, ACharacterCard* Victim)
 {
 	CurrentAttacker = Attacker;
 	CurrentVictim = Victim;
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Attacker->GetName());
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, Victim->GetName());
 
 	FCharacterData AttackerStat = Attacker->GetCharacterStat();
 	FCharacterData VictimStat = Victim->GetCharacterStat();
@@ -71,21 +227,59 @@ void ABattleManager::HandleDeath(ACharacterCard* DeadCard)
 	SecondTeam.Remove(DeadCard);
 }
 
+void ABattleManager::EndBattle()
+{
+	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
+	{
+		FirstChar->SetBattleState(EBattleState::Idle);
+	}
+
+	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
+	{
+		SecondChar->SetBattleState(EBattleState::Idle);
+	}
+
+	Destroy();
+}
+
 void ABattleManager::SetTeam(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2)
 {
 	FirstTeam = Team1;
 	SecondTeam = Team2;
 
+
+	float CardCenter = (FirstTeam.Num() - 1) / 2.0f;
 	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
 	{
 		FirstChar->SetBattleState(EBattleState::Wait);
+		FirstChar->ResetAttackGauge();
 		FirstChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
+
+		FVector Location = GetActorLocation();
+		float IndexOffset = FirstTeam.Find(FirstChar) - CardCenter;
+		Location.X += BattleCubeBaseHeight / 2 - 550.0f;
+		Location.Y += BattleCubeWidthPerCard * IndexOffset;
+		FirstChar->SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
+		FirstChar->GetVisualMesh()->SetAllPhysicsLinearVelocity(FVector::Zero());
 	}
 
+	CardCenter = (SecondTeam.Num() - 1) / 2.0f;
 	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
 	{
 		SecondChar->SetBattleState(EBattleState::Wait);
+		SecondChar->ResetAttackGauge();
 		SecondChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
+
+		FVector Location = GetActorLocation();
+		float IndexOffset = SecondTeam.Find(SecondChar) - CardCenter;
+		Location.X -= BattleCubeBaseHeight / 2 - 550.0f;
+		Location.Y += BattleCubeWidthPerCard * IndexOffset;
+		SecondChar->SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
+		SecondChar->GetVisualMesh()->SetAllPhysicsLinearVelocity(FVector::Zero());
 	}
+
+	float BattleCubeWidth = FMath::Max(FirstTeam.Num(), SecondTeam.Num()) * BattleCubeWidthPerCard + BattleCubeBaseWidth;
+
+	BattleCube->SetRelativeScale3D(FVector(BattleCubeBaseHeight, BattleCubeWidth, 50.0f));
 }
 

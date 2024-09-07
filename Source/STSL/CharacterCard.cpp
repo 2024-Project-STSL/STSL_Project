@@ -106,6 +106,12 @@ void ACharacterCard::Tick(float DeltaTime)
     }
 }
 
+void ACharacterCard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+    // if (BattleState != EBattleState::Idle) return;
+    Super::OnHit(HitCompoent, OtherActor, OtherComp, NormalImpulse, Hit);
+}
+
 void ACharacterCard::CharacterDrop()
 {
     if (CardData.CardType != CardType::netural) return;
@@ -149,6 +155,7 @@ void ACharacterCard::CharacterDamage(int Damage)
 
 void ACharacterCard::CharacterMove()
 {
+    if (BattleState != EBattleState::Idle) return;
     switch (CardData.CardType)
     {
     case CardType::person:
@@ -207,5 +214,22 @@ void ACharacterCard::PushTowardPeople()
 
 void ACharacterCard::SetBattleState(EBattleState NewBattleState)
 {
+    // 임시: 모든 전투 중 카드 들기 방지
+    if (NewBattleState != EBattleState::Idle && bPreventDragging == false)
+    {
+        SendMovementToStack(ECardMovement::EndHover);
+        SendMovementToStack(ECardMovement::EndDrag);
+        bPreventDragging = true;
+    }
+    else {
+        bPreventDragging = false;
+    }
+
     BattleState = NewBattleState;
+}
+
+bool ACharacterCard::AddAttackGauge(float DeltaTime)
+{
+    AttackGauge += DeltaTime * CharacterStat.CharSpeed;
+    return (AttackGauge >= MaxAttackGauge);
 }

@@ -44,7 +44,7 @@ UCLASS()
 class STSL_API ACharacterCard : public ACard
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(VisibleAnywhere)
 	class UDataTable* CharacterDataTable;
 
@@ -69,6 +69,12 @@ class STSL_API ACharacterCard : public ACard
 	UPROPERTY(EditAnywhere, Category = "Battle")
 	EBattleState BattleState;
 
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	float AttackGauge = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	float MaxAttackGauge = 20.0f;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -87,6 +93,8 @@ protected:
 	float CurrentMoveCooldown = 0.0f;
 
 	void Tick(float DeltaTime) override;
+
+	virtual void OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 
 	void PushTowardPeople();
 
@@ -113,6 +121,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void SetBattleState(EBattleState NewBattleState);
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	float GetAttackGauge() const { return AttackGauge; }
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	bool AddAttackGauge(float DeltaTime);
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	void ResetAttackGauge() { AttackGauge = 0.0f; }
 
 	FOnDeath OnDeath;
 };

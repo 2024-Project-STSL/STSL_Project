@@ -244,7 +244,7 @@ void APersonCard::UpdateStat()
     CharacterStat = CharacterBaseStat;
     CharacterStat.CharHealth = OldHealth;
 
-    AddEquipmentStat(Weapon);
-    AddEquipmentStat(MainArmor);
-    AddEquipmentStat(SubArmor);
+    if (Weapon.CardCode != -1) AddEquipmentStat(Weapon);
+    if (MainArmor.CardCode != -1) AddEquipmentStat(MainArmor);
+    if (SubArmor.CardCode != -1) AddEquipmentStat(SubArmor);
 }

@@ -633,6 +633,22 @@ bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 		return false;
 	}
 
+	// 전투 중인 대상은 스택할 수 없음
+	if (CardStack->GetFirstCard()->IsA(ACharacterCard::StaticClass()))
+	{
+		if (Cast<ACharacterCard>(CardStack->GetFirstCard())->GetBattleState() != EBattleState::Idle)
+		{
+			return false;
+		}
+	}
+	if (OtherStack->GetFirstCard()->IsA(ACharacterCard::StaticClass()))
+	{
+		if (Cast<ACharacterCard>(OtherStack->GetFirstCard())->GetBattleState() != EBattleState::Idle)
+		{
+			return false;
+		}
+	}
+
 	// 수상한 포탈은 스택할 수 없음
 	// TODO: 넘어가기 구현
 	if (CardStack->GetFirstCard()->GetCardType() == CardType::portal || OtherStack->GetFirstCard()->GetCardType() == CardType::portal)
@@ -741,7 +757,12 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 	UpdatePosition(); OtherCardStack->UpdatePosition();
 
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
-	if (SLGameMode->GetDraggingStack() == this) {
+	if (GetCardBattleable(this, OtherCardStack))
+	{
+		// 전투
+		SLGameMode->StartBattle(this, OtherCardStack);
+	} 
+	else if (SLGameMode->GetDraggingStack() == this) {
 
 		if (GetCardStackable(this, OtherCardStack))
 			// 스택
@@ -750,28 +771,30 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 			// 합쳐진 스택의 호버 해제
 			OtherCardStack->HandleStackMove(OtherCardStack->GetLastCard(), ECardMovement::EndHover);
 		}
-		else if (GetCardBattleable(this, OtherCardStack))
-		{
-			// 전투
-			SLGameMode->StartBattle(this, OtherCardStack);
-		}
-		else {
-			// 충돌
-			FVector SelfVector, OtherVector;
-			GetCardCollisionVector(OtherCard, SelfVector, OtherVector);
-			MoveCards(SelfVector);
-			HandleStackMove(GetLastCard(), ECardMovement::EndHover);
-			OtherCardStack->MoveCards(OtherVector);
-		}
+	}
+	else {
+		// 충돌
+		FVector SelfVector, OtherVector;
+		GetCardCollisionVector(OtherCard, SelfVector, OtherVector);
+		MoveCards(SelfVector);
+		HandleStackMove(GetLastCard(), ECardMovement::EndHover);
+		OtherCardStack->MoveCards(OtherVector);
 	}
 }
 
 void ACardStack::MoveCards(FVector Force)
 {
-	for (AActor* Card : Cards)
+	for (AActor* CardActor : Cards)
 	{
-		ACard* CardActor = Cast<ACard>(Card);
-		CardActor->Move(Force * FApp::GetDeltaTime());
+		ACard* Card = Cast<ACard>(CardActor);
+		if (Card->IsA(ACharacterCard::StaticClass()))
+		{
+			if (Cast<ACharacterCard>(Card)->GetBattleState() != EBattleState::Idle)
+			{
+				continue;
+			}
+		}
+		Card->Move(Force * FApp::GetDeltaTime());
 	}
 }
 

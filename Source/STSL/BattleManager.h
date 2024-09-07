@@ -13,6 +13,9 @@ class STSL_API ABattleManager : public AActor
 	GENERATED_BODY()
 	
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
+	TObjectPtr<UStaticMeshComponent> BattleCube;
+
+	UPROPERTY(VisibleAnywhere, Category = "Battle")
 	TArray<ACharacterCard*> FirstTeam;
 
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
@@ -24,11 +27,22 @@ class STSL_API ABattleManager : public AActor
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
 	TObjectPtr<ACharacterCard> CurrentVictim = nullptr;
 
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	float BattleCubeWidthPerCard = 600.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	float BattleCubeBaseWidth = 400.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	float BattleCubeBaseHeight = 1800.0f;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void GetAttacker(TArray<ACharacterCard*> Candidates);
+	ACharacterCard* GetAttacker(TArray<ACharacterCard*> Candidates);
+
+	ACharacterCard* GetVictim(ACharacterCard* Attacker);
 
 public:	
 	// Sets default values for this actor's properties
@@ -46,4 +60,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void HandleDeath(ACharacterCard* DeadCard);
+
+	UFUNCTION(BlueprintCallable)
+	void EndBattle();
 };
