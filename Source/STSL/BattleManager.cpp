@@ -21,7 +21,7 @@ ABattleManager::ABattleManager()
 		BattleCube->SetStaticMesh(BattleCubeMesh.Object);
 		BattleCube->SetSimulatePhysics(false);
 		BattleCube->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
-		BattleCube->SetCollisionProfileName("NoCollision");
+		BattleCube->SetCollisionProfileName("OverlapAll");
 
 		static ConstructorHelpers::FObjectFinder<UMaterial> BattleCubeMaterial(TEXT("/Script/Engine.Material'/Game/Material/BattleCubeMaterial.BattleCubeMaterial'"));
 
@@ -43,7 +43,7 @@ ABattleManager::ABattleManager(TArray<ACharacterCard*> Team1, TArray<ACharacterC
 void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
-
+	BattleCube->OnComponentBeginOverlap.AddDynamic(this, &ABattleManager::OnOverlapBegin);
 }
 
 ACharacterCard* ABattleManager::GetAttacker(TArray<ACharacterCard*> Candidates)
@@ -58,7 +58,7 @@ ACharacterCard* ABattleManager::GetAttacker(TArray<ACharacterCard*> Candidates)
 	TArray<ACharacterCard*> MaxSpeedCharacter;
 	for (TObjectPtr<ACharacterCard> Candidate : Candidates)
 	{
-		if (MaxSpeed == Candidate->GetCharacterStat().CharSpeed)
+		if ((MaxSpeed - Candidate->GetCharacterStat().CharSpeed) < 0.0001f)
 		{
 			MaxSpeedCharacter.Add(Candidate);
 		}
@@ -155,6 +155,18 @@ ACharacterCard* ABattleManager::GetVictim(ACharacterCard* Attacker)
 	return Victim;
 }
 
+void ABattleManager::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->IsA(ACharacterCard::StaticClass()))
+	{
+		TObjectPtr<ACharacterCard> OtherChar = Cast<ACharacterCard>(OtherActor);
+		
+		if (OtherChar->GetBattleState() != EBattleState::Idle) return;
+
+		JoinBattle(OtherChar);
+	}
+}
+
 // Called every frame
 void ABattleManager::Tick(float DeltaTime)
 {
@@ -199,8 +211,88 @@ void ABattleManager::Attack(ACharacterCard* Attacker, ACharacterCard* Victim)
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Attacker->GetName());
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, Victim->GetName());
 
-	FCharacterData AttackerStat = Attacker->GetCharacterStat();
-	FCharacterData VictimStat = Victim->GetCharacterStat();
+	FCardAnimationCallback Callback;
+	Callback.BindUObject(this, &ABattleManager::DamageVictim);
+	CurrentAttacker->MoveToAnother(CurrentVictim, Callback);
+}
+
+void ABattleManager::HandleDeath(ACharacterCard* DeadCard)
+{
+	LeaveBattle(DeadCard);
+}
+
+void ABattleManager::EndBattle()
+{
+	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
+	{
+		LeaveBattle(FirstChar);
+	}
+
+	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
+	{
+		LeaveBattle(SecondChar);
+	}
+
+	Destroy();
+}
+
+void ABattleManager::SetTeam(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2)
+{
+	FirstTeam = Team1;
+	SecondTeam = Team2;
+
+	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
+	{
+		FirstChar->SetBattleState(EBattleState::Wait);
+		FirstChar->ResetAttackGauge();
+		FirstChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
+		FirstChar->OnLeaveBattle.AddDynamic(this, &ABattleManager::LeaveBattle);
+	}
+
+	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
+	{
+		SecondChar->SetBattleState(EBattleState::Wait);
+		SecondChar->ResetAttackGauge();
+		SecondChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
+		SecondChar->OnLeaveBattle.AddDynamic(this, &ABattleManager::LeaveBattle);
+	}
+
+	Relocate();
+}
+
+void ABattleManager::Relocate()
+{
+	float CardCenter = (FirstTeam.Num() - 1) / 2.0f;
+	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
+	{
+		FVector Location = GetActorLocation();
+		float IndexOffset = FirstTeam.Find(FirstChar) - CardCenter;
+		Location.X += BattleCubeYOffset;
+		Location.Y += BattleCubeWidthPerCard * IndexOffset;
+		FirstChar->SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
+		FirstChar->GetVisualMesh()->SetSimulatePhysics(false);
+	}
+
+	CardCenter = (SecondTeam.Num() - 1) / 2.0f;
+	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
+	{
+		FVector Location = GetActorLocation();
+		float IndexOffset = SecondTeam.Find(SecondChar) - CardCenter;
+		Location.X -= BattleCubeYOffset;
+		Location.Y += BattleCubeWidthPerCard * IndexOffset;
+		SecondChar->SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
+		SecondChar->GetVisualMesh()->SetSimulatePhysics(false);
+	}
+
+	float BattleCubeWidth = FMath::Max(FirstTeam.Num(), SecondTeam.Num()) * BattleCubeWidthPerCard + BattleCubeBaseWidth;
+
+	BattleCube->SetRelativeScale3D(FVector(BattleCubeBaseHeight, BattleCubeWidth, 50.0f));
+}
+
+void ABattleManager::DamageVictim()
+{
+	FCharacterData AttackerStat = CurrentAttacker->GetCharacterStat();
+	FCharacterData VictimStat = CurrentVictim->GetCharacterStat();
 
 	bool Crit = FMath::RandRange(0.0f, 1.0f) < AttackerStat.CharCritRate;
 	float FinalDamage = 0.0f;
@@ -215,71 +307,54 @@ void ABattleManager::Attack(ACharacterCard* Attacker, ACharacterCard* Victim)
 	}
 
 	FinalDamage = FMath::Max(0.0f, AttackerStat.CharAttack * DamageMulti - VictimStat.CharDefence);
-	Victim->CharacterDamage(FMath::CeilToInt(FinalDamage));
+	CurrentVictim->CharacterDamage(FMath::CeilToInt(FinalDamage));
 
+	FCardAnimationCallback Callback;
+	Callback.BindUObject(this, &ABattleManager::MovebackCompleted);
+	CurrentAttacker->MoveBack(Callback);
+}
+
+void ABattleManager::MovebackCompleted()
+{
+	CurrentAttacker->TargetCallback.Unbind();
+	CurrentAttacker->ResetTargetLocation();
 	CurrentAttacker = nullptr;
 	CurrentVictim = nullptr;
 }
 
-void ABattleManager::HandleDeath(ACharacterCard* DeadCard)
+void ABattleManager::JoinBattle(ACharacterCard* TargetCard)
 {
-	FirstTeam.Remove(DeadCard);
-	SecondTeam.Remove(DeadCard);
+	if (FirstTeam.Num() == 0) return;
+
+	int TeamIndex = (TargetCard->GetCardType() == FirstTeam[0]->GetCardType()) ? 1 : 2;
+
+	if (TeamIndex == 1)
+	{
+		FirstTeam.Add(TargetCard);
+	}
+	else {
+		SecondTeam.Add(TargetCard);
+	}
+
+	TargetCard->SetBattleState(EBattleState::Wait);
+	TargetCard->ResetAttackGauge();
+	TargetCard->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
+	TargetCard->OnLeaveBattle.AddDynamic(this, &ABattleManager::LeaveBattle);
+
+	Relocate();
 }
 
-void ABattleManager::EndBattle()
+void ABattleManager::LeaveBattle(ACharacterCard* TargetCard)
 {
-	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
+	FirstTeam.Remove(TargetCard);
+	SecondTeam.Remove(TargetCard);
+
+	if (UKismetSystemLibrary::IsValid(TargetCard))
 	{
-		FirstChar->SetBattleState(EBattleState::Idle);
+		TargetCard->SetBattleState(EBattleState::Idle);
+		TargetCard->ResetAttackGauge();
+		TargetCard->OnDeath.RemoveAll(this);
 	}
 
-	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
-	{
-		SecondChar->SetBattleState(EBattleState::Idle);
-	}
-
-	Destroy();
+	Relocate();
 }
-
-void ABattleManager::SetTeam(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2)
-{
-	FirstTeam = Team1;
-	SecondTeam = Team2;
-
-
-	float CardCenter = (FirstTeam.Num() - 1) / 2.0f;
-	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
-	{
-		FirstChar->SetBattleState(EBattleState::Wait);
-		FirstChar->ResetAttackGauge();
-		FirstChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
-
-		FVector Location = GetActorLocation();
-		float IndexOffset = FirstTeam.Find(FirstChar) - CardCenter;
-		Location.X += BattleCubeBaseHeight / 2 - 550.0f;
-		Location.Y += BattleCubeWidthPerCard * IndexOffset;
-		FirstChar->SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
-		FirstChar->GetVisualMesh()->SetAllPhysicsLinearVelocity(FVector::Zero());
-	}
-
-	CardCenter = (SecondTeam.Num() - 1) / 2.0f;
-	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
-	{
-		SecondChar->SetBattleState(EBattleState::Wait);
-		SecondChar->ResetAttackGauge();
-		SecondChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
-
-		FVector Location = GetActorLocation();
-		float IndexOffset = SecondTeam.Find(SecondChar) - CardCenter;
-		Location.X -= BattleCubeBaseHeight / 2 - 550.0f;
-		Location.Y += BattleCubeWidthPerCard * IndexOffset;
-		SecondChar->SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
-		SecondChar->GetVisualMesh()->SetAllPhysicsLinearVelocity(FVector::Zero());
-	}
-
-	float BattleCubeWidth = FMath::Max(FirstTeam.Num(), SecondTeam.Num()) * BattleCubeWidthPerCard + BattleCubeBaseWidth;
-
-	BattleCube->SetRelativeScale3D(FVector(BattleCubeBaseHeight, BattleCubeWidth, 50.0f));
-}
-

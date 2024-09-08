@@ -139,7 +139,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	float GetDayProgressPercent() const;
 
-	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void StartBattle(ACardStack* FirstStack, ACardStack* SecondStack) const;
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")

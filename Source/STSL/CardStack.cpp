@@ -500,9 +500,7 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 	if (Card == nullptr) return;
 
 	int32 CardID = Card->GetCardID();
-	CardCount[CardID] -= 1;
-
-	Cards.Remove(CardActor);
+	CardCount[CardID] -= Cards.Remove(CardActor);
 	Card->SetCardStack(nullptr);
 	if (bDespawn)
 	{
@@ -530,9 +528,7 @@ AActor* ACardStack::FindMouseSender(FVector Location) const
 {
 	double CardX = Cards[0]->GetActorLocation().X;
 	
-	FVector Origin;
-	FVector BoxExtent;
-	Cards[0]->GetActorBounds(true, Origin, BoxExtent);
+	FVector BoxExtent = Cast<ACard>(Cards[0])->GetVisualMesh()->Bounds.BoxExtent;
 	const double CardHeight = BoxExtent.X;
 	CardX += CardHeight;
 	

@@ -111,8 +111,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	float TargetFollowSpeed = 5.0f;
-	
-	FCardAnimationCallback TargetCallback;
 
 public:	
 	// Sets default values for this actor's properties
@@ -145,6 +143,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int GetCardPrice() const { return CardData.CardPrice; }
+
+	UFUNCTION(BlueprintCallable)
+	void ResetTargetLocation() { TargetLocation = FVector::Zero(); }
+
+	FCardAnimationCallback TargetCallback;
 
 protected:
 	// Called when the game starts or when spawned

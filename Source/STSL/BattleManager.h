@@ -31,6 +31,9 @@ class STSL_API ABattleManager : public AActor
 	float BattleCubeWidthPerCard = 600.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Battle")
+	float BattleCubeYOffset = 450.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Battle")
 	float BattleCubeBaseWidth = 400.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Battle")
@@ -43,6 +46,15 @@ protected:
 	ACharacterCard* GetAttacker(TArray<ACharacterCard*> Candidates);
 
 	ACharacterCard* GetVictim(ACharacterCard* Attacker);
+
+	void Relocate();
+
+	void DamageVictim();
+
+	void MovebackCompleted();
+
+	UFUNCTION()
+	virtual void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:	
 	// Sets default values for this actor's properties
@@ -57,6 +69,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetTeam(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2);
+
+	UFUNCTION(BlueprintCallable)
+	void JoinBattle(ACharacterCard* TargetCard);
+
+	void LeaveBattle(ACharacterCard* TargetCard);
 
 	UFUNCTION(BlueprintCallable)
 	void HandleDeath(ACharacterCard* DeadCard);

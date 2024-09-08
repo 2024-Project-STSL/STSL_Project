@@ -253,24 +253,51 @@ void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStac
 {
 	TArray<ACharacterCard*> FirstTeam;
 	TArray<ACharacterCard*> SecondTeam;
-	TArray<AActor*> AllActors;
+	TMap<AActor*, int> AllActors;
 
 	for (AActor* FirstActor : FirstStack->GetAllCharacters())
 	{
 		FirstTeam.Add(Cast<ACharacterCard>(FirstActor));
-		AllActors.Add(FirstActor);
+		AllActors.Add(FirstActor, 1);
 	}
 
 	for (AActor* SecondActor : SecondStack->GetAllCharacters())
 	{
 		SecondTeam.Add(Cast<ACharacterCard>(SecondActor));
-		AllActors.Add(SecondActor);
+		AllActors.Add(SecondActor, 2);
+	}
+
+	for (TTuple<AActor*, int> Character : AllActors)
+	{
+		if (Character.Value == 1)
+		{
+			FirstStack->RemoveCard(Character.Key, false);
+		}
+		else {
+			SecondStack->RemoveCard(Character.Key, false);
+		}
+
+		FVector Location = Character.Key->GetActorLocation();
+
+		AActor* NewCardStackActor = Character.Key->GetWorld()->SpawnActor
+		(
+			ACardStack::StaticClass(),
+			&Location
+		);
+
+		if (NewCardStackActor == nullptr) return;
+		ACardStack* NewCardStack = Cast<ACardStack>(NewCardStackActor);
+
+		NewCardStack->AddCard(Character.Key);
 	}
 
 	FVector Center = FVector::Zero();
 	FVector BoxExtent;
 
-	UGameplayStatics::GetActorArrayBounds(AllActors, false, Center, BoxExtent);
+	TArray<AActor*> AllChars;
+	AllActors.GetKeys(AllChars);
+
+	UGameplayStatics::GetActorArrayBounds(AllChars, false, Center, BoxExtent);
 	Center.Z = 0.0f;
 
 	AActor* NewBattleManager = GetWorld()->SpawnActor
@@ -329,7 +356,7 @@ void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* NewDragg
 		if (DraggingStack == nullptr) return;
 		for (ACardStack* CardStack : CardStacks)
 		{
-			if (CardStack != DraggingStack && ACardStack::GetCardStackable(DraggingStack, CardStack))
+			if (CardStack != DraggingStack && (ACardStack::GetCardStackable(DraggingStack, CardStack) || ACardStack::GetCardBattleable(DraggingStack, CardStack)))
 			{
 				CardStack->GetLastCard()->GetVisualMesh()->SetRenderCustomDepth(true);
 			}

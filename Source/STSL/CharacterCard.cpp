@@ -215,14 +215,16 @@ void ACharacterCard::PushTowardPeople()
 void ACharacterCard::SetBattleState(EBattleState NewBattleState)
 {
     // 임시: 모든 전투 중 카드 들기 방지
-    if (NewBattleState != EBattleState::Idle && bPreventDragging == false)
+    if (NewBattleState != EBattleState::Idle)
     {
         SendMovementToStack(ECardMovement::EndHover);
         SendMovementToStack(ECardMovement::EndDrag);
         bPreventDragging = true;
+        VisualMesh->SetSimulatePhysics(true);
     }
     else {
         bPreventDragging = false;
+        VisualMesh->SetSimulatePhysics(false);
     }
 
     BattleState = NewBattleState;

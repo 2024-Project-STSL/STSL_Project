@@ -490,6 +490,7 @@ void ACard::MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback)
 {
     MovedLocation = GetActorLocation();
     TargetLocation = OtherCard->GetActorLocation();
+    TargetLocation.Z += 0.1f;
     TargetCallback = Callback;
 }
 

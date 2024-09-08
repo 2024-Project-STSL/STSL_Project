@@ -8,6 +8,7 @@
 #include "CharacterCard.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, ACharacterCard*, DeadCard);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLeaveBattle, ACharacterCard*, TargetCard);
 
 /**
  * 
@@ -132,4 +133,6 @@ public:
 	void ResetAttackGauge() { AttackGauge = 0.0f; }
 
 	FOnDeath OnDeath;
+
+	FOnLeaveBattle OnLeaveBattle;
 };
