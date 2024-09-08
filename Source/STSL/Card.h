@@ -213,4 +213,5 @@ public:
 	void MoveBack(FCardAnimationCallback& Callback);
 
 	void MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback);
+	void MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback, float Distance);
 };

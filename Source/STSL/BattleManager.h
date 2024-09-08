@@ -39,6 +39,9 @@ class STSL_API ABattleManager : public AActor
 	UPROPERTY(EditAnywhere, Category = "Battle")
 	float BattleCubeBaseHeight = 1800.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	float AttackMoveDistance = 50.0f;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

@@ -213,7 +213,7 @@ void ABattleManager::Attack(ACharacterCard* Attacker, ACharacterCard* Victim)
 
 	FCardAnimationCallback Callback;
 	Callback.BindUObject(this, &ABattleManager::DamageVictim);
-	CurrentAttacker->MoveToAnother(CurrentVictim, Callback);
+	CurrentAttacker->MoveToAnother(CurrentVictim, Callback, AttackMoveDistance);
 }
 
 void ABattleManager::HandleDeath(ACharacterCard* DeadCard)

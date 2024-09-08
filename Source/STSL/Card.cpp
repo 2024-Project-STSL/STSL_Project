@@ -494,3 +494,13 @@ void ACard::MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback)
     TargetCallback = Callback;
 }
 
+void ACard::MoveToAnother(ACard* OtherCard, FCardAnimationCallback& Callback, float Distance)
+{
+    MovedLocation = GetActorLocation();
+    TargetLocation = (OtherCard->GetActorLocation() - GetActorLocation());
+    TargetLocation.Normalize();
+    TargetLocation = GetActorLocation() + TargetLocation * Distance;
+    TargetLocation.Z += 0.1f;
+    TargetCallback = Callback;
+}
+
