@@ -16,6 +16,9 @@ class STSL_API ABattleManager : public AActor
 	TObjectPtr<UStaticMeshComponent> BattleCube;
 
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
+	TObjectPtr<UStaticMeshComponent> HighlightCube;
+
+	UPROPERTY(VisibleAnywhere, Category = "Battle")
 	TArray<ACharacterCard*> FirstTeam;
 
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
@@ -31,7 +34,7 @@ class STSL_API ABattleManager : public AActor
 	float BattleCubeWidthPerCard = 600.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Battle")
-	float BattleCubeYOffset = 450.0f;
+	float BattleCubeXOffset = 450.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Battle")
 	float BattleCubeBaseWidth = 400.0f;
@@ -42,6 +45,15 @@ class STSL_API ABattleManager : public AActor
 	UPROPERTY(EditAnywhere, Category = "Battle")
 	float AttackMoveDistance = 50.0f;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UWidgetComponent* AttackArrow;
+
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	FVector DamageIndicatorOffset = FVector(50.0f, -50.0f, 10.0f);
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UWidgetComponent* DamageIndicator;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -49,6 +61,9 @@ protected:
 	ACharacterCard* GetAttacker(TArray<ACharacterCard*> Candidates);
 
 	ACharacterCard* GetVictim(ACharacterCard* Attacker);
+
+	FVector GetCardPosition(int TeamIndex, int CardIndex) const;
+	FVector GetCardPosition(ACharacterCard* TargetCard) const;
 
 	void Relocate();
 

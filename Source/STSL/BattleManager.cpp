@@ -4,6 +4,7 @@
 #include "BattleManager.h"
 #include <Kismet/GameplayStatics.h>
 #include "SLGameModeBase.h"
+#include "DamageIndicatorBase.h"
 
 // Sets default values
 ABattleManager::ABattleManager()
@@ -12,7 +13,10 @@ ABattleManager::ABattleManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 	BattleCube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	RootComponent = BattleCube;
+	BattleCube->SetupAttachment(RootComponent);
+
+	HighlightCube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HighlightMesh"));
+	HighlightCube->SetupAttachment(RootComponent);
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BattleCubeMesh(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/BattleCube.BattleCube'"));
 
@@ -20,8 +24,15 @@ ABattleManager::ABattleManager()
 	{
 		BattleCube->SetStaticMesh(BattleCubeMesh.Object);
 		BattleCube->SetSimulatePhysics(false);
-		BattleCube->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		BattleCube->SetCollisionProfileName("OverlapAll");
+
+		HighlightCube->SetStaticMesh(BattleCubeMesh.Object);
+		HighlightCube->SetSimulatePhysics(false);
+		HighlightCube->SetCollisionProfileName("OverlapAll");
+		HighlightCube->SetRenderInMainPass(false);
+		HighlightCube->SetRenderInDepthPass(false);
+		HighlightCube->SetRenderCustomDepth(true);
+		HighlightCube->SetCastShadow(false);
 
 		static ConstructorHelpers::FObjectFinder<UMaterial> BattleCubeMaterial(TEXT("/Script/Engine.Material'/Game/Material/BattleCubeMaterial.BattleCubeMaterial'"));
 
@@ -30,6 +41,33 @@ ABattleManager::ABattleManager()
 			BattleCube->SetMaterial(0, BattleCubeMaterial.Object);
 		}
 	}
+	
+	AttackArrow = CreateDefaultSubobject<UWidgetComponent>(TEXT("AttackArrowWidget"));
+	AttackArrow->SetupAttachment(RootComponent);
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> AttackArrowRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/AttackArrow.AttackArrow_C'"));
+	if (AttackArrowRef.Succeeded())
+	{
+		AttackArrow->SetWidgetClass(AttackArrowRef.Class);
+		AttackArrow->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+		AttackArrow->SetDrawSize(FVector2D(200.0f, 200.0f));
+		AttackArrow->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AttackArrow->SetCastShadow(false);
+	}
+
+	DamageIndicator = CreateDefaultSubobject<UWidgetComponent>(TEXT("DamageIndicatorWidget"));
+	DamageIndicator->SetupAttachment(RootComponent);
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> DamageIndicatorRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/DamageIndicator.DamageIndicator_C'"));
+	if (DamageIndicatorRef.Succeeded())
+	{
+		DamageIndicator->SetWidgetClass(DamageIndicatorRef.Class);
+		DamageIndicator->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
+		DamageIndicator->SetDrawSize(FVector2D(200.0f, 200.0f));
+		DamageIndicator->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		DamageIndicator->SetCastShadow(false);
+	}
+	
 }
 
 ABattleManager::ABattleManager(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2)
@@ -43,6 +81,9 @@ ABattleManager::ABattleManager(TArray<ACharacterCard*> Team1, TArray<ACharacterC
 void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
+	HighlightCube->SetCustomDepthStencilValue(2);
+	DamageIndicator->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
+	AttackArrow->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
 	BattleCube->OnComponentBeginOverlap.AddDynamic(this, &ABattleManager::OnOverlapBegin);
 }
 
@@ -82,7 +123,7 @@ ACharacterCard* ABattleManager::GetAttacker(TArray<ACharacterCard*> Candidates)
 
 ACharacterCard* ABattleManager::GetVictim(ACharacterCard* Attacker)
 {
-	int TeamIndex, CardIndex;
+	int TeamIndex = INDEX_NONE, CardIndex = INDEX_NONE;
 	if (FirstTeam.Find(Attacker) != INDEX_NONE)
 	{
 		TeamIndex = 1;
@@ -208,12 +249,27 @@ void ABattleManager::Attack(ACharacterCard* Attacker, ACharacterCard* Victim)
 {
 	CurrentAttacker = Attacker;
 	CurrentVictim = Victim;
+
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Attacker->GetName());
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, Victim->GetName());
 
 	FCardAnimationCallback Callback;
 	Callback.BindUObject(this, &ABattleManager::DamageVictim);
 	CurrentAttacker->MoveToAnother(CurrentVictim, Callback, AttackMoveDistance);
+
+	FVector AttackerLocation = CurrentAttacker->GetActorLocation();
+	FVector VictimLocation = CurrentVictim->GetActorLocation();
+
+	AttackerLocation.Z = VictimLocation.Z;
+
+	FRotator LookAtRotation = (VictimLocation - AttackerLocation).Rotation();
+	LookAtRotation.Add(90.0f, 0.0f, 0.0f);
+
+	FVector ArrowLocation = (AttackerLocation + VictimLocation) / 2.0f;
+	ArrowLocation.Z = 10.0f;
+
+	AttackArrow->SetWorldLocationAndRotation(ArrowLocation, LookAtRotation);
+	AttackArrow->GetWidget()->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
 void ABattleManager::HandleDeath(ACharacterCard* DeadCard)
@@ -260,26 +316,54 @@ void ABattleManager::SetTeam(TArray<ACharacterCard*> Team1, TArray<ACharacterCar
 	Relocate();
 }
 
+FVector ABattleManager::GetCardPosition(int TeamIndex, int CardIndex) const
+{
+	FVector Position = GetActorLocation();
+
+	float CardCenter;
+
+	if (TeamIndex == 1)
+	{
+		CardCenter = (FirstTeam.Num() - 1) / 2.0f;
+	}
+	else {
+		CardCenter = (SecondTeam.Num() - 1) / 2.0f;
+	}
+	
+	float IndexOffset = CardIndex - CardCenter;
+
+	Position.X += BattleCubeXOffset * (TeamIndex * 2 - 3);
+	Position.Y += BattleCubeWidthPerCard * IndexOffset;
+
+	return Position;
+}
+
+FVector ABattleManager::GetCardPosition(ACharacterCard* TargetCard) const
+{
+	int CardIndex, TeamIndex;
+	CardIndex = FirstTeam.Find(TargetCard);
+	if (CardIndex != -1)
+	{
+		TeamIndex = 1;
+	}
+	else {
+		CardIndex = SecondTeam.Find(TargetCard);
+		TeamIndex = 2;
+	}
+	return GetCardPosition(TeamIndex, CardIndex);
+}
+
 void ABattleManager::Relocate()
 {
-	float CardCenter = (FirstTeam.Num() - 1) / 2.0f;
 	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
 	{
-		FVector Location = GetActorLocation();
-		float IndexOffset = FirstTeam.Find(FirstChar) - CardCenter;
-		Location.X += BattleCubeYOffset;
-		Location.Y += BattleCubeWidthPerCard * IndexOffset;
+		FVector Location = GetCardPosition(1, FirstTeam.Find(FirstChar));
 		FirstChar->SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
 		FirstChar->GetVisualMesh()->SetSimulatePhysics(false);
 	}
-
-	CardCenter = (SecondTeam.Num() - 1) / 2.0f;
 	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
 	{
-		FVector Location = GetActorLocation();
-		float IndexOffset = SecondTeam.Find(SecondChar) - CardCenter;
-		Location.X -= BattleCubeYOffset;
-		Location.Y += BattleCubeWidthPerCard * IndexOffset;
+		FVector Location = GetCardPosition(2, SecondTeam.Find(SecondChar));
 		SecondChar->SetActorLocation(Location, false, nullptr, ETeleportType::ResetPhysics);
 		SecondChar->GetVisualMesh()->SetSimulatePhysics(false);
 	}
@@ -287,6 +371,8 @@ void ABattleManager::Relocate()
 	float BattleCubeWidth = FMath::Max(FirstTeam.Num(), SecondTeam.Num()) * BattleCubeWidthPerCard + BattleCubeBaseWidth;
 
 	BattleCube->SetRelativeScale3D(FVector(BattleCubeBaseHeight, BattleCubeWidth, 50.0f));
+	HighlightCube->SetRelativeScale3D(BattleCube->GetRelativeScale3D());
+	HighlightCube->SetWorldLocation(BattleCube->GetComponentLocation());
 }
 
 void ABattleManager::DamageVictim()
@@ -307,7 +393,15 @@ void ABattleManager::DamageVictim()
 	}
 
 	FinalDamage = FMath::Max(0.0f, AttackerStat.CharAttack * DamageMulti - VictimStat.CharDefence);
-	CurrentVictim->CharacterDamage(FMath::CeilToInt(FinalDamage));
+	bool bDead = CurrentVictim->CharacterDamage(FMath::RoundToInt(FinalDamage));
+
+	if (!bDead)
+	{
+		FVector IndicatorLocation = GetCardPosition(CurrentVictim);
+		DamageIndicator->SetWorldLocation(IndicatorLocation + DamageIndicatorOffset);
+		Cast<UDamageIndicatorBase>(DamageIndicator->GetWidget())->SetDamageText(FinalDamage);
+		DamageIndicator->GetWidget()->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
 
 	FCardAnimationCallback Callback;
 	Callback.BindUObject(this, &ABattleManager::MovebackCompleted);
@@ -316,6 +410,9 @@ void ABattleManager::DamageVictim()
 
 void ABattleManager::MovebackCompleted()
 {
+	DamageIndicator->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
+	AttackArrow->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
+
 	CurrentAttacker->TargetCallback.Unbind();
 	CurrentAttacker->ResetTargetLocation();
 	CurrentAttacker = nullptr;

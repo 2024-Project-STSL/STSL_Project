@@ -110,7 +110,8 @@ public:
 
 	void CharacterDrop();
 
-	void CharacterDamage(int Damage);
+	// 죽었는지의 여부 반환
+	bool CharacterDamage(int Damage);
 
 	void CharacterDeath(EDeathReason Reason);
 

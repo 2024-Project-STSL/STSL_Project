@@ -66,7 +66,7 @@ protected:
 	FVector PushVector = FVector(6000.0f, 6000.0f, 3000.0f);
 
 	UPROPERTY(VisibleAnywhere)
-	AActor* CardStack;
+	AActor* CardStack = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* VisualMesh;

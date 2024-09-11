@@ -145,12 +145,19 @@ void ACharacterCard::CharacterDeath(EDeathReason Reason)
     Remove();
 }
 
-void ACharacterCard::CharacterDamage(int Damage)
+bool ACharacterCard::CharacterDamage(int Damage)
 {
     CharacterStat.CharHealth -= Damage;
     AddTypeText->SetText(FText::AsNumber(CharacterStat.CharHealth));
 
-    if (CharacterStat.CharHealth <= 0) CharacterDeath(EDeathReason::Damaged);
+    if (CharacterStat.CharHealth <= 0)
+    {
+        CharacterDeath(EDeathReason::Damaged);
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 void ACharacterCard::CharacterMove()

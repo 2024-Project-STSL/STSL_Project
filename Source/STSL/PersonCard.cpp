@@ -10,9 +10,6 @@
 
 APersonCard::APersonCard()
 {
-    
-    EquipmentIndicator = CreateDefaultSubobject<UEquipmentWidgetComponent>(TEXT("EquipmentWidget"));
-    EquipmentIndicator->SetupAttachment(VisualMesh);
 
     OverlapArea = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Overlap"));
     static ConstructorHelpers::FObjectFinder<UStaticMesh> CardOverlapAsset(TEXT("/Script/Engine.StaticMesh'/Game/Mesh/DummyCard.DummyCard'"));
@@ -33,10 +30,13 @@ APersonCard::APersonCard()
     }
     OverlapArea->SetupAttachment(VisualMesh);
 
-    static ConstructorHelpers::FClassFinder<UUserWidget> CraftingProgressBarRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/EquipMentMenu.EquipMentMenu_C'"));
-    if (CraftingProgressBarRef.Succeeded())
+    EquipmentIndicator = CreateDefaultSubobject<UEquipmentWidgetComponent>(TEXT("EquipmentWidget"));
+    EquipmentIndicator->SetupAttachment(VisualMesh);
+
+    static ConstructorHelpers::FClassFinder<UUserWidget> EquipmentIndicatorRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/EquipMentMenu.EquipMentMenu_C'"));
+    if (EquipmentIndicatorRef.Succeeded())
     {
-        EquipmentIndicator->SetWidgetClass(CraftingProgressBarRef.Class);
+        EquipmentIndicator->SetWidgetClass(EquipmentIndicatorRef.Class);
         EquipmentIndicator->SetRelativeLocationAndRotation(FVector(-387.5f, 0.0f, 0.6f), FRotator(90.0f, 0.0f, 180.0f));
         EquipmentIndicator->SetDrawSize(FVector2D(400.0f, 265.5f));
         EquipmentIndicator->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -65,9 +65,12 @@ void APersonCard::BeginPlay()
 
 void APersonCard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (OtherActor->IsA<ACard>())
+    if (OtherActor->IsA<ACard>() && CardStack != nullptr)
     {
         ACard* OtherCard = Cast<ACard>(OtherActor);
+
+        if (OtherCard->GetCardStack() == nullptr) return;
+
         if (OtherCard->GetCardType() == CardType::equip && (OtherCard != LastEquipment || CurrentEquipmentCooldown < 0.0f))
         {
             Equip(OtherCard);
