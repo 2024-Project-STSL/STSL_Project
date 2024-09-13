@@ -72,8 +72,7 @@ void ACharacterCard::LoadCard()
     }
 
     AddTypeText->SetText(FText::AsNumber(CharacterStat.CharHealth));
-    // TODO : 하트 아이콘으로 변경
-    FString MaterialPath = "/Script/Engine.Material'/Game/CardImages/14_Mat.14_Mat'";
+    FString MaterialPath = "/Script/Engine.Material'/Game/UI/heart_Mat.heart_Mat'";
     // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, MaterialPath);
     UMaterial* HealthIconMaterial = LoadObject<UMaterial>(nullptr, *MaterialPath);
     if (HealthIconMaterial)
@@ -85,9 +84,26 @@ void ACharacterCard::LoadCard()
 
 void ACharacterCard::Tick(float DeltaTime)
 {
-    Super::Tick(DeltaTime);
+    Super::Super::Tick(DeltaTime);
+    
     
     ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+
+    if (bPreventDragging && TargetLocation != FVector::ZeroVector && 
+        !(BattleState == EBattleState::Attack && SLGameMode->GetPlayState() != GamePlayState::PlayState))
+    {
+        FVector OriginLocation;
+        FVector Location = OriginLocation = GetActorLocation();
+        Location += TargetFollowSpeed * DeltaTime * (TargetLocation - Location);
+        if ((Location - OriginLocation).Length() < 0.1f)
+        {
+            TargetCallback.ExecuteIfBound();
+        }
+        else {
+            SetActorLocation(Location);
+        }
+    }
+
 
     if (SLGameMode->GetPlayState() != GamePlayState::PlayState) return;
 

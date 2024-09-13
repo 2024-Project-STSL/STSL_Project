@@ -237,6 +237,13 @@ void ABattleManager::Tick(float DeltaTime)
 			}
 		}
 	}
+	for (ACharacterCard* AttackCandidate : AttackerCandidate)
+	{
+		if (AttackCandidate->GetBattleState() == EBattleState::Idle)
+		{
+			AttackCandidate->SetBattleState(EBattleState::Ready);
+		}
+	}
 	if (AttackerCandidate.Num() > 0)
 	{
 		TObjectPtr<ACharacterCard> Attacker = GetAttacker(AttackerCandidate);
@@ -253,6 +260,8 @@ void ABattleManager::Attack(ACharacterCard* Attacker, ACharacterCard* Victim)
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Attacker->GetName());
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, Victim->GetName());
 
+	CurrentAttacker->SetBattleState(EBattleState::Attack);
+
 	FCardAnimationCallback Callback;
 	Callback.BindUObject(this, &ABattleManager::DamageVictim);
 	CurrentAttacker->MoveToAnother(CurrentVictim, Callback, AttackMoveDistance);
@@ -263,7 +272,7 @@ void ABattleManager::Attack(ACharacterCard* Attacker, ACharacterCard* Victim)
 	AttackerLocation.Z = VictimLocation.Z;
 
 	FRotator LookAtRotation = (VictimLocation - AttackerLocation).Rotation();
-	LookAtRotation.Add(90.0f, 0.0f, 0.0f);
+	LookAtRotation.Add(90.0f, 0.0f, 180.0f);
 
 	FVector ArrowLocation = (AttackerLocation + VictimLocation) / 2.0f;
 	ArrowLocation.Z = 10.0f;
@@ -380,6 +389,8 @@ void ABattleManager::DamageVictim()
 	FCharacterData AttackerStat = CurrentAttacker->GetCharacterStat();
 	FCharacterData VictimStat = CurrentVictim->GetCharacterStat();
 
+	CurrentVictim->SetBattleState(EBattleState::Hit);
+
 	bool Crit = FMath::RandRange(0.0f, 1.0f) < AttackerStat.CharCritRate;
 	float FinalDamage = 0.0f;
 	float DamageMulti = 0.0f;
@@ -412,6 +423,9 @@ void ABattleManager::MovebackCompleted()
 {
 	DamageIndicator->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
 	AttackArrow->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
+
+	CurrentAttacker->SetBattleState(EBattleState::Wait);
+	CurrentVictim->SetBattleState(EBattleState::Wait);
 
 	CurrentAttacker->TargetCallback.Unbind();
 	CurrentAttacker->ResetTargetLocation();

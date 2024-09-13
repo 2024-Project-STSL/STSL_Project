@@ -308,10 +308,12 @@ void ACard::MoveCardToCursor(float FloatingHeight)
 
 void ACard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (OtherActor->IsA<ACard>() && CardStack != nullptr)
+    if (OtherActor == nullptr) return;
+    if (OtherActor->IsA<ACard>())
     {
         ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
         ACard* OtherCard = Cast<ACard>(OtherActor);
+        if (CardStack == nullptr || OtherCard->CardStack == nullptr) return;
 
         // 같은 스택의 카드끼리는 충돌 처리 없음
         if (CardStack == OtherCard->CardStack) return;

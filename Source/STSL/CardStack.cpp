@@ -664,20 +664,44 @@ bool ACardStack::GetCardStackable(ACardStack* CardStack, ACardStack* OtherStack)
 
 bool ACardStack::GetCardBattleable(ACardStack* CardStack, ACardStack* OtherStack)
 {
-	// TODO: 모든 전투 개시 조건 반영
+	ACard* MyBattle = nullptr;
+	ACard* OtherBattle = nullptr;
+
 	if (CardStack->GetFirstCard()->IsA(ACharacterCard::StaticClass()) && OtherStack->GetFirstCard()->IsA(ACharacterCard::StaticClass()))
 	{
-		if (CardStack->GetFirstCard()->GetCardType() != OtherStack->GetFirstCard()->GetCardType())
+		for (ACard* MyCard : CardStack->GetAllCharacters())
 		{
-			ACharacterCard* FirstChar = Cast<ACharacterCard>(CardStack->GetFirstCard());
-			ACharacterCard* SecondChar = Cast<ACharacterCard>(OtherStack->GetFirstCard());
-			if (FirstChar->GetBattleState() == EBattleState::Idle && SecondChar->GetBattleState() == EBattleState::Idle)
+			if (Cast<ACharacterCard>(MyCard)->GetBattleState() == EBattleState::Idle)
 			{
-				return true;
+				MyBattle = MyCard;
+				break;
 			}
+
+		}
+		for (ACard* OtherCard : OtherStack->GetAllCharacters())
+		{
+			if (Cast<ACharacterCard>(OtherCard)->GetBattleState() == EBattleState::Idle)
+			{
+				OtherBattle = OtherCard;
+				break;
+			}
+
 		}
 	}
-	return false;
+
+	if (MyBattle != nullptr && OtherBattle != nullptr)
+	{
+		if (MyBattle->GetCardType() != OtherBattle->GetCardType())
+		{
+			return (MyBattle->GetCardType() == CardType::person || OtherBattle->GetCardType() == CardType::person);
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
 }
 
 ACardStack* ACardStack::GetNearestStackable(float StackSearchDistance, ACardStack* ExceptionStack)
