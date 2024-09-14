@@ -65,6 +65,7 @@ void APersonCard::BeginPlay()
 
 void APersonCard::OnHit(UPrimitiveComponent* HitCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+    if (OtherActor == nullptr) return;
     if (OtherActor->IsA<ACard>() && CardStack != nullptr)
     {
         ACard* OtherCard = Cast<ACard>(OtherActor);

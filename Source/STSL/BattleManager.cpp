@@ -198,14 +198,35 @@ ACharacterCard* ABattleManager::GetVictim(ACharacterCard* Attacker)
 
 void ABattleManager::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (IsPendingKillPending()) return;
 	if (OtherActor->IsA(ACharacterCard::StaticClass()))
 	{
 		TObjectPtr<ACharacterCard> OtherChar = Cast<ACharacterCard>(OtherActor);
-		
+
 		if (OtherChar->GetBattleState() != EBattleState::Idle) return;
 
 		JoinBattle(OtherChar);
 	}
+	else if (OtherActor->IsA(ABattleManager::StaticClass()))
+	{
+		MergeBattle(this, Cast<ABattleManager>(OtherActor));
+	}
+}
+
+void ABattleManager::MergeBattle(ABattleManager* Battle1, ABattleManager* Battle2)
+{
+	if (Battle1 == Battle2) return;
+	for (TObjectPtr<ACharacterCard> Battle2Team1 : Battle2->FirstTeam)
+	{
+		Battle2->LeaveBattle(Battle2Team1);
+		Battle1->JoinBattle(Battle2Team1);
+	}
+	for (TObjectPtr<ACharacterCard> Battle2Team2 : Battle2->SecondTeam)
+	{
+		Battle2->LeaveBattle(Battle2Team2);
+		Battle1->JoinBattle(Battle2Team2);
+	}
+	Battle2->Destroy();
 }
 
 // Called every frame

@@ -98,4 +98,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void EndBattle();
+
+	UFUNCTION(BlueprintCallable)
+	static void MergeBattle(ABattleManager* Battle1, ABattleManager* Battle2);
 };
