@@ -38,6 +38,12 @@ ACharacterCard::ACharacterCard()
     {
         DropTable = DropDataTable.Object;
     }
+
+    static ConstructorHelpers::FObjectFinder<UDataTable> EffectDataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/EffectDB.EffectDB'"));
+    if (EffectDataTable.Succeeded())
+    {
+        EffectTable = EffectDataTable.Object;
+    }
 }
 
 ACharacterCard::ACharacterCard(int32 CardID)
@@ -86,7 +92,7 @@ void ACharacterCard::Tick(float DeltaTime)
 {
     Super::Super::Tick(DeltaTime);
     
-    
+
     ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
 
     if (bPreventDragging && TargetLocation != FVector::ZeroVector && 
@@ -119,6 +125,15 @@ void ACharacterCard::Tick(float DeltaTime)
     {
         CurrentDropCooldown = FMath::RandRange(MinDropCooldown, MaxDropCooldown);
         CharacterDrop();
+    }
+
+    for (int i = AppliedEffects.Num(); i > 0; i--)
+    {
+        AppliedEffects[i-1].EffectTime -= DeltaTime;
+        if (AppliedEffects[i-1].EffectTime < 0.0f)
+        {
+            AppliedEffects.RemoveAt(i-1);
+        }
     }
 }
 
@@ -159,6 +174,37 @@ void ACharacterCard::CharacterDeath(EDeathReason Reason)
 {
     OnDeath.Broadcast(this);
     Remove();
+}
+
+void ACharacterCard::ApplyEffect(int EffectCode)
+{
+    
+    FName RowName = FName(*FString::FromInt(EffectCode));
+    FEffectData* EffectRowData = EffectTable->FindRow<FEffectData>(RowName, TEXT(""));
+    
+    int Index = FindEffect(EffectCode);
+
+    if (Index != INDEX_NONE)
+    {
+        AppliedEffects.Add(*EffectRowData);
+    }
+    else {
+        AppliedEffects[Index].EffectTime = EffectRowData->EffectTime;
+    }
+
+}
+
+int ACharacterCard::FindEffect(int EffectCode) const
+{ 
+    for (int i = 0; i < AppliedEffects.Num(); i++)
+    {
+        if (AppliedEffects[i].EffectCode == EffectCode)
+        {
+            return AppliedEffects[i].EffectTime;
+        }
+    }
+
+    return INDEX_NONE;
 }
 
 bool ACharacterCard::CharacterDamage(int Damage)

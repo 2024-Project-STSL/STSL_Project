@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/DropData.h"
+#include "Data/EffectData.h"
 #include "Card.h"
 #include "CharacterCard.generated.h"
 
@@ -50,7 +51,10 @@ class STSL_API ACharacterCard : public ACard
 	class UDataTable* CharacterDataTable;
 
 	UPROPERTY(VisibleAnywhere, Category = "Crafting")
-	UDataTable* DropTable;
+	class UDataTable* DropTable;
+
+	UPROPERTY(VisibleAnywhere, Category = "Battle")
+	class UDataTable* EffectTable;
 
 	UPROPERTY(EditAnywhere, Category = "Crafting")
 	float MaxDropCooldown = 80.0f;
@@ -75,6 +79,9 @@ class STSL_API ACharacterCard : public ACard
 
 	UPROPERTY(EditAnywhere, Category = "Battle")
 	float MaxAttackGauge = 20.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	TArray<FEffectData> AppliedEffects;
 
 protected:
 	virtual void BeginPlay() override;
@@ -119,6 +126,12 @@ public:
 	FCharacterData GetCharacterStat() const { return CharacterStat; }
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
+	void ApplyEffect(int EffectCode);
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	int FindEffect(int EffectCode) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	EBattleState GetBattleState() const { return BattleState; }
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
@@ -135,5 +148,6 @@ public:
 
 	FOnDeath OnDeath;
 
-	FOnLeaveBattle OnLeaveBattle;
+	FOnLeaveBattle OnLeaveBattle;;
+
 };
