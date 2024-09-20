@@ -120,7 +120,7 @@ void ACardPack::SpawnCard()
     FVector Location = GetActorLocation();
     Location.Z = 11.0f;
     SetActorLocation(Location);
-    Location.Z -= 10.0f;
+    Location.Z -= 5.0f;
 
     int TotalWeight = 0;
     for (int CardWeight : CardPackData.CardWeight)
@@ -139,7 +139,7 @@ void ACardPack::SpawnCard()
         }
     }
 
-    NewCardStack->GetFirstCard()->Push();
+    NewCardStack->GetFirstCard()->Push(FVector(8000.0f, 8000.0f, 0.0f));
 
     CardPackData.PackValue--;
     if (CardPackData.PackValue == 0)
