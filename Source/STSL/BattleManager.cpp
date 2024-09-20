@@ -24,6 +24,7 @@ ABattleManager::ABattleManager()
 	{
 		BattleCube->SetStaticMesh(BattleCubeMesh.Object);
 		BattleCube->SetSimulatePhysics(false);
+		BattleCube->SetCastShadow(false);
 		BattleCube->SetCollisionProfileName("OverlapAll");
 
 		HighlightCube->SetStaticMesh(BattleCubeMesh.Object);
