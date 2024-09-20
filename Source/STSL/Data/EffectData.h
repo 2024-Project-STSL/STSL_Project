@@ -6,6 +6,13 @@
 #include "CoreMinimal.h"
 #include "EffectData.generated.h"
 
+UENUM()
+enum class EffectCode : uint8
+{
+	Poison = 0,
+	Stun
+};
+
 USTRUCT(Atomic, BlueprintType)
 struct STSL_API FEffectData : public FTableRowBase
 {
@@ -13,7 +20,7 @@ struct STSL_API FEffectData : public FTableRowBase
 
 public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
-	int EffectCode;
+	EffectCode EffectCode;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	FString EffectName;
@@ -24,6 +31,10 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	float EffectTime;
 
+	float LastTick = -1.0f;
+
 	FEffectData();
 	~FEffectData();
+
+	void Tick(AActor* TargetCard);
 };

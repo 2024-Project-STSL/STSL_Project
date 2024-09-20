@@ -245,6 +245,8 @@ void ABattleManager::Tick(float DeltaTime)
 	{
 		for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
 		{
+			if (FirstChar->FindEffect(EffectCode::Stun) != INDEX_NONE) continue;
+
 			if (FirstChar->AddAttackGauge(DeltaTime))
 			{
 				AttackerCandidate.Add(FirstChar);
@@ -252,6 +254,8 @@ void ABattleManager::Tick(float DeltaTime)
 		}
 		for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
 		{
+			if (SecondChar->FindEffect(EffectCode::Stun) != INDEX_NONE) continue;
+
 			if (SecondChar->AddAttackGauge(DeltaTime))
 			{
 				AttackerCandidate.Add(SecondChar);

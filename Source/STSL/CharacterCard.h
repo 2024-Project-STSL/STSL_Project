@@ -126,10 +126,10 @@ public:
 	FCharacterData GetCharacterStat() const { return CharacterStat; }
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
-	void ApplyEffect(int EffectCode);
+	void ApplyEffect(EffectCode EffectCode);
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
-	int FindEffect(int EffectCode) const;
+	int FindEffect(EffectCode EffectCode) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	EBattleState GetBattleState() const { return BattleState; }

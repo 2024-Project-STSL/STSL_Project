@@ -129,10 +129,13 @@ void ACharacterCard::Tick(float DeltaTime)
 
     for (int i = AppliedEffects.Num(); i > 0; i--)
     {
-        AppliedEffects[i-1].EffectTime -= DeltaTime;
-        if (AppliedEffects[i-1].EffectTime < 0.0f)
+        AppliedEffects[i - 1].EffectTime -= DeltaTime;
+        if (AppliedEffects[i - 1].EffectTime < 0.0f)
         {
-            AppliedEffects.RemoveAt(i-1);
+            AppliedEffects.RemoveAt(i - 1);
+        }
+        else {
+            AppliedEffects[i - 1].Tick(this);
         }
     }
 }
@@ -176,10 +179,10 @@ void ACharacterCard::CharacterDeath(EDeathReason Reason)
     Remove();
 }
 
-void ACharacterCard::ApplyEffect(int EffectCode)
+void ACharacterCard::ApplyEffect(EffectCode EffectCode)
 {
     
-    FName RowName = FName(*FString::FromInt(EffectCode));
+    FName RowName = FName(*FString::FromInt((uint8)EffectCode));
     FEffectData* EffectRowData = EffectTable->FindRow<FEffectData>(RowName, TEXT(""));
     
     int Index = FindEffect(EffectCode);
@@ -194,7 +197,7 @@ void ACharacterCard::ApplyEffect(int EffectCode)
 
 }
 
-int ACharacterCard::FindEffect(int EffectCode) const
+int ACharacterCard::FindEffect(EffectCode EffectCode) const
 { 
     for (int i = 0; i < AppliedEffects.Num(); i++)
     {
