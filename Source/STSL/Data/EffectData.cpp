@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "CharacterCard.h"
 #include "EffectData.h"
+#include "CharacterCard.h"
 
 FEffectData::FEffectData()
 {

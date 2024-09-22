@@ -26,6 +26,8 @@ public:
 	int CharDefence;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float CharCritRate;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USkeletalMesh> CharMesh;
 
 	FCharacterData();
 	~FCharacterData();
