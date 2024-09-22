@@ -26,6 +26,8 @@ public:
 	int CharDefence;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float CharCritRate;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	TArray<int> DropOnDeath;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USkeletalMesh> CharMesh;
 

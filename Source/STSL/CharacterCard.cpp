@@ -175,6 +175,15 @@ void ACharacterCard::CharacterDrop()
 
 void ACharacterCard::CharacterDeath(EDeathReason Reason)
 {
+    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+    ACardStack* DropStack = nullptr;
+
+    for (int DropCode : CharacterStat.DropOnDeath)
+    {
+        DropStack = SLGameMode->SpawnCard(GetActorLocation(), DropCode);
+        DropStack->GetFirstCard()->Push();
+    }
+
     OnDeath.Broadcast(this);
     Remove();
 }

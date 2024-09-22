@@ -252,3 +252,27 @@ void APersonCard::UpdateStat()
     if (MainArmor.CardCode != -1) AddEquipmentStat(MainArmor);
     if (SubArmor.CardCode != -1) AddEquipmentStat(SubArmor);
 }
+
+void APersonCard::CharacterDeath(EDeathReason DeathReason)
+{
+    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+    ACardStack* DropStack = nullptr;
+
+    if (Weapon.CardCode != -1)
+    {
+        DropStack = SLGameMode->SpawnCard(GetActorLocation(), Weapon.CardCode);
+        DropStack->GetFirstCard()->Push();
+    }
+    if (MainArmor.CardCode != -1)
+    {
+        DropStack = SLGameMode->SpawnCard(GetActorLocation(), MainArmor.CardCode);
+        DropStack->GetFirstCard()->Push();
+    }
+    if (SubArmor.CardCode != -1)
+    {
+        DropStack = SLGameMode->SpawnCard(GetActorLocation(), SubArmor.CardCode);
+        DropStack->GetFirstCard()->Push();
+    }
+
+    Super::CharacterDeath(DeathReason);
+}

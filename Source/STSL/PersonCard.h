@@ -65,6 +65,9 @@ public:
 	bool Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback);
 
 	UFUNCTION(BlueprintCallable)
+	void CharacterDeath(EDeathReason DeathReason) override;
+
+	UFUNCTION(BlueprintCallable)
 	void ResetFood() { FoodEaten = 0; }
 
 	UFUNCTION(BlueprintCallable)

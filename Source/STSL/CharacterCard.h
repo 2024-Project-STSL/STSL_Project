@@ -120,7 +120,7 @@ public:
 	// 죽었는지의 여부 반환
 	bool CharacterDamage(int Damage);
 
-	void CharacterDeath(EDeathReason Reason);
+	virtual void CharacterDeath(EDeathReason Reason);
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	FCharacterData GetCharacterStat() const { return CharacterStat; }
