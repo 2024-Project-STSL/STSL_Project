@@ -124,6 +124,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void MoveBackCompleted();
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
+	void CheckHunger();
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void CheckExcessiveCards();
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void CheckDayEnd();

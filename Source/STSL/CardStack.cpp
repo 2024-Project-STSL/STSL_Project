@@ -667,26 +667,23 @@ bool ACardStack::GetCardBattleable(ACardStack* CardStack, ACardStack* OtherStack
 	ACard* MyBattle = nullptr;
 	ACard* OtherBattle = nullptr;
 
-	if (CardStack->GetFirstCard()->IsA(ACharacterCard::StaticClass()) && OtherStack->GetFirstCard()->IsA(ACharacterCard::StaticClass()))
+	for (ACard* MyCard : CardStack->GetAllCharacters())
 	{
-		for (ACard* MyCard : CardStack->GetAllCharacters())
+		if (Cast<ACharacterCard>(MyCard)->GetBattleState() == EBattleState::Idle)
 		{
-			if (Cast<ACharacterCard>(MyCard)->GetBattleState() == EBattleState::Idle)
-			{
-				MyBattle = MyCard;
-				break;
-			}
-
+			MyBattle = MyCard;
+			break;
 		}
-		for (ACard* OtherCard : OtherStack->GetAllCharacters())
+
+	}
+	for (ACard* OtherCard : OtherStack->GetAllCharacters())
+	{
+		if (Cast<ACharacterCard>(OtherCard)->GetBattleState() == EBattleState::Idle)
 		{
-			if (Cast<ACharacterCard>(OtherCard)->GetBattleState() == EBattleState::Idle)
-			{
-				OtherBattle = OtherCard;
-				break;
-			}
-
+			OtherBattle = OtherCard;
+			break;
 		}
+
 	}
 
 	if (MyBattle != nullptr && OtherBattle != nullptr)

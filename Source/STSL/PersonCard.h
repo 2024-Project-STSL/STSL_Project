@@ -71,6 +71,9 @@ public:
 	void ResetFood() { FoodEaten = 0; }
 
 	UFUNCTION(BlueprintCallable)
+	bool IsFull() const { return FoodEaten == CardData.AddTypeValue; }
+
+	UFUNCTION(BlueprintCallable)
 	void Equip(AActor* Card);
 
 	UFUNCTION(BlueprintCallable)

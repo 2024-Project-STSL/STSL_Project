@@ -115,7 +115,7 @@ void ASLGameModeBase::Eat()
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d / %d food points needed."), TotalFood, RequireFood));
 
 		// TODO: 음식들을 우선순위별로 정렬하거나 우선순위를 파악
-		PersonIndex = 0; FoodIndex = 0;
+		PersonIndex = 0; FoodIndex = -1;
 
 		EatNext();
 	}
@@ -123,13 +123,14 @@ void ASLGameModeBase::Eat()
 
 void ASLGameModeBase::EatNext()
 {
+	FoodIndex++;
 	if (FoodIndex == Foods.Num())
 	{
 		FoodIndex = 0;
 		PersonIndex++;
 		if (PersonIndex == People.Num())
 		{
-			CheckExcessiveCards();
+			CheckHunger();
 			return;
 		}
 	}
@@ -149,6 +150,7 @@ void ASLGameModeBase::EatCompleted()
 	{
 		TObjectPtr<ACardStack> FoodStack = Cast<ACardStack>(CurrentFood->GetCardStack());
 		FoodStack->RemoveCard(CurrentFood, true);
+		EatNext();
 	}
 	else {
 		FCardAnimationCallback Callback;
@@ -156,14 +158,23 @@ void ASLGameModeBase::EatCompleted()
 		CurrentFood->MoveBack(Callback);
 		CurrentFood->LoadCard();
 	}
-	FoodIndex++;
-	EatNext();
 }
 
 void ASLGameModeBase::MoveBackCompleted()
 {
-	FoodIndex++;
 	EatNext();
+}
+
+void ASLGameModeBase::CheckHunger()
+{
+	for (ACard* Person : People)
+	{
+		if (!Cast<APersonCard>(Person)->IsFull())
+		{
+			Person->Remove();
+		}
+	}
+	CheckExcessiveCards();
 }
 
 void ASLGameModeBase::OnSellCardHandler()
@@ -215,7 +226,7 @@ void ASLGameModeBase::PauseGame()
 	{
 		CurrentPlayState = GamePlayState::PauseState;
 	}
-	if (CurrentPlayState == GamePlayState::BreakState)
+	if (CurrentPlayState == GamePlayState::BreakState && bSellingExcessiveCard)
 	{
 		CurrentPlayState = GamePlayState::PauseState;
 		for (TObjectPtr<ACardStack> CardStack : CardStacks)

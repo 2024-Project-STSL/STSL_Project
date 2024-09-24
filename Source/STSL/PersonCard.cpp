@@ -98,8 +98,9 @@ bool APersonCard::Eat(TObjectPtr<ACard> Food, FCardAnimationCallback& Callback)
     ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
     TargetCallback.BindUObject(SLGameMode, &ASLGameModeBase::EatCompleted);
 
-    if (FoodEaten >= RequireFood)
+    if (FoodEaten >= RequireFood || Food->IsActorBeingDestroyed())
     {
+        TargetCallback.BindUObject(SLGameMode, &ASLGameModeBase::EatNext);
         TargetCallback.ExecuteIfBound();
         return true;
     }
