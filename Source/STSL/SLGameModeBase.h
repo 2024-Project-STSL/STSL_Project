@@ -107,7 +107,7 @@ public:
 	ASLGameModeBase();
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
-	void PauseGame();
+	void PauseGame(bool bForce=false);
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	void ResumeGame();

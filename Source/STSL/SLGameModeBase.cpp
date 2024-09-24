@@ -191,7 +191,7 @@ void ASLGameModeBase::CheckExcessiveCards()
 	}
 	BreakMenu->GetWidgetFromName(TEXT("CardIndicator"))->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	bSellingExcessiveCard = true;
-	PauseGame();
+	PauseGame(true);
 }
 
 void ASLGameModeBase::CheckDayEnd()
@@ -220,13 +220,13 @@ int ASLGameModeBase::GetPortalSpawnCount() const
 	return FMath::Min(SpawnCount, MaxSpawnCount);
 }
 
-void ASLGameModeBase::PauseGame()
+void ASLGameModeBase::PauseGame(bool bForce)
 {
 	if (CurrentPlayState == GamePlayState::PlayState)
 	{
 		CurrentPlayState = GamePlayState::PauseState;
 	}
-	if (CurrentPlayState == GamePlayState::BreakState && bSellingExcessiveCard)
+	if (CurrentPlayState == GamePlayState::BreakState && bForce)
 	{
 		CurrentPlayState = GamePlayState::PauseState;
 		for (TObjectPtr<ACardStack> CardStack : CardStacks)
