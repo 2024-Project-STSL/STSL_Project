@@ -124,7 +124,7 @@ void ASLGameModeBase::Eat()
 void ASLGameModeBase::EatNext()
 {
 	FoodIndex++;
-	if (FoodIndex == Foods.Num())
+	if (FoodIndex >= Foods.Num())
 	{
 		FoodIndex = 0;
 		PersonIndex++;
