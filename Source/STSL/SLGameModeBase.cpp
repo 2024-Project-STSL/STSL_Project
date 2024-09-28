@@ -3,6 +3,7 @@
 #include "SLGameModeBase.h"
 #include "SellArea.h"
 #include <Kismet/GameplayStatics.h>
+#include <Engine/AssetManager.h>
 #include "MainMenuBase.h"
 
 void ASLGameModeBase::BeginPlay()
@@ -13,6 +14,12 @@ void ASLGameModeBase::BeginPlay()
 	{
 		SellArea->OnSellCard.AddDynamic(this, &ASLGameModeBase::OnSellCardHandler);
 	}
+
+	FString BattleManagerPath = "/Script/CoreUObject.Class'/Script/STSL.BattleManager'";
+	UAssetManager::GetStreamableManager().RequestAsyncLoad(BattleManagerPath);
+
+	PauseMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/PauseMenu.PauseMenu_C'")));
+	GameoverMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/GameoverMenu.GameoverMenu_C'")));
 }
 
 void ASLGameModeBase::Tick(float DeltaTime)
@@ -31,7 +38,10 @@ void ASLGameModeBase::Tick(float DeltaTime)
 
 void ASLGameModeBase::CreateMenu()
 {
-	MainMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/MainMenu.MainMenu_C'")));
+	if (MainMenu == nullptr)
+	{
+		MainMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/MainMenu.MainMenu_C'")));
+	}
 	MainMenu->AddToViewport();
 }
 
@@ -167,19 +177,38 @@ void ASLGameModeBase::MoveBackCompleted()
 
 void ASLGameModeBase::CheckHunger()
 {
-	for (ACard* Person : People)
+	for (ACard* PersonCard : People)
 	{
-		if (!Cast<APersonCard>(Person)->IsFull())
+		TObjectPtr<APersonCard> Person = Cast<APersonCard>(PersonCard);
+		if (!Person->IsFull())
 		{
-			Person->Remove();
+			Person->CharacterDeath(EDeathReason::Hunger);
 		}
 	}
-	CheckExcessiveCards();
+	if (!CheckGameover())
+	{
+		CheckExcessiveCards();
+	}
 }
 
 void ASLGameModeBase::OnSellCardHandler()
 {
 	if (bSellingExcessiveCard) CheckExcessiveCards();
+}
+
+bool ASLGameModeBase::CheckGameover()
+{
+	for (TObjectPtr<ACardStack> CardStack : CardStacks)
+	{
+		if (CardStack->IsPendingKillPending()) continue;
+
+		for (ACard* Person : CardStack->GetCardsByType(CardType::person))
+		{
+			if (Cast<ACharacterCard>(Person)->IsAilve()) return false;
+		}
+	}
+	Gameover();
+	return true;
 }
 
 void ASLGameModeBase::CheckExcessiveCards()
@@ -225,6 +254,7 @@ void ASLGameModeBase::PauseGame(bool bForce)
 	if (CurrentPlayState == GamePlayState::PlayState)
 	{
 		CurrentPlayState = GamePlayState::PauseState;
+		PauseMenu->AddToViewport();
 	}
 	if (CurrentPlayState == GamePlayState::BreakState && bForce)
 	{
@@ -242,6 +272,7 @@ void ASLGameModeBase::ResumeGame()
 	if (CurrentPlayState == GamePlayState::PauseState)
 	{
 		if (bSellingExcessiveCard) return;
+		PauseMenu->RemoveFromParent();
 		CurrentPlayState = GamePlayState::PlayState;
 	}
 	if (CurrentPlayState == GamePlayState::BreakState)
@@ -255,9 +286,26 @@ void ASLGameModeBase::ResumeGame()
 	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(CurrentPlayState);
 }
 
+void ASLGameModeBase::Gameover()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Game Over!"));
+	if (PauseMenu->IsInViewport())
+	{
+		PauseMenu->RemoveFromParent();
+	}
+	CurrentPlayState = GamePlayState::GameoverState;
+	GameoverMenu->AddToViewport();
+	GEngine->GetFirstLocalPlayerController(GetWorld())->SetPause(true);
+}
+
 float ASLGameModeBase::GetDayProgressPercent() const
 {
 	return FMath::Clamp(Time / TimeForDay, 0.0f, 1.0f);
+}
+
+void ASLGameModeBase::HandleDeath(ACharacterCard* TargetCard)
+{
+	CheckGameover();
 }
 
 void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStack) const
@@ -431,6 +479,10 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 	NewCard->SetCardID(CardID);
 	NewCardStack->AddCard(NewCardActor);
 
+	if (RowData->CardType == CardType::person)
+	{
+		Cast<APersonCard>(NewCardActor)->OnDeath.AddDynamic(this, &ASLGameModeBase::HandleDeath);
+	}
 	return NewCardStack;
 }
 

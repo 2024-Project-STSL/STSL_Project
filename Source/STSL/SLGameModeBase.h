@@ -20,7 +20,8 @@ enum class GamePlayState : uint8
 {
 	PlayState = 0,
 	BreakState,
-	PauseState
+	PauseState,
+	GameoverState
 };
 
 UCLASS()
@@ -30,6 +31,8 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	
 	TObjectPtr<UUserWidget> MainMenu;
 	TObjectPtr<UUserWidget> BreakMenu;
+	TObjectPtr<UUserWidget> PauseMenu;
+	TObjectPtr<UUserWidget> GameoverMenu;
 
 	class UDataTable* CardDataTable;
 
@@ -115,18 +118,28 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	void BreakGame();
 
+	UFUNCTION(BlueprintCallable, Category = "Time")
+	void Gameover();
+
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void Eat();
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void EatNext();
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void EatCompleted();
+
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void MoveBackCompleted();
+
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void CheckHunger();
+
+	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
+	bool CheckGameover();
+
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void CheckExcessiveCards();
+
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
 	void CheckDayEnd();
 	UFUNCTION(BlueprintCallable, Category = "TurnEnd")
@@ -140,6 +153,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	float GetDayProgressPercent() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	void HandleDeath(ACharacterCard* DeadCard);
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void StartBattle(ACardStack* FirstStack, ACardStack* SecondStack) const;

@@ -125,6 +125,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	FCharacterData GetCharacterStat() const { return CharacterStat; }
 
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	bool IsAilve() const { return CharacterStat.CharHealth > 0; }
+
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void ApplyEffect(EffectCode EffectCode);
 
