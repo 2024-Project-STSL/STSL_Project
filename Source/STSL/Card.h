@@ -144,9 +144,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int GetCardPrice() const { return CardData.CardPrice; }
 
-	UFUNCTION(BlueprintCallable)
-	void ResetTargetLocation() { TargetLocation = FVector::Zero(); }
-
 	FCardAnimationCallback TargetCallback;
 
 protected:
@@ -169,6 +166,9 @@ public:
 	UStaticMeshComponent* GetVisualMesh() const { return VisualMesh; }
 
 	bool IsCharacter() const { return CardData.IsCharacter(); }
+
+	UFUNCTION(BlueprintCallable)
+	void ResetTargetLocation() { TargetLocation = FVector::Zero(); }
 
 	// 마우스 카드 이동 관련
 	virtual void SendMovementToStack(ECardMovement Movement);

@@ -542,6 +542,8 @@ AActor* ACardStack::FindMouseSender(FVector Location) const
 
 void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 {
+	if (IsPendingKillPending()) return;
+
 	ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
 
 	if (SLGameMode->GetPlayState() == GamePlayState::BreakState) return;

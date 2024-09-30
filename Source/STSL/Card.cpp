@@ -232,6 +232,8 @@ void ACard::SetCardStack(AActor* Stack)
 
 void ACard::SendMovementToStack(ECardMovement Movement)
 {
+    if (IsPendingKillPending()) return;
+
     ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
     CardStackActor->HandleStackMove(this, Movement);
 }

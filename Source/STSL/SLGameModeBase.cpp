@@ -19,7 +19,6 @@ void ASLGameModeBase::BeginPlay()
 	UAssetManager::GetStreamableManager().RequestAsyncLoad(BattleManagerPath);
 
 	PauseMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/PauseMenu.PauseMenu_C'")));
-	GameoverMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/GameoverMenu.GameoverMenu_C'")));
 }
 
 void ASLGameModeBase::Tick(float DeltaTime)
@@ -124,7 +123,7 @@ void ASLGameModeBase::Eat()
 
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%d / %d food points needed."), TotalFood, RequireFood));
 
-		// TODO: À½½ÄµéÀ» ¿ì¼±¼øÀ§º°·Î Á¤·ÄÇÏ°Å³ª ¿ì¼±¼øÀ§¸¦ ÆÄ¾Ç
+		// TODO: ìŒì‹ë“¤ì„ ìš°ì„ ìˆœìœ„ë³„ë¡œ ì •ë ¬í•˜ê±°ë‚˜ ìš°ì„ ìˆœìœ„ë¥¼ íŒŒì•…
 		PersonIndex = 0; FoodIndex = -1;
 
 		EatNext();
@@ -293,6 +292,10 @@ void ASLGameModeBase::Gameover()
 	{
 		PauseMenu->RemoveFromParent();
 	}
+	if (GameoverMenu == nullptr)
+	{
+		GameoverMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/GameoverMenu.GameoverMenu_C'")));
+	}
 	CurrentPlayState = GamePlayState::GameoverState;
 	GameoverMenu->AddToViewport();
 	GEngine->GetFirstLocalPlayerController(GetWorld())->SetPause(true);
@@ -326,6 +329,7 @@ void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStac
 		AllActors.Add(SecondActor, 2);
 	}
 
+	
 	for (TTuple<AActor*, int> Character : AllActors)
 	{
 		if (Character.Value == 1)
@@ -431,6 +435,14 @@ void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* NewDragg
 
 ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 {
+	FName RowName = FName(*FString::FromInt(CardID));
+	FCardData* RowData = CardDataTable->FindRow<FCardData>(RowName, TEXT(""));
+	if (RowData == nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” ì¹´ë“œ ë²ˆí˜¸: %d"), CardID));
+		return nullptr;
+	}
+
 	DraggingStack = nullptr;
 
 	AActor* NewCardStackActor = GetWorld()->SpawnActor
@@ -442,8 +454,6 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 	if (NewCardStackActor == nullptr) return nullptr;
 	ACardStack* NewCardStack = Cast<ACardStack>(NewCardStackActor);
 	 
-	FName RowName = FName(*FString::FromInt(CardID));
-	FCardData* RowData = CardDataTable->FindRow<FCardData>(RowName, TEXT(""));
 	UClass* CardClass = ACard::StaticClass();
 
 	if (RowData != nullptr)

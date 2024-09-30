@@ -83,8 +83,8 @@ void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
 	HighlightCube->SetCustomDepthStencilValue(2);
-	DamageIndicator->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
 	AttackArrow->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
+	DamageIndicator->GetWidget()->SetVisibility(ESlateVisibility::Hidden);
 	BattleCube->OnComponentBeginOverlap.AddDynamic(this, &ABattleManager::OnOverlapBegin);
 }
 
@@ -457,6 +457,8 @@ void ABattleManager::MovebackCompleted()
 	CurrentAttacker->ResetTargetLocation();
 	CurrentAttacker = nullptr;
 	CurrentVictim = nullptr;
+
+	Relocate();
 }
 
 void ABattleManager::JoinBattle(ACharacterCard* TargetCard)
@@ -490,6 +492,7 @@ void ABattleManager::LeaveBattle(ACharacterCard* TargetCard)
 	{
 		TargetCard->SetBattleState(EBattleState::Idle);
 		TargetCard->ResetAttackGauge();
+		TargetCard->ResetTargetLocation();
 		TargetCard->OnDeath.RemoveAll(this);
 	}
 
