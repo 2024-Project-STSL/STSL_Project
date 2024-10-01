@@ -153,7 +153,7 @@ void ACard::LoadCard()
         PriceIcon->SetText(FText::FromString(""));
     }
 
-    if (CardData.AddType != AddType::nope)
+    if (CardData.AddType != AddType::nope && CardData.AddTypeValue != -1)
     {
         AddTypeText->SetText(FText::AsNumber(CardData.AddTypeValue));
         if (CardData.AddType == AddType::foodable)

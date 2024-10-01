@@ -88,7 +88,7 @@ bool ACardStack::CheckDropRecipe(FDropData* Recipe)
 
 void ACardStack::UpdateCraftingRecipe()
 {
-	if (GetFirstCard()->GetCardType() == CardType::portal) return;
+	if (GetFirstCard() != nullptr && GetFirstCard()->GetCardType() == CardType::portal) return;
 
 	bool bIsCrafting = false;
 	bool bIsRecipeChanged = false;
@@ -522,6 +522,12 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 void ACardStack::RemoveAllCards(bool bDespawn)
 {
 	RemoveCard(Cards, bDespawn);
+}
+
+ACard* ACardStack::GetFirstCard() const
+{
+	if (Cards.Num() == 0) return nullptr;
+	return Cast<ACard>(Cards[0]);
 }
 
 AActor* ACardStack::FindMouseSender(FVector Location) const

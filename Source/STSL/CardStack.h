@@ -107,7 +107,7 @@ public:
 	void RemoveAllCards(bool bDespawn = false);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	ACard* GetFirstCard() const { return Cast<ACard>(Cards[0]); }
+	ACard* GetFirstCard() const;
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	ACard* GetLastCard() const { return Cast<ACard>(Cards.Last()); }
 
