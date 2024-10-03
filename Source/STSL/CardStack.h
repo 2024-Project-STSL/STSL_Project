@@ -143,6 +143,8 @@ public:
 	// 물리 엔진에 의해 조금씩 틀어지는 카드 위치 보정
 	void UpdatePosition(bool bFalling = false);
 
+	void UpdateWorldBorder() { GetFirstCard()->UpdateWorldBorder(Cards.Num()); }
+
 	// 판매할 수 있는 스택인지 확인
 	bool GetIsSellable() const;
 	int GetPriceSum() const;

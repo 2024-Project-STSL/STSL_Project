@@ -47,10 +47,28 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	bool bIsCardHighlight;
 
 	UPROPERTY(VisibleAnywhere, Category = "World")
+	TMap<FString, float> BaseWorldBorder;
+
+	UPROPERTY(VisibleAnywhere, Category = "World")
 	TMap<FString, float> WorldBorder;
 
 	UPROPERTY(EditAnywhere, Category = "World")
+	FVector BaseFloorScale = FVector(4.0f, 6.0f, 1.0f);
+
+	UPROPERTY(EditAnywhere, Category = "World")
+	float ExtendRange = 500.0f;
+
+	UPROPERTY(EditAnywhere, Category = "World")
+	float WallOffset = 50.0f;
+
+	UPROPERTY(EditAnywhere, Category = "World")
 	float BuyAreaHeight = 800.0f;
+
+	UPROPERTY(EditAnywhere, Category = "World")
+	int BaseCardLimit = 30;
+
+	UPROPERTY(EditAnywhere, Category = "World")
+	int CardLimit = 30;
 
 	UPROPERTY(EditAnywhere, Category = "Time")
 	GamePlayState CurrentPlayState = GamePlayState::PlayState;
@@ -81,9 +99,6 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 
 	UPROPERTY(EditAnywhere, Category = "Portal")
 	int MaxSpawnCount = 5;
-
-	UPROPERTY(EditAnywhere, Category = "TurnEnd")
-	int CardLimit = 30;
 
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TArray<ACard*> People;
@@ -174,6 +189,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	TArray<ACardStack*> GetAllCardStacks() const { return CardStacks; }
+
+	UFUNCTION(BlueprintCallable, Category = "World")
+	void UpdateCardLimit();
 
 	UFUNCTION(BlueprintCallable, Category = "World")
 	TMap<FString, float> GetWorldBorder(bool bExcludeBuyArea = false) const;

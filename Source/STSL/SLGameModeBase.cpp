@@ -59,6 +59,7 @@ ASLGameModeBase::ASLGameModeBase()
 	WorldBorder.Add(TEXT("Right"), 3000.0f);
 	WorldBorder.Add(TEXT("Down"), -2000.0f);
 	WorldBorder.Add(TEXT("Up"), 2000.0f);
+	BaseWorldBorder = WorldBorder;
 
 }
 
@@ -192,6 +193,7 @@ void ASLGameModeBase::CheckHunger()
 
 void ASLGameModeBase::OnSellCardHandler()
 {
+	UpdateCardLimit();
 	if (bSellingExcessiveCard) CheckExcessiveCards();
 }
 
@@ -397,6 +399,34 @@ void ASLGameModeBase::RemoveCardStack(ACardStack* CardStack)
 }
 
 
+void ASLGameModeBase::UpdateCardLimit()
+{
+	CardLimit = BaseCardLimit;
+	TArray<TObjectPtr<ACard>> Extendments;
+	
+	for (TObjectPtr<ACardStack> CardStack : CardStacks)
+	{
+		Extendments = CardStack->GetCardsByType(CardType::extendment);
+		for (TObjectPtr<ACard> Extendment : Extendments)
+		{
+			CardLimit += Extendment->GetAddTypeValue();
+		}
+	}
+
+	float BorderExtendment = FMath::FloorToInt((CardLimit - BaseCardLimit) / 10.0f) * ExtendRange;
+
+	WorldBorder = BaseWorldBorder;
+	WorldBorder["Up"] += BorderExtendment;
+	WorldBorder["Down"] -= BorderExtendment;
+	WorldBorder["Left"] -= BorderExtendment;
+	WorldBorder["Right"] += BorderExtendment;
+	
+	for (TObjectPtr<ACardStack> CardStack : CardStacks)
+	{
+		CardStack->UpdateWorldBorder();
+	}
+}
+
 TMap<FString, float> ASLGameModeBase::GetWorldBorder(bool bExcludeBuyArea) const
 {
 	if (bExcludeBuyArea)
@@ -492,7 +522,12 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 	if (RowData->CardType == CardType::person)
 	{
 		Cast<APersonCard>(NewCardActor)->OnDeath.AddDynamic(this, &ASLGameModeBase::HandleDeath);
+	} 
+	else if (RowData->CardType == CardType::extendment)
+	{
+		UpdateCardLimit();
 	}
+
 	return NewCardStack;
 }
 

@@ -436,7 +436,7 @@ void ACardStack::AddCard(AActor* CardActor)
 
 		Card->SetCardStack(this);
 		Card->SetFloating(false);
-		GetFirstCard()->UpdateWorldBorder(Cards.Num());
+		UpdateWorldBorder();
 
 		if (OldStackActor != nullptr)
 		{
