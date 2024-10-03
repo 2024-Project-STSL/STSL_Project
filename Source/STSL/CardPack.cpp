@@ -62,6 +62,12 @@ ACardPack::ACardPack()
         CardPackDataTable = DataTable.Object;
     }
 
+    static ConstructorHelpers::FObjectFinder<USoundCue> CardPackOpenSound(TEXT("/Script/Engine.SoundCue'/Game/Sounds/SE_OpenCardpack_Cue.SE_OpenCardpack_Cue'"));
+    if (CardPackOpenSound.Succeeded())
+    {
+        SoundOpen = CardPackOpenSound.Object;
+    }
+
     PushVector.Z = -1000.0;
     LoadCard();
 }
@@ -140,6 +146,8 @@ void ACardPack::SpawnCard()
     }
 
     NewCardStack->GetFirstCard()->Push(FVector(8000.0f, 8000.0f, 0.0f));
+    UGameplayStatics::PlaySoundAtLocation(this, SoundOpen, GetActorLocation());
+
 
     CardPackData.PackValue--;
     if (CardPackData.PackValue == 0)

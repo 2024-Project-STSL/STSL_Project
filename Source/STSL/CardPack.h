@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Card.h"
 #include "Data/CardPackData.h"
+#include <Sound/SoundCue.h>
 #include "CardPack.generated.h"
 
 /**
@@ -22,6 +23,9 @@ class STSL_API ACardPack : public ACard
 
 	UDataTable* CardPackDataTable;
 	
+	UPROPERTY(VisibleAnywhere, Category = "Sounds")
+	USoundCue* SoundOpen;
+
 	// 드래그를 시작한 포지션
 	FVector2D StartDragPos;
 
