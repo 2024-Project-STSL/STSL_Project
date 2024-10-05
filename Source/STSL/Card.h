@@ -52,7 +52,10 @@ class STSL_API ACard : public AActor, public IMouseInputInterface
 	UPROPERTY(VisibleAnywhere)
 	bool bShowProgressBar = false;
 
+	UPROPERTY(VisibleAnywhere)
 	TMap<FString, float> WorldBorder;
+
+	UPROPERTY(VisibleAnywhere)
 	TMap<FString, float> WorldBorderWithoutBuyArea;
 
 	bool bPhysicsBeforeBreak = false;

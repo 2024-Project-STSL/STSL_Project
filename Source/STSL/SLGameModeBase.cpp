@@ -18,7 +18,18 @@ void ASLGameModeBase::BeginPlay()
 	FString BattleManagerPath = "/Script/CoreUObject.Class'/Script/STSL.BattleManager'";
 	UAssetManager::GetStreamableManager().RequestAsyncLoad(BattleManagerPath);
 
-	PauseMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/PauseMenu.PauseMenu_C'")));
+	PauseMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(
+		nullptr, 
+		TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/PauseMenu.PauseMenu_C'"))
+	);
+}
+
+void ASLGameModeBase::StartPlay()
+{
+	FieldManager = Cast<AFieldManager>(
+		UGameplayStatics::GetActorOfClass(GetWorld(), AFieldManager::StaticClass())
+	);
+	Super::StartPlay();
 }
 
 void ASLGameModeBase::Tick(float DeltaTime)
@@ -54,12 +65,6 @@ ASLGameModeBase::ASLGameModeBase()
 	{
 		CardDataTable = DataTable.Object;
 	}
-
-	WorldBorder.Add(TEXT("Left"), -3000.0f);
-	WorldBorder.Add(TEXT("Right"), 3000.0f);
-	WorldBorder.Add(TEXT("Down"), -2000.0f);
-	WorldBorder.Add(TEXT("Up"), 2000.0f);
-	BaseWorldBorder = WorldBorder;
 
 }
 
@@ -413,30 +418,11 @@ void ASLGameModeBase::UpdateCardLimit()
 		}
 	}
 
-	float BorderExtendment = FMath::FloorToInt((CardLimit - BaseCardLimit) / 10.0f) * ExtendRange;
-
-	WorldBorder = BaseWorldBorder;
-	WorldBorder["Up"] += BorderExtendment;
-	WorldBorder["Down"] -= BorderExtendment;
-	WorldBorder["Left"] -= BorderExtendment;
-	WorldBorder["Right"] += BorderExtendment;
+	FieldManager->SetWorldBorder(CardLimit, BaseCardLimit);
 	
 	for (TObjectPtr<ACardStack> CardStack : CardStacks)
 	{
 		CardStack->UpdateWorldBorder();
-	}
-}
-
-TMap<FString, float> ASLGameModeBase::GetWorldBorder(bool bExcludeBuyArea) const
-{
-	if (bExcludeBuyArea)
-	{
-		TMap<FString, float> Border = WorldBorder;
-		Border["Up"] -= BuyAreaHeight;
-		return Border;
-	}
-	else {
-		return WorldBorder;
 	}
 }
 

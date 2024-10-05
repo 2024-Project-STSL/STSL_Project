@@ -422,10 +422,6 @@ void ACard::UpdateWorldBorder(int Length)
 {
     ACardStack* CardStackActor = Cast<ACardStack>(CardStack);
 
-    FVector Origin;
-    FVector BoxExtent;
-    GetActorBounds(true, Origin, BoxExtent);
-
     ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
     
     ResetWorldBorder();
@@ -442,18 +438,26 @@ void ACard::UpdateWorldBorder(int Length)
         SetActorLocation(NewLocation, false, nullptr, ETeleportType::ResetPhysics);
         CardStackActor->UpdatePosition(false);
     }
+
+    if (!bFloating)
+    {
+        FVector NewLocation, OldLocation;
+        NewLocation = GetActorLocation();
+        NewLocation.X = FMath::Clamp(NewLocation.X, WorldBorderWithoutBuyArea["Down"], WorldBorderWithoutBuyArea["Up"]);
+        NewLocation.Y = FMath::Clamp(NewLocation.Y, WorldBorderWithoutBuyArea["Left"], WorldBorderWithoutBuyArea["Right"]);
+        SetActorLocation(NewLocation);
+    }
 }
 
 void ACard::ResetWorldBorder()
 {
-    FVector Origin;
-    FVector BoxExtent;
-    GetActorBounds(true, Origin, BoxExtent);
+    FBoxSphereBounds Bounds = VisualMesh->Bounds;
+    FVector BoxExtent = Bounds.BoxExtent;
 
-    ASLGameModeBase* SLGameMode = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this));
+    AFieldManager* FieldManager = Cast<ASLGameModeBase>(UGameplayStatics::GetGameMode(this))->GetFieldManager();
 
-    WorldBorder = SLGameMode->GetWorldBorder(false);
-    WorldBorderWithoutBuyArea = SLGameMode->GetWorldBorder(true);
+    WorldBorder = FieldManager->GetWorldBorder(false);
+    WorldBorderWithoutBuyArea = FieldManager->GetWorldBorder(true);
 
     WorldBorder["Left"] += BoxExtent.Y;
     WorldBorder["Right"] -= BoxExtent.Y;

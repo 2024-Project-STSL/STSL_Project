@@ -12,6 +12,7 @@
 #include "CardPack.h"
 #include "MainActor.h"
 #include "BattleManager.h"
+#include "FieldManager.h"
 #include "Data/CardData.h"
 #include "SLGameModeBase.generated.h"
 
@@ -46,23 +47,8 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	bool bIsCardHighlight;
 
-	UPROPERTY(VisibleAnywhere, Category = "World")
-	TMap<FString, float> BaseWorldBorder;
-
-	UPROPERTY(VisibleAnywhere, Category = "World")
-	TMap<FString, float> WorldBorder;
-
 	UPROPERTY(EditAnywhere, Category = "World")
-	FVector BaseFloorScale = FVector(4.0f, 6.0f, 1.0f);
-
-	UPROPERTY(EditAnywhere, Category = "World")
-	float ExtendRange = 500.0f;
-
-	UPROPERTY(EditAnywhere, Category = "World")
-	float WallOffset = 50.0f;
-
-	UPROPERTY(EditAnywhere, Category = "World")
-	float BuyAreaHeight = 800.0f;
+	TObjectPtr<AFieldManager> FieldManager;
 
 	UPROPERTY(EditAnywhere, Category = "World")
 	int BaseCardLimit = 30;
@@ -114,6 +100,8 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void BeginPlay() override;
+
+	virtual void StartPlay() override;
 
 	UFUNCTION(BlueprintCallable)
 	void CreateMenu();
@@ -194,7 +182,7 @@ public:
 	void UpdateCardLimit();
 
 	UFUNCTION(BlueprintCallable, Category = "World")
-	TMap<FString, float> GetWorldBorder(bool bExcludeBuyArea = false) const;
+	AFieldManager* GetFieldManager() const { return FieldManager; };
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void SetCardHighlight(bool bCardHighlight, ACardStack* NewDraggingStack = nullptr);
