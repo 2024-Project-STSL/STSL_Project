@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "SLGameModeBase.h"
+#include "Components/CanvasPanelSlot.h"
 #include <Components/Button.h>
+#include <Components/TextBlock.h>
 #include "MainMenuBase.generated.h"
 
 /**
@@ -17,16 +19,16 @@ class STSL_API UMainMenuBase : public UUserWidget
 	GENERATED_BODY()
 	
 	UPROPERTY(VisibleAnywhere, Category="Icon")
-	UTexture2D* PlayIconOn;
+	TObjectPtr<UTexture2D> PlayIconOn;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Icon")
-	UTexture2D* PlayIconOff;
+	TObjectPtr<UTexture2D> PlayIconOff;
 
 	UPROPERTY(VisibleAnywhere, Category = "Icon")
-	UTexture2D* PauseIconOn;
+	TObjectPtr<UTexture2D> PauseIconOn;
 
 	UPROPERTY(VisibleAnywhere, Category = "Icon")
-	UTexture2D* PauseIconOff;
+	TObjectPtr<UTexture2D> PauseIconOff;
 
 	UPROPERTY(VisibleAnywhere, Category = "Icon")
 	FSlateBrush PlayBrushOn;
@@ -40,11 +42,29 @@ class STSL_API UMainMenuBase : public UUserWidget
 	UPROPERTY(VisibleAnywhere, Category = "Icon")
 	FSlateBrush PauseBrushOff;
 
-	UButton* PlayButton;
-	UButton* PauseButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> PlayButton;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> PauseButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> CardGuideButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> CardGuideIndicator;
 public:
+
+	UPROPERTY(meta = (BindWidget), VisibleAnywhere, BlueprintReadOnly, Category = "Widget")
+	TObjectPtr<UUserWidget> CardGuideMenu;
+
 	UMainMenuBase(const FObjectInitializer& ObjectInitializer);
 
 	void UpdateIcon(GamePlayState GameState);
+
+	UFUNCTION(BlueprintCallable, Category = "CardGuide")
+	void OpenCardGuide();
+
+	UFUNCTION(BlueprintCallable, Category = "CardGuide")
+	void CloseCardGuide();
 };

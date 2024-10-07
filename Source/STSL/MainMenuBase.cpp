@@ -40,9 +40,7 @@ UMainMenuBase::UMainMenuBase(const FObjectInitializer& ObjectInitializer) :Super
 
 void UMainMenuBase::UpdateIcon(GamePlayState GameState)
 {
-    PlayButton = Cast<UButton>(GetWidgetFromName(TEXT("PlayButton")));
-    PauseButton = Cast<UButton>(GetWidgetFromName(TEXT("PauseButton")));
-   
+ 
     FButtonStyle PlayButtonStyle = PlayButton->GetStyle();
     FButtonStyle PauseButtonStyle = PauseButton->GetStyle();
 
@@ -69,4 +67,20 @@ void UMainMenuBase::UpdateIcon(GamePlayState GameState)
 
     PlayButton->SetStyle(PlayButtonStyle);
     PauseButton->SetStyle(PauseButtonStyle);
+}
+
+void UMainMenuBase::OpenCardGuide()
+{
+    TObjectPtr<UCanvasPanelSlot> TargetSlot = Cast<UCanvasPanelSlot>(CardGuideButton->Slot);
+    TargetSlot->SetPosition(FVector2D(480.0f, 0.0f));
+    CardGuideMenu->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+    CardGuideIndicator->SetText(FText::FromString(TEXT("<")));
+}
+
+void UMainMenuBase::CloseCardGuide()
+{
+    TObjectPtr<UCanvasPanelSlot> TargetSlot = Cast<UCanvasPanelSlot>(CardGuideButton->Slot);
+    TargetSlot->SetPosition(FVector2D(0.0f, 0.0f));
+    CardGuideMenu->SetVisibility(ESlateVisibility::Hidden);
+    CardGuideIndicator->SetText(FText::FromString(TEXT(">")));
 }

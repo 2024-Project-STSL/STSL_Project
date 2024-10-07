@@ -17,11 +17,6 @@ void ASLGameModeBase::BeginPlay()
 
 	FString BattleManagerPath = "/Script/CoreUObject.Class'/Script/STSL.BattleManager'";
 	UAssetManager::GetStreamableManager().RequestAsyncLoad(BattleManagerPath);
-
-	PauseMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(
-		nullptr, 
-		TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/PauseMenu.PauseMenu_C'"))
-	);
 }
 
 void ASLGameModeBase::StartPlay()
@@ -260,6 +255,13 @@ void ASLGameModeBase::PauseGame(bool bForce)
 	if (CurrentPlayState == GamePlayState::PlayState)
 	{
 		CurrentPlayState = GamePlayState::PauseState;
+		if (PauseMenu == nullptr)
+		{
+			PauseMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(
+				nullptr,
+				TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/PauseMenu.PauseMenu_C'"))
+			);
+		}
 		PauseMenu->AddToViewport();
 	}
 	if (CurrentPlayState == GamePlayState::BreakState && bForce)
@@ -295,7 +297,7 @@ void ASLGameModeBase::ResumeGame()
 void ASLGameModeBase::Gameover()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Game Over!"));
-	if (PauseMenu->IsInViewport())
+	if (PauseMenu != nullptr && PauseMenu->IsInViewport())
 	{
 		PauseMenu->RemoveFromParent();
 	}
