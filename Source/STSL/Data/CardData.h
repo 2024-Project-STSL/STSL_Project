@@ -54,3 +54,18 @@ public:
 
 	bool IsCharacter() const;
 };
+
+UCLASS(BlueprintType)
+class STSL_API UCardEntryData : public UObject
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Card")
+	int CardCode;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Card")
+	FString CardName;
+
+};
