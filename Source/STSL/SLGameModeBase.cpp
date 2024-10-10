@@ -24,18 +24,21 @@ void ASLGameModeBase::StartPlay()
 	FieldManager = Cast<AFieldManager>(
 		UGameplayStatics::GetActorOfClass(GetWorld(), AFieldManager::StaticClass())
 	);
+
+	SLGameState = GetGameState<ASLGameStateBase>();
+
 	Super::StartPlay();
 }
 
-void ASLGameModeBase::Tick(float DeltaTime)
-{
-	if (CurrentPlayState == GamePlayState::BreakState) return;
+void ASLGameModeBase::Tick(float DeltaTime) {
 
-	if (CurrentPlayState == GamePlayState::PlayState)
+	if (SLGameState->CurrentPlayState == GamePlayState::BreakState) return;
+
+	if (SLGameState->CurrentPlayState == GamePlayState::PlayState)
 	{
-		Time += DeltaTime;
+		SLGameState->Time += DeltaTime;
 	}
-	if (Time >= TimeForDay)
+	if (SLGameState->Time >= SLGameState->TimeForDay)
 	{
 		BreakGame();
 	}
@@ -55,6 +58,8 @@ ASLGameModeBase::ASLGameModeBase()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	GameStateClass = ASLGameStateBase::StaticClass();
+
 	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Script/Engine.DataTable'/Game/DataTable/CardDB.CardDB'"));
 	if (DataTable.Succeeded())
 	{
@@ -65,39 +70,41 @@ ASLGameModeBase::ASLGameModeBase()
 
 void ASLGameModeBase::BreakGame()
 {
-	if (CurrentPlayState == GamePlayState::PlayState)
+
+	if (SLGameState->CurrentPlayState == GamePlayState::PlayState)
 	{
-		Time = 0;
-		CurrentPlayState = GamePlayState::BreakState;
+		SLGameState->Time = 0;
+		SLGameState->CurrentPlayState = GamePlayState::BreakState;
 		BreakMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/BreakMenu.BreakMenu_C'")));
 		BreakMenu->AddToViewport();
 		BreakMenu->GetWidgetFromName(TEXT("EatButton"))->SetVisibility(ESlateVisibility::Visible);
 		BreakMenu->GetWidgetFromName(TEXT("CardIndicator"))->SetVisibility(ESlateVisibility::Hidden);
 		BreakMenu->GetWidgetFromName(TEXT("NextDayIndicator"))->SetVisibility(ESlateVisibility::Hidden);
-		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		for (TObjectPtr<ACardStack> CardStack : SLGameState->CardStacks)
 		{
 			CardStack->BreakGame();
 		}
 	}
-	if (CurrentPlayState == GamePlayState::PauseState && bSellingExcessiveCard)
+	if (SLGameState->CurrentPlayState == GamePlayState::PauseState && SLGameState->bSellingExcessiveCard)
 	{
-		bSellingExcessiveCard = false;
-		CurrentPlayState = GamePlayState::BreakState;
-		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		SLGameState->bSellingExcessiveCard = false;
+		SLGameState->CurrentPlayState = GamePlayState::BreakState;
+		for (TObjectPtr<ACardStack> CardStack : SLGameState->CardStacks)
 		{
 			CardStack->BreakGame();
 		}
 	}
-	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(CurrentPlayState);
+	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(SLGameState->CurrentPlayState);
 }
 
 void ASLGameModeBase::Eat()
 {
-	if (CurrentPlayState == GamePlayState::BreakState)
+
+	if (SLGameState->CurrentPlayState == GamePlayState::BreakState)
 	{
 		BreakMenu->GetWidgetFromName(TEXT("EatButton"))->SetVisibility(ESlateVisibility::Hidden);
 		People.Empty();
-		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		for (TObjectPtr<ACardStack> CardStack : SLGameState->CardStacks)
 		{
 			for (TObjectPtr<ACard> Person : CardStack->GetCardsByType(CardType::person))
 			{
@@ -108,7 +115,7 @@ void ASLGameModeBase::Eat()
 		int RequireFood = People.Num() * 2;
 
 		Foods.Empty();
-		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		for (TObjectPtr<ACardStack> CardStack : SLGameState->CardStacks)
 		{
 			for (TObjectPtr<ACard> Food : CardStack->GetCardsByType(CardType::food))
 			{
@@ -194,12 +201,12 @@ void ASLGameModeBase::CheckHunger()
 void ASLGameModeBase::OnSellCardHandler()
 {
 	UpdateCardLimit();
-	if (bSellingExcessiveCard) CheckExcessiveCards();
+	if (SLGameState->bSellingExcessiveCard) CheckExcessiveCards();
 }
 
 bool ASLGameModeBase::CheckGameover()
 {
-	for (TObjectPtr<ACardStack> CardStack : CardStacks)
+	for (TObjectPtr<ACardStack> CardStack : SLGameState->CardStacks)
 	{
 		if (CardStack->IsPendingKillPending()) continue;
 
@@ -220,7 +227,7 @@ void ASLGameModeBase::CheckExcessiveCards()
 		return;
 	}
 	BreakMenu->GetWidgetFromName(TEXT("CardIndicator"))->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	bSellingExcessiveCard = true;
+	SLGameState->bSellingExcessiveCard = true;
 	PauseGame(true);
 }
 
@@ -233,9 +240,9 @@ void ASLGameModeBase::CheckDayEnd()
 
 void ASLGameModeBase::EndDay()
 {
-	Day++;
+	SLGameState->Day++;
 	BreakMenu->RemoveFromParent();
-	if ((Day - PortalStartingDay) % PortalIntervalDay == 0)
+	if ((SLGameState->Day - SLGameState->PortalStartingDay) % SLGameState->PortalIntervalDay == 0)
 	{
 		FVector Location(500.0f, 0.0f, 0.0f);
 		SpawnCard(Location, 33);
@@ -246,15 +253,15 @@ void ASLGameModeBase::EndDay()
 int ASLGameModeBase::GetPortalSpawnCount() const
 {
 	int SpawnCount = 0;
-	SpawnCount = (Day - PortalStartingDay) / PortalIntervalDay + InitSpawnCount;
-	return FMath::Min(SpawnCount, MaxSpawnCount);
+	SpawnCount = (SLGameState->Day - SLGameState->PortalStartingDay) / SLGameState->PortalIntervalDay + SLGameState->InitSpawnCount;
+	return FMath::Min(SpawnCount, SLGameState->MaxSpawnCount);
 }
 
 void ASLGameModeBase::PauseGame(bool bForce)
 {
-	if (CurrentPlayState == GamePlayState::PlayState)
+	if (SLGameState->CurrentPlayState == GamePlayState::PlayState)
 	{
-		CurrentPlayState = GamePlayState::PauseState;
+		SLGameState->CurrentPlayState = GamePlayState::PauseState;
 		if (PauseMenu == nullptr)
 		{
 			PauseMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(
@@ -264,34 +271,34 @@ void ASLGameModeBase::PauseGame(bool bForce)
 		}
 		PauseMenu->AddToViewport();
 	}
-	if (CurrentPlayState == GamePlayState::BreakState && bForce)
+	if (SLGameState->CurrentPlayState == GamePlayState::BreakState && bForce)
 	{
-		CurrentPlayState = GamePlayState::PauseState;
-		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		SLGameState->CurrentPlayState = GamePlayState::PauseState;
+		for (TObjectPtr<ACardStack> CardStack : SLGameState->CardStacks)
 		{
 			CardStack->ResumeGame();
 		}
 	}
-	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(CurrentPlayState);
+	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(SLGameState->CurrentPlayState);
 }
 
 void ASLGameModeBase::ResumeGame()
 {
-	if (CurrentPlayState == GamePlayState::PauseState)
+	if (SLGameState->CurrentPlayState == GamePlayState::PauseState)
 	{
-		if (bSellingExcessiveCard) return;
+		if (SLGameState->bSellingExcessiveCard) return;
 		PauseMenu->RemoveFromParent();
-		CurrentPlayState = GamePlayState::PlayState;
+		SLGameState->CurrentPlayState = GamePlayState::PlayState;
 	}
-	if (CurrentPlayState == GamePlayState::BreakState)
+	if (SLGameState->CurrentPlayState == GamePlayState::BreakState)
 	{
-		CurrentPlayState = GamePlayState::PlayState;
-		for (TObjectPtr<ACardStack> CardStack : CardStacks)
+		SLGameState->CurrentPlayState = GamePlayState::PlayState;
+		for (TObjectPtr<ACardStack> CardStack : SLGameState->CardStacks)
 		{
 			CardStack->ResumeGame();
 		}
 	}
-	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(CurrentPlayState);
+	Cast<UMainMenuBase>(MainMenu)->UpdateIcon(SLGameState->CurrentPlayState);
 }
 
 void ASLGameModeBase::Gameover()
@@ -305,14 +312,14 @@ void ASLGameModeBase::Gameover()
 	{
 		GameoverMenu = CreateWidget(GetWorld(), LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/GameoverMenu.GameoverMenu_C'")));
 	}
-	CurrentPlayState = GamePlayState::GameoverState;
+	SLGameState->CurrentPlayState = GamePlayState::GameoverState;
 	GameoverMenu->AddToViewport();
 	GEngine->GetFirstLocalPlayerController(GetWorld())->SetPause(true);
 }
 
 float ASLGameModeBase::GetDayProgressPercent() const
 {
-	return FMath::Clamp(Time / TimeForDay, 0.0f, 1.0f);
+	return FMath::Clamp(SLGameState->Time / SLGameState->TimeForDay, 0.0f, 1.0f);
 }
 
 void ASLGameModeBase::HandleDeath(ACharacterCard* TargetCard)
@@ -384,7 +391,7 @@ void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStac
 int ASLGameModeBase::GetTotalCardAmount(bool ExcludeCoin = false) const
 {
 	int Sum = 0;
-	for (ACardStack* CardStack : CardStacks)
+	for (ACardStack* CardStack : SLGameState->CardStacks)
 	{
 		Sum += CardStack->GetCardAmount(ExcludeCoin);
 	}
@@ -393,36 +400,36 @@ int ASLGameModeBase::GetTotalCardAmount(bool ExcludeCoin = false) const
 
 void ASLGameModeBase::AddCardStack(ACardStack* CardStack)
 {
-	CardStacks.Add(CardStack);
+	SLGameState->CardStacks.Add(CardStack);
 }
 
 void ASLGameModeBase::RemoveCardStack(ACardStack* CardStack)
 {
-	if (CardStack == DraggingStack)
+	if (CardStack == SLGameState->DraggingStack)
 	{
-		DraggingStack = nullptr;
+		SLGameState->DraggingStack = nullptr;
 	}
-	CardStacks.Remove(CardStack);
+	SLGameState->CardStacks.Remove(CardStack);
 }
 
 
 void ASLGameModeBase::UpdateCardLimit()
 {
-	CardLimit = BaseCardLimit;
+	SLGameState->CardLimit = SLGameState->BaseCardLimit;
 	TArray<TObjectPtr<ACard>> Extendments;
 	
-	for (TObjectPtr<ACardStack> CardStack : CardStacks)
+	for (TObjectPtr<ACardStack> CardStack : SLGameState->CardStacks)
 	{
 		Extendments = CardStack->GetCardsByType(CardType::extendment);
 		for (TObjectPtr<ACard> Extendment : Extendments)
 		{
-			CardLimit += Extendment->GetAddTypeValue();
+			SLGameState->CardLimit += Extendment->GetAddTypeValue();
 		}
 	}
 
-	FieldManager->SetWorldBorder(CardLimit, BaseCardLimit);
+	FieldManager->SetWorldBorder(SLGameState->CardLimit, SLGameState->BaseCardLimit);
 	
-	for (TObjectPtr<ACardStack> CardStack : CardStacks)
+	for (TObjectPtr<ACardStack> CardStack : SLGameState->CardStacks)
 	{
 		CardStack->UpdateWorldBorder();
 	}
@@ -430,21 +437,23 @@ void ASLGameModeBase::UpdateCardLimit()
 
 void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* NewDraggingStack)
 {
-	bIsCardHighlight = bCardHighlight;
-	if (bIsCardHighlight)
+	SLGameState->bIsCardHighlight = bCardHighlight;
+	if (SLGameState->bIsCardHighlight)
 	{
-		DraggingStack = NewDraggingStack;
-		if (DraggingStack == nullptr) return;
-		for (ACardStack* CardStack : CardStacks)
+		SLGameState->DraggingStack = NewDraggingStack;
+		if (SLGameState->DraggingStack == nullptr) return;
+		for (ACardStack* CardStack : SLGameState->CardStacks)
 		{
-			if (CardStack != DraggingStack && (ACardStack::GetCardStackable(DraggingStack, CardStack) || ACardStack::GetCardBattleable(DraggingStack, CardStack)))
+			if (CardStack != SLGameState->DraggingStack 
+				&& (ACardStack::GetCardStackable(SLGameState->DraggingStack, CardStack) 
+					|| ACardStack::GetCardBattleable(SLGameState->DraggingStack, CardStack)))
 			{
 				CardStack->GetLastCard()->GetVisualMesh()->SetRenderCustomDepth(true);
 			}
 		}
 	} 
 	else {
-		for (ACardStack* CardStack : CardStacks)
+		for (ACardStack* CardStack : SLGameState->CardStacks)
 		{
 			CardStack->GetLastCard()->GetVisualMesh()->SetRenderCustomDepth(false);
 		}
@@ -461,7 +470,7 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 		return nullptr;
 	}
 
-	DraggingStack = nullptr;
+	SLGameState->DraggingStack = nullptr;
 
 	AActor* NewCardStackActor = GetWorld()->SpawnActor
 	(
@@ -521,7 +530,7 @@ ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 
 ACardStack* ASLGameModeBase::SpawnCardPack(FVector Location, int PackID)
 {
-	DraggingStack = nullptr;
+	SLGameState->DraggingStack = nullptr;
 
 	AActor* NewCardStackActor = GetWorld()->SpawnActor
 	(

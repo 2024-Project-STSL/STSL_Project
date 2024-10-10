@@ -14,16 +14,8 @@
 #include "BattleManager.h"
 #include "FieldManager.h"
 #include "Data/CardData.h"
+#include "SLGameStateBase.h"
 #include "SLGameModeBase.generated.h"
-
-UENUM(BluePrintType)
-enum class GamePlayState : uint8 
-{
-	PlayState = 0,
-	BreakState,
-	PauseState,
-	GameoverState
-};
 
 UCLASS()
 class STSL_API ASLGameModeBase : public AGameModeBase
@@ -35,56 +27,12 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	TObjectPtr<UUserWidget> PauseMenu;
 	TObjectPtr<UUserWidget> GameoverMenu;
 
+	TObjectPtr<ASLGameStateBase> SLGameState;
+
 	class UDataTable* CardDataTable;
-
-	UPROPERTY(VisibleAnywhere, Category = "CardStack")
-	TArray<ACardStack*> CardStacks;
-
-	// 가장 최근 마우스에 의해 드래그 시작된 스택
-	UPROPERTY(VisibleAnywhere, Category = "CardStack")
-	TObjectPtr<ACardStack> DraggingStack;
-
-	UPROPERTY(VisibleAnywhere, Category = "CardStack")
-	bool bIsCardHighlight;
 
 	UPROPERTY(EditAnywhere, Category = "World")
 	TObjectPtr<AFieldManager> FieldManager;
-
-	UPROPERTY(EditAnywhere, Category = "World")
-	int BaseCardLimit = 30;
-
-	UPROPERTY(EditAnywhere, Category = "World")
-	int CardLimit = 30;
-
-	UPROPERTY(EditAnywhere, Category = "Time")
-	GamePlayState CurrentPlayState = GamePlayState::PlayState;
-
-	UPROPERTY(EditAnywhere, Category = "Time")
-	int Day = 1;
-
-	// 각 일차에 주어진 시간
-	UPROPERTY(EditAnywhere, Category = "Time")
-	float TimeForDay = 120.0f;
-
-	// 현재 경과한 시간
-	UPROPERTY(EditAnywhere, Category = "Time")
-	float Time = 0.0f;
-
-	// 초과 카드 정산 중인가, 즉 플레이어가 임의로 시간을 진행시킬 수 있는가?
-	UPROPERTY(VisibleAnywhere, Category = "Time")
-	bool bSellingExcessiveCard = false;
-
-	UPROPERTY(EditAnywhere, Category = "Portal")
-	int PortalStartingDay = 12;
-
-	UPROPERTY(EditAnywhere, Category = "Portal")
-	int PortalIntervalDay = 6;
-
-	UPROPERTY(EditAnywhere, Category = "Portal")
-	int InitSpawnCount = 2;
-
-	UPROPERTY(EditAnywhere, Category = "Portal")
-	int MaxSpawnCount = 5;
 
 	UPROPERTY(VisibleAnywhere, Category = "CardStack")
 	TArray<ACard*> People;
@@ -152,7 +100,7 @@ public:
 	int GetPortalSpawnCount() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
-	GamePlayState GetPlayState() const { return CurrentPlayState; }
+	GamePlayState GetPlayState() const { return GetGameState<ASLGameStateBase>()->CurrentPlayState; }
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	float GetDayProgressPercent() const;
@@ -167,7 +115,7 @@ public:
 	int GetTotalCardAmount(bool ExcludeCoin) const;
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	int GetExcessiveCardAmount() const { return GetTotalCardAmount(true) - CardLimit; }
+	int GetExcessiveCardAmount() const { return GetTotalCardAmount(true) - GetGameState<ASLGameStateBase>()->CardLimit; }
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void AddCardStack(ACardStack* CardStack);
@@ -176,7 +124,7 @@ public:
 	void RemoveCardStack(ACardStack* CardStack);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	TArray<ACardStack*> GetAllCardStacks() const { return CardStacks; }
+	TArray<ACardStack*> GetAllCardStacks() const { return GetGameState<ASLGameStateBase>()->CardStacks; }
 
 	UFUNCTION(BlueprintCallable, Category = "World")
 	void UpdateCardLimit();
@@ -188,10 +136,10 @@ public:
 	void SetCardHighlight(bool bCardHighlight, ACardStack* NewDraggingStack = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	ACardStack* GetDraggingStack() const { return DraggingStack; };
+	ACardStack* GetDraggingStack() const { return GetGameState<ASLGameStateBase>()->DraggingStack; };
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	void EmptyDraggingStack() { DraggingStack = nullptr; };
+	void EmptyDraggingStack() { GetGameState<ASLGameStateBase>()->DraggingStack = nullptr; };
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack", BlueprintPure = false)
 	ACardStack* SpawnCard(FVector Location, int CardID);
