@@ -13,6 +13,7 @@
 #include "MainActor.h"
 #include "BattleManager.h"
 #include "FieldManager.h"
+#include "SLSaveGame.h"
 #include "Data/CardData.h"
 #include "SLGameStateBase.h"
 #include "SLGameModeBase.generated.h"
@@ -104,6 +105,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Time")
 	float GetDayProgressPercent() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	void SaveGame() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	void ResetGame();
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void HandleDeath(ACharacterCard* DeadCard);

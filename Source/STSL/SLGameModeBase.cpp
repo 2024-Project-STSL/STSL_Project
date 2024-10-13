@@ -4,6 +4,7 @@
 #include "SellArea.h"
 #include <Kismet/GameplayStatics.h>
 #include <Engine/AssetManager.h>
+#include <SLGameInstance.h>
 #include "MainMenuBase.h"
 
 void ASLGameModeBase::BeginPlay()
@@ -287,7 +288,12 @@ void ASLGameModeBase::ResumeGame()
 	if (SLGameState->CurrentPlayState == GamePlayState::PauseState)
 	{
 		if (SLGameState->bSellingExcessiveCard) return;
-		PauseMenu->RemoveFromParent();
+
+		if (PauseMenu != nullptr && PauseMenu->IsInViewport())
+		{
+			PauseMenu->RemoveFromParent();
+		}
+
 		SLGameState->CurrentPlayState = GamePlayState::PlayState;
 	}
 	if (SLGameState->CurrentPlayState == GamePlayState::BreakState)
@@ -320,6 +326,63 @@ void ASLGameModeBase::Gameover()
 float ASLGameModeBase::GetDayProgressPercent() const
 {
 	return FMath::Clamp(SLGameState->Time / SLGameState->TimeForDay, 0.0f, 1.0f);
+}
+
+void ASLGameModeBase::SaveGame() const
+{
+	USLSaveGame* SaveGame = NewObject<USLSaveGame>();
+
+	SaveGame->Day = SLGameState->Day;
+	SaveGame->Time = SLGameState->Time;
+	SaveGame->CardLimit = SLGameState->CardLimit;
+	SaveGame->CurrentPlayState = SLGameState->CurrentPlayState;
+
+	if (!UGameplayStatics::SaveGameToSlot(SaveGame, TEXT("STSLSave"), 0))
+	{
+		UE_LOG(LogClass, Warning, TEXT("Error occurred at game saving"));
+	}
+}
+
+void ASLGameModeBase::ResetGame()
+{
+	USLGameInstance* GameInstance = Cast<USLGameInstance>(UGameplayStatics::GetGameInstance(this));
+
+	if (GameInstance->IsLoadGame())
+	{
+		USLSaveGame* SaveGame = Cast<USLSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("STSLSave"), 0));
+
+		if (SaveGame == nullptr)
+		{
+			UE_LOG(LogClass, Warning, TEXT("Error occurred at game loading"));
+			return;
+		}
+
+		// GameState 불러오기
+		SLGameState->Day = SaveGame->Day;
+		SLGameState->Time = SaveGame->Time;
+		SLGameState->CardLimit = SaveGame->CardLimit;
+		// CurrentPlayState는 실제 게임에 적용하기 위해 이후 처리
+		
+		// 임시: 카드 정보 불러오기 구현 후 삭제
+		
+		FVector Location = FVector(0.0f, -500.0f, 0.0f);
+		SpawnCard(Location, 4); // 사람
+
+		Location = FVector(0.0f, 500.0f, 0.0f);
+		SpawnCardPack(Location, 1); // 일반 카드팩
+		
+		// 임시 끝
+
+		if (SaveGame->CurrentPlayState == GamePlayState::PauseState) PauseGame();
+	}
+	else {
+		FVector Location = FVector(0.0f, -500.0f, 0.0f);
+		SpawnCard(Location, 4); // 사람
+
+		Location = FVector(0.0f, 500.0f, 0.0f);
+		SpawnCardPack(Location, 1); // 일반 카드팩
+	}
+
 }
 
 void ASLGameModeBase::HandleDeath(ACharacterCard* TargetCard)
