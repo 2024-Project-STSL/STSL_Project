@@ -19,9 +19,15 @@ class STSL_API USLGameInstance : public UGameInstance
 
 	bool bLoadGame = false;
 
-protected:
-
 public:
+	UPROPERTY(BlueprintReadWrite, Category = "Setting")
+	float MasterVolume = 1.0f;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Setting")
+	float BackgroundVolume = 1.0f;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Setting")
+	float EffectVolume = 1.0f;
 	
 	UFUNCTION(BlueprintCallable)
 	void SetLoadGame(bool LoadGame) { bLoadGame = LoadGame; }
@@ -29,4 +35,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsLoadGame() const { return bLoadGame; }
 
+	UFUNCTION(BlueprintCallable)
+	void SaveSettings();
 };

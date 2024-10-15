@@ -10,6 +10,9 @@
 void ASLGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GetWorld()->GetTimerManager().SetTimer(AutoSaveHandle, this, &ASLGameModeBase::SaveGame, AutoSaveInterval, true);
+
 	SellAreaActor = UGameplayStatics::GetActorOfClass(GetWorld(), ASellArea::StaticClass());
 	if (ASellArea* SellArea = Cast<ASellArea>(SellAreaActor))
 	{
@@ -31,6 +34,12 @@ void ASLGameModeBase::StartPlay()
 	Super::StartPlay();
 }
 
+void ASLGameModeBase::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	GetWorld()->GetTimerManager().ClearTimer(AutoSaveHandle);
+}
+
 void ASLGameModeBase::Tick(float DeltaTime) {
 
 	if (SLGameState->CurrentPlayState == GamePlayState::BreakState) return;
@@ -41,6 +50,7 @@ void ASLGameModeBase::Tick(float DeltaTime) {
 	}
 	if (SLGameState->Time >= SLGameState->TimeForDay)
 	{
+		SaveGame();
 		BreakGame();
 	}
 }
@@ -249,6 +259,7 @@ void ASLGameModeBase::EndDay()
 		SpawnCard(Location, 33);
 	}
 	ResumeGame();
+	SaveGame();
 }
 
 int ASLGameModeBase::GetPortalSpawnCount() const
@@ -330,12 +341,10 @@ float ASLGameModeBase::GetDayProgressPercent() const
 
 void ASLGameModeBase::SaveGame() const
 {
-	USLSaveGame* SaveGame = NewObject<USLSaveGame>();
+	if (SLGameState->CurrentPlayState == GamePlayState::BreakState) return;
+	if (SLGameState->bSellingExcessiveCard) return;
 
-	SaveGame->Day = SLGameState->Day;
-	SaveGame->Time = SLGameState->Time;
-	SaveGame->CardLimit = SLGameState->CardLimit;
-	SaveGame->CurrentPlayState = SLGameState->CurrentPlayState;
+	USLSaveGame* SaveGame = SLGameState->GetSaveGame();
 
 	if (!UGameplayStatics::SaveGameToSlot(SaveGame, TEXT("STSLSave"), 0))
 	{
@@ -361,17 +370,29 @@ void ASLGameModeBase::ResetGame()
 		SLGameState->Day = SaveGame->Day;
 		SLGameState->Time = SaveGame->Time;
 		SLGameState->CardLimit = SaveGame->CardLimit;
-		// CurrentPlayState는 실제 게임에 적용하기 위해 이후 처리
-		
-		// 임시: 카드 정보 불러오기 구현 후 삭제
-		
-		FVector Location = FVector(0.0f, -500.0f, 0.0f);
-		SpawnCard(Location, 4); // 사람
+		FieldManager->SetWorldBorder(SLGameState->CardLimit, SLGameState->BaseCardLimit);
 
-		Location = FVector(0.0f, 500.0f, 0.0f);
-		SpawnCardPack(Location, 1); // 일반 카드팩
+		// CurrentPlayState는 실제 게임에 적용하기 위해 아래에서 처리
 		
-		// 임시 끝
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, FString::Printf(TEXT("%d Stacks loaded."), SaveGame->AllCardStacks.Num()));
+
+		for (auto& CardStackData : SaveGame->AllCardStacks)
+		{
+			if (CardStackData.CardData.Num() == 0) continue;
+
+			ACardStack* NewCardStack = SpawnCard(CardStackData.CardLocation, CardStackData.CardData[0].CardCode);
+			if (NewCardStack == nullptr) continue;
+
+			NewCardStack->GetFirstCard()->SetAddTypeValue(CardStackData.CardData[0].AddTypeValue);
+
+			for (int i = 1; i < CardStackData.CardData.Num(); i++)
+			{
+				ACardStack* NewCard = SpawnCard(CardStackData.CardLocation, CardStackData.CardData[i].CardCode);
+				NewCard->GetFirstCard()->SetAddTypeValue(CardStackData.CardData[i].AddTypeValue);
+
+				NewCardStack->AddCard(NewCard->GetFirstCard());
+			}
+		}
 
 		if (SaveGame->CurrentPlayState == GamePlayState::PauseState) PauseGame();
 	}
@@ -381,6 +402,8 @@ void ASLGameModeBase::ResetGame()
 
 		Location = FVector(0.0f, 500.0f, 0.0f);
 		SpawnCardPack(Location, 1); // 일반 카드팩
+
+		SaveGame();
 	}
 
 }
@@ -525,6 +548,11 @@ void ASLGameModeBase::SetCardHighlight(bool bCardHighlight, ACardStack* NewDragg
 
 ACardStack* ASLGameModeBase::SpawnCard(FVector Location, int CardID)
 {
+	if (CardID > 10000)
+	{
+		return SpawnCardPack(Location, CardID - 10000);
+	}
+
 	FName RowName = FName(*FString::FromInt(CardID));
 	FCardData* RowData = CardDataTable->FindRow<FCardData>(RowName, TEXT(""));
 	if (RowData == nullptr)

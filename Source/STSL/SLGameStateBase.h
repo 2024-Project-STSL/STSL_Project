@@ -73,4 +73,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Portal")
 	int MaxSpawnCount = 5;
 
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	USLSaveGame* GetSaveGame() const;
 };

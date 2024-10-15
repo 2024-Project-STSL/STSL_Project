@@ -32,7 +32,8 @@ enum class AddType {
 USTRUCT(Atomic, BlueprintType)
 struct STSL_API FCardData : public FTableRowBase 
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int CardCode;

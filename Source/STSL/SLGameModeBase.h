@@ -44,6 +44,11 @@ class STSL_API ASLGameModeBase : public AGameModeBase
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<AActor> SellAreaActor;
 
+	FTimerHandle AutoSaveHandle;
+
+	UPROPERTY(VisibleAnywhere, Category = "Save")
+	float AutoSaveInterval = 60.0f;
+
 protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -51,6 +56,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void StartPlay() override;
+
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION(BlueprintCallable)
 	void CreateMenu();
