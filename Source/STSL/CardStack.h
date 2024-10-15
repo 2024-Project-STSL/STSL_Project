@@ -17,7 +17,7 @@ class STSL_API ACardStack : public AActor
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "CardStack")
-	TArray<AActor*> Cards;
+	TArray<ACard*> Cards;
 
 	UPROPERTY(VisibleAnywhere, Category = "Crafting")
 	UDataTable* CraftingRecipeTable;
@@ -98,18 +98,19 @@ public:
 	// Add a card to the stack
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void AddCard(AActor* Card);
-	void AddCard(TArray<AActor*> NewCards);
+	void AddCard(TArray<ACard*> NewCards);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	void RemoveCard(int32 Index, bool bDespawn = false);
-	void RemoveCard(AActor* Card, bool bDespawn = false);
-	void RemoveCard(TArray<AActor*> NewCards, bool bDespawn = false);
+	void RemoveCard(AActor* CardActor, bool bDespawn = false);
+	void RemoveCard(ACard* Card, bool bDespawn = false);
+	void RemoveCard(TArray<ACard*> NewCards, bool bDespawn = false);
 	void RemoveAllCards(bool bDespawn = false);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	ACard* GetFirstCard() const;
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	ACard* GetLastCard() const { return Cast<ACard>(Cards.Last()); }
+	ACard* GetLastCard() const { return Cards.Last(); }
 
 	void HandleStackMove(ACard* Sender, ECardMovement Movement);
 
@@ -150,6 +151,8 @@ public:
 	int GetPriceSum() const;
 
 	int GetCardAmount(bool ExcludeCoin = false) const;
+
+	TArray<ACard*> GetAllCards() const { return Cards; };
 
 	TArray<ACard*> GetCardsByType(CardType Type) const;
 

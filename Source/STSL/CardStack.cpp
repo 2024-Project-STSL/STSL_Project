@@ -163,8 +163,7 @@ void ACardStack::CompleteCrafting()
 		// 카드가 사라지며 카드 index가 깨지지 않게 하기 위해 역순으로 순회
 		for (int i = Cards.Num() - 1; i >= 0; i--)
 		{
-			ACard* Card = Cast<ACard>(Cards[i]);
-			int RecipeIndex = RecipeData->ReqCardCode.IndexOfByKey<int>(Card->GetCardID());
+			int RecipeIndex = RecipeData->ReqCardCode.IndexOfByKey<int>(Cards[i]->GetCardID());
 			if (RecipeData->bIsDeleted[RecipeIndex])
 			{
 				RemoveCard(i, true);
@@ -232,7 +231,7 @@ void ACardStack::CompleteProducing()
 			}
 		}
 		// 생산지 카드 = 뒤에서 2번째 카드
-		ACard* Card = Cast<ACard>(Cards[Cards.Num()-2]);
+		ACard* Card = Cards[Cards.Num()-2];
 		if (Card->GetAddType() == AddType::dropable)
 		{
 			Card->SetAddTypeValue(Card->GetAddTypeValue() - 1);
@@ -273,9 +272,8 @@ void ACardStack::UpdatePosition(bool bFalling)
 bool ACardStack::GetIsSellable() const
 {
 	bool bSellable = true;
-	for (AActor* CardActor : Cards)
+	for (auto Card : Cards)
 	{
-		ACard* Card = Cast<ACard>(CardActor);
 		if (Card->GetCardPrice() == -1) 
 		{
 			bSellable = false;
@@ -288,9 +286,8 @@ bool ACardStack::GetIsSellable() const
 int ACardStack::GetPriceSum() const
 {
 	int PriceSum = 0;
-	for (AActor* CardActor : Cards)
+	for (auto* Card : Cards)
 	{
-		ACard* Card = Cast<ACard>(CardActor);
 		int Price = Card->GetCardPrice();
 		if (Price != -1)
 		{
@@ -306,9 +303,8 @@ int ACardStack::GetCardAmount(bool ExcludeCoin) const
 	int Coins = 0;
 	if (ExcludeCoin)
 	{
-		for (AActor* CardActor : Cards)
+		for (auto Card : Cards)
 		{
-			ACard* Card = Cast<ACard>(CardActor);
 			if (Card->GetCardID() == 6) Coins++;
 		}
 	}
@@ -320,9 +316,8 @@ TArray<ACard*> ACardStack::GetCardsByType(CardType Type) const
 {
 	TArray<ACard*> TargetCards;
 	
-	for (TObjectPtr<AActor> CardActor : Cards)
+	for (auto Card : Cards)
 	{
-		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
 		if (Card->GetCardType() == Type)
 		{
 			TargetCards.Add(Card);
@@ -336,9 +331,8 @@ TArray<ACard*> ACardStack::GetAllCharacters() const
 {
 	TArray<ACard*> TargetCards;
 
-	for (TObjectPtr<AActor> CardActor : Cards)
+	for (auto Card : Cards)
 	{
-		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
 		if (Card->IsCharacter())
 		{
 			TargetCards.Add(Card);
@@ -349,9 +343,8 @@ TArray<ACard*> ACardStack::GetAllCharacters() const
 
 bool ACardStack::GetIsCoinStack() const
 {
-	for (AActor* CardActor : Cards)
+	for (auto Card : Cards)
 	{
-		ACard* Card = Cast<ACard>(CardActor);
 		if (Card->GetCardID() != 6) return false;
 	}
 	return true;
@@ -359,18 +352,16 @@ bool ACardStack::GetIsCoinStack() const
 
 void ACardStack::BreakGame()
 {
-	for (AActor* CardActor : Cards)
+	for (auto Card : Cards)
 	{
-		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
 		Card->BreakGame();
 	}
 }
 
 void ACardStack::ResumeGame()
 {
-	for (AActor* CardActor : Cards)
+	for (auto Card : Cards)
 	{
-		TObjectPtr<ACard> Card = Cast<ACard>(CardActor);
 		Card->ResumeGame();
 	}
 }
@@ -401,9 +392,9 @@ void ACardStack::Tick(float DeltaTime)
 
 }
 
-void ACardStack::AddCard(TArray<AActor*> NewCards)
+void ACardStack::AddCard(TArray<ACard*> NewCards)
 {
-	for (AActor* Card : NewCards)
+	for (ACard* Card : NewCards)
 	{
 		AddCard(Card);
 	}
@@ -480,7 +471,7 @@ void ACardStack::AddCard(AActor* CardActor)
 
 }
 
-void ACardStack::RemoveCard(TArray<AActor*> NewCards, bool bDespawn)
+void ACardStack::RemoveCard(TArray<ACard*> NewCards, bool bDespawn)
 {
 
 	for (int32 i = 0; i < NewCards.Num(); i++)
@@ -498,13 +489,17 @@ void ACardStack::RemoveCard(AActor* CardActor, bool bDespawn)
 {
 	ACard* Card = Cast<ACard>(CardActor);
 	if (Card == nullptr) return;
+	RemoveCard(Card, bDespawn);
+}
 
+void ACardStack::RemoveCard(ACard* Card, bool bDespawn)
+{
 	int32 CardID = Card->GetCardID();
-	CardCount[CardID] -= Cards.Remove(CardActor);
+	CardCount[CardID] -= Cards.Remove(Card);
 	Card->SetCardStack(nullptr);
 	if (bDespawn)
 	{
-		CardActor->Destroy();
+		Card->Destroy();
 	}
 
 	if (Cards.Num() > 0)
@@ -585,29 +580,28 @@ void ACardStack::HandleStackMove(ACard* Sender, ECardMovement Movement)
 	// 카드마다 반복
 	for (int32 i = 0; i < Cards.Num(); i++)
 	{
-		AActor* Card = Cards[i];
-		ACard* CardActor = Cast<ACard>(Card);
-		if (CardActor)
+		ACard* Card = Cards[i];
+		if (Card)
 		{
 			switch (Movement)
 			{
 			case ECardMovement::StartHover:
-				CardActor->StartHover(HoveringHeight + i * HeightOffset);
+				Card->StartHover(HoveringHeight + i * HeightOffset);
 				break;
 			case ECardMovement::EndHover:
-				CardActor->EndHover();
+				Card->EndHover();
 				break;
 			case ECardMovement::StartDrag:
 				if (SenderIndex == 0)
 				{
-					CardActor->StartCardDrag();
+					Card->StartCardDrag();
 				}
 				break;
 			case ECardMovement::EndDrag:
-				CardActor->EndCardDrag();
+				Card->EndCardDrag();
 				break;
 			case ECardMovement::MoveToCursor:
-				CardActor->MoveCardToCursor(FloatingHeight + i * HeightOffset);
+				Card->MoveCardToCursor(FloatingHeight + i * HeightOffset);
 				UpdatePosition();
 				break;
 			default:
@@ -739,7 +733,7 @@ void ACardStack::SplitCardStack(ACardStack* CardStack, int32 Index)
 	// Index가 너무 크거나 작으면 return
 	if (Index >= CardStack->Cards.Num() || Index <= -1) return;
 
-	TArray<AActor*> NewCards;
+	TArray<ACard*> NewCards;
 
 	for (int32 i = Index; i < CardStack->Cards.Num(); i++)
 	{
@@ -809,9 +803,8 @@ void ACardStack::HandleStackCollision(ACard* OtherCard)
 
 void ACardStack::MoveCards(FVector Force)
 {
-	for (AActor* CardActor : Cards)
+	for (auto Card : Cards)
 	{
-		ACard* Card = Cast<ACard>(CardActor);
 		if (Card->IsA(ACharacterCard::StaticClass()))
 		{
 			if (Cast<ACharacterCard>(Card)->GetBattleState() != EBattleState::Idle)
@@ -849,9 +842,9 @@ void ACardStack::SetShowProgressBar(bool NewShowProgressBar) const
 		GetFirstCard()->SetShowProgressBar(true);
 	}
 	else {
-		for (AActor* CardActor : Cards)
+		for (auto Card : Cards)
 		{
-			Cast<ACard>(CardActor)->SetShowProgressBar(false);
+			Card->SetShowProgressBar(false);
 		}
 	}
 }
