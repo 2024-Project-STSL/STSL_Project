@@ -118,13 +118,29 @@ void APersonCard::Tick(float DeltaTime)
     CurrentEquipmentCooldown -= DeltaTime;
 }
 
-void APersonCard::Equip(AActor* Card)
+FEquipmentData APersonCard::GetEquipment(EquipType TargetSlot)
+{
+    if (TargetSlot == EquipType::Weapon) return Weapon;
+    if (TargetSlot == EquipType::MainArmor) return MainArmor;
+    return SubArmor;
+}
+
+void APersonCard::Equip(AActor* Card, bool bShowEquipment)
 {
     TObjectPtr<ACard> CardActor = Cast<ACard>(Card);
 
     if (CardActor->GetCardType() != CardType::equip) return;
 
     int NewEquipID = CardActor->GetCardID();
+
+    Equip(NewEquipID, bShowEquipment);
+
+    CardActor->Remove();
+}
+
+void APersonCard::Equip(int NewEquipID, bool bShowEquipment)
+{
+    if (NewEquipID == -1) return;
 
     FName RowName = FName(*FString::FromInt(NewEquipID));
     FEquipmentData* EquipRowData = EquipmentDataTable->FindRow<FEquipmentData>(RowName, TEXT(""));
@@ -148,10 +164,11 @@ void APersonCard::Equip(AActor* Card)
         break;
     }
 
-    Cast<UEquipmentMenuBase>(EquipmentIndicator->GetWidget())->UpdateEquipmentMenu(Weapon.CardCode, MainArmor.CardCode, SubArmor.CardCode);
-    UpdateStat();
+    Cast<UEquipmentMenuBase>(EquipmentIndicator->GetWidget())->UpdateEquipmentMenu(
+        Weapon.CardCode, MainArmor.CardCode, SubArmor.CardCode, 
+        bShowEquipment);
 
-    CardActor->Remove();
+    UpdateStat();
 
     if (OldEquipment.CardCode != -1)
     {

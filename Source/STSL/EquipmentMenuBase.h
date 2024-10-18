@@ -88,7 +88,7 @@ public:
 	void UpdateDetail(int NewCode, UTextBlock* TargetText, UImage* TargetImage);
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateEquipmentMenu(int NewWeapon, int NewArmor, int NewSubArmor);
+	void UpdateEquipmentMenu(int NewWeapon, int NewArmor, int NewSubArmor, bool bShowEquipment = true);
 
 	UFUNCTION(BlueprintCallable)
 	void SendUnequip(EquipType TargetSlot) const;

@@ -16,6 +16,8 @@ class STSL_API ACardPack : public ACard
 {
 	GENERATED_BODY()
 
+	friend struct FCardStackSaveData;
+
 	UPROPERTY(VisibleAnywhere)
 	FCardPackData CardPackData;
 

@@ -25,14 +25,11 @@ USLSaveGame* ASLGameStateBase::GetSaveGame() const
 		FCardStackSaveData CardStackData;
 		
 		CardStackData.CardLocation = CardStack->GetFirstCard()->GetActorLocation();
+		CardStackData.CraftingProgress = CardStack->GetCraftingProgress();
 
 		for (auto Card : CardStack->GetAllCards())
 		{
-			FCardData CardData;
-			CardData.AddTypeValue = Card->GetAddTypeValue();
-			CardData.CardCode = Card->GetCardID();
-
-			CardStackData.CardData.Add(CardData);
+			CardStackData.AddCard(Card);
 		}
 
 		SaveGame->AllCardStacks.Add(CardStackData);

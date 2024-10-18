@@ -47,6 +47,8 @@ class STSL_API ACharacterCard : public ACard
 {
 	GENERATED_BODY()
 
+	friend struct FCharacterSaveData;
+
 	UPROPERTY(VisibleAnywhere)
 	class UDataTable* CharacterDataTable;
 
@@ -124,6 +126,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	FCharacterData GetCharacterStat() const { return CharacterStat; }
+
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	void SetCharacterStat(FCharacterData NewStat) { CharacterStat = NewStat; }
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	bool IsAilve() const { return CharacterStat.CharHealth > 0; }

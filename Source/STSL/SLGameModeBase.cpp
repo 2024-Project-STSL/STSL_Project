@@ -6,6 +6,7 @@
 #include <Engine/AssetManager.h>
 #include <SLGameInstance.h>
 #include "MainMenuBase.h"
+#include <BuyArea.h>
 
 void ASLGameModeBase::BeginPlay()
 {
@@ -346,6 +347,14 @@ void ASLGameModeBase::SaveGame() const
 
 	USLSaveGame* SaveGame = SLGameState->GetSaveGame();
 
+	TArray<AActor*> BuyAreaActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuyArea::StaticClass(), BuyAreaActors);
+
+	for (AActor* BuyAreaActor : BuyAreaActors)
+	{
+		SaveGame->CurrentBuyAreaPrice.Add(BuyAreaActor->GetName(), Cast<ABuyArea>(BuyAreaActor)->GetCurrentCardPrice());
+	}
+
 	if (!UGameplayStatics::SaveGameToSlot(SaveGame, TEXT("STSLSave"), 0))
 	{
 		UE_LOG(LogClass, Warning, TEXT("Error occurred at game saving"));
@@ -373,25 +382,35 @@ void ASLGameModeBase::ResetGame()
 		FieldManager->SetWorldBorder(SLGameState->CardLimit, SLGameState->BaseCardLimit);
 
 		// CurrentPlayState는 실제 게임에 적용하기 위해 아래에서 처리
-		
+
+		TArray<AActor*> BuyAreaActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuyArea::StaticClass(), BuyAreaActors);
+
+		for (AActor* BuyAreaActor : BuyAreaActors)
+		{
+			Cast<ABuyArea>(BuyAreaActor)->SetCurrentCardPrice(SaveGame->CurrentBuyAreaPrice[BuyAreaActor->GetName()]);
+		}
+
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, FString::Printf(TEXT("%d Stacks loaded."), SaveGame->AllCardStacks.Num()));
 
-		for (auto& CardStackData : SaveGame->AllCardStacks)
+		for (int i = 0; i < SaveGame->AllCardStacks.Num(); i++)
 		{
-			if (CardStackData.CardData.Num() == 0) continue;
+			auto& CardStackData = SaveGame->AllCardStacks[i];
+			if (CardStackData.IsEmpty()) continue;
 
-			ACardStack* NewCardStack = SpawnCard(CardStackData.CardLocation, CardStackData.CardData[0].CardCode);
+			ACardStack* NewCardStack = SpawnCard(CardStackData.CardLocation, CardStackData.GetNextCardCode());
 			if (NewCardStack == nullptr) continue;
 
-			NewCardStack->GetFirstCard()->SetAddTypeValue(CardStackData.CardData[0].AddTypeValue);
+			CardStackData.LoadCard(NewCardStack->GetFirstCard());
 
-			for (int i = 1; i < CardStackData.CardData.Num(); i++)
+			while (!CardStackData.IsEmpty())
 			{
-				ACardStack* NewCard = SpawnCard(CardStackData.CardLocation, CardStackData.CardData[i].CardCode);
-				NewCard->GetFirstCard()->SetAddTypeValue(CardStackData.CardData[i].AddTypeValue);
-
+				ACardStack* NewCard = SpawnCard(CardStackData.CardLocation, CardStackData.GetNextCardCode());
+				CardStackData.LoadCard(NewCard->GetFirstCard());
 				NewCardStack->AddCard(NewCard->GetFirstCard());
 			}
+
+			NewCardStack->SetCraftingData(CardStackData.CraftingProgress);
 		}
 
 		if (SaveGame->CurrentPlayState == GamePlayState::PauseState) PauseGame();

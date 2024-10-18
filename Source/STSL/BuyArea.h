@@ -59,5 +59,8 @@ public:
 
 	virtual void BuyCard(ACardStack* CardStack) override;
 
+	int GetCurrentCardPrice() const { return CurrentCardPrice; }
+
+	void SetCurrentCardPrice(int NewCurrent) { CurrentCardPrice = NewCurrent; UpdatePriceText(); };
 };
 

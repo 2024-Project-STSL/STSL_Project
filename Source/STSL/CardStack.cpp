@@ -269,6 +269,13 @@ void ACardStack::UpdatePosition(bool bFalling)
 	}
 }
 
+void ACardStack::SetCraftingData(float Progress)
+{
+	UpdateCraftingRecipe();
+	CraftingProgress = Progress;
+	GetFirstCard()->UpdateProgressBar(CraftingProgress, MakeTime);
+}
+
 bool ACardStack::GetIsSellable() const
 {
 	bool bSellable = true;

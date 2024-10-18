@@ -146,6 +146,10 @@ public:
 
 	void UpdateWorldBorder() { GetFirstCard()->UpdateWorldBorder(Cards.Num()); }
 
+	void SetCraftingData(float Progress);
+
+	float GetCraftingProgress() const { return CraftingProgress; }
+
 	// 판매할 수 있는 스택인지 확인
 	bool GetIsSellable() const;
 	int GetPriceSum() const;

@@ -107,14 +107,14 @@ void UEquipmentMenuBase::UpdateDetail(int NewCode, UTextBlock* TargetText, UImag
     }
 }
 
-void UEquipmentMenuBase::UpdateEquipmentMenu(int NewWeapon, int NewArmor, int NewSubArmor)
+void UEquipmentMenuBase::UpdateEquipmentMenu(int NewWeapon, int NewArmor, int NewSubArmor, bool bShowEquipment)
 {
 
     Weapon = NewWeapon;
     Armor = NewArmor;
     SubArmor = NewSubArmor;
 
-    SetShowEquipmentDetail(true);
+    if (bShowEquipment) SetShowEquipmentDetail(true);
 
     if (Weapon != -1)
     {

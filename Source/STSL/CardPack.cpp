@@ -95,8 +95,9 @@ void ACardPack::Tick(float DeltaTime)
 
 void ACardPack::SetCardID(int32 NewCardID)
 {
-    CardData.CardCode = NewCardID + 10000;
-    CardPackData.PackCode = NewCardID;
+    if (NewCardID < 10000) NewCardID += 10000;
+    CardData.CardCode = NewCardID;
+    CardPackData.PackCode = NewCardID - 10000;
     LoadCard(); 
 }
 

@@ -74,7 +74,11 @@ public:
 	bool IsFull() const { return FoodEaten == CardData.AddTypeValue; }
 
 	UFUNCTION(BlueprintCallable)
-	void Equip(AActor* Card);
+	FEquipmentData GetEquipment(EquipType TargetSlot);
+
+	UFUNCTION(BlueprintCallable)
+	void Equip(AActor* Card, bool bShowEquipment = true);
+	void Equip(int CardCode, bool bShowEquipment = true);
 
 	UFUNCTION(BlueprintCallable)
 	void Unequip(EquipType TargetSlot);
