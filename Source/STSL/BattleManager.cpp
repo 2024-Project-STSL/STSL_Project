@@ -13,7 +13,7 @@ ABattleManager::ABattleManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 	BattleCube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	BattleCube->SetupAttachment(RootComponent);
+	//RootComponent = BattleCube;
 
 	HighlightCube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HighlightMesh"));
 	HighlightCube->SetupAttachment(RootComponent);
@@ -314,38 +314,40 @@ void ABattleManager::HandleDeath(ACharacterCard* DeadCard)
 
 void ABattleManager::EndBattle()
 {
-	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
+	for (int i = FirstTeam.Num() - 1; i >= 0; i--)
 	{
+		auto FirstChar = FirstTeam[i];
 		LeaveBattle(FirstChar);
 	}
 
-	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
+	for (int i = SecondTeam.Num() - 1; i >= 0; i--)
 	{
+		auto SecondChar = SecondTeam[i];
 		LeaveBattle(SecondChar);
 	}
 
 	Destroy();
 }
 
-void ABattleManager::SetTeam(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2)
+void ABattleManager::SetTeam(TArray<ACharacterCard*>& Team1, TArray<ACharacterCard*>& Team2)
 {
 	FirstTeam = Team1;
 	SecondTeam = Team2;
 
-	for (TObjectPtr<ACharacterCard> FirstChar : FirstTeam)
+	for (auto FirstChar : FirstTeam)
 	{
 		FirstChar->SetBattleState(EBattleState::Wait);
 		FirstChar->ResetAttackGauge();
-		FirstChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
-		FirstChar->OnLeaveBattle.AddDynamic(this, &ABattleManager::LeaveBattle);
+		FirstChar->OnDeath.AddUniqueDynamic(this, &ABattleManager::HandleDeath);
+		FirstChar->OnLeaveBattle.AddUniqueDynamic(this, &ABattleManager::LeaveBattle);
 	}
 
-	for (TObjectPtr<ACharacterCard> SecondChar : SecondTeam)
+	for (auto SecondChar : SecondTeam)
 	{
 		SecondChar->SetBattleState(EBattleState::Wait);
 		SecondChar->ResetAttackGauge();
-		SecondChar->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
-		SecondChar->OnLeaveBattle.AddDynamic(this, &ABattleManager::LeaveBattle);
+		SecondChar->OnDeath.AddUniqueDynamic(this, &ABattleManager::HandleDeath);
+		SecondChar->OnLeaveBattle.AddUniqueDynamic(this, &ABattleManager::LeaveBattle);
 	}
 
 	Relocate();
@@ -493,7 +495,8 @@ void ABattleManager::LeaveBattle(ACharacterCard* TargetCard)
 		TargetCard->SetBattleState(EBattleState::Idle);
 		TargetCard->ResetAttackGauge();
 		TargetCard->ResetTargetLocation();
-		TargetCard->OnDeath.RemoveAll(this);
+		TargetCard->OnDeath.Remove(this, TEXT("HandleDeath"));
+		TargetCard->OnLeaveBattle.Remove(this, TEXT("LeaveBattle"));
 	}
 
 	Relocate();

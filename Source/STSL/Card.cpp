@@ -27,7 +27,6 @@ ACard::ACard()
         VisualMesh->BodyInstance.UpdateInstanceSimulatePhysics();
         VisualMesh->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
         VisualMesh->SetNotifyRigidBodyCollision(true);
-        VisualMesh->SetMassOverrideInKg(NAME_None, CardMass, true);
         //VisualMesh->SetPhysMaterialOverride(CardPhysicalMeterial.Object);
         VisualMesh->BodyInstance.bLockXRotation = true;
         VisualMesh->BodyInstance.bLockYRotation = true;
@@ -202,6 +201,7 @@ void ACard::SetAddTypeValue(int Value)
 void ACard::BeginPlay()
 {
 	Super::BeginPlay();
+    VisualMesh->SetMassOverrideInKg(NAME_None, CardMass, true);
     VisualMesh->OnComponentHit.AddDynamic(this, &ACard::OnHit);
     ResetWorldBorder();
 }

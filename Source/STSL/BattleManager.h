@@ -54,6 +54,9 @@ class STSL_API ABattleManager : public AActor
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UWidgetComponent* DamageIndicator;
 
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	bool bTeamResetted = false;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -86,11 +89,12 @@ public:
 	void Attack(ACharacterCard* Attacker, ACharacterCard* Victim);
 
 	UFUNCTION(BlueprintCallable)
-	void SetTeam(TArray<ACharacterCard*> Team1, TArray<ACharacterCard*> Team2);
+	void SetTeam(TArray<ACharacterCard*>& Team1, TArray<ACharacterCard*>& Team2);
 
 	UFUNCTION(BlueprintCallable)
 	void JoinBattle(ACharacterCard* TargetCard);
 
+	UFUNCTION()
 	void LeaveBattle(ACharacterCard* TargetCard);
 
 	UFUNCTION(BlueprintCallable)
