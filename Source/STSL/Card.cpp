@@ -96,7 +96,7 @@ ACard::ACard()
     PriceIcon->SetWorldSize(FontSize / 0.8f);
     PriceIcon->SetMaterial(0, CardFontMat);
     PriceIcon->SetFont(CardFont);
-    PriceIcon->SetText(FText::FromString(TEXT("○")));
+    PriceIcon->SetText(FText::FromStringTable("/Game/DataTable/MainStringTable.MainStringTable", "PriceIcon_Text"));
     PriceIcon->SetupAttachment(VisualMesh);
 
     CardImageWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ImageWidget"));
@@ -147,6 +147,7 @@ void ACard::LoadCard()
     if (CardData.CardPrice >= 0)
     {
         SellPriceText->SetText(FText::AsNumber(CardData.CardPrice));
+        PriceIcon->SetText(FText::FromStringTable("/Game/DataTable/MainStringTable.MainStringTable", "PriceIcon_Text"));
     } else {
         SellPriceText->SetText(FText::FromString(""));
         PriceIcon->SetText(FText::FromString(""));

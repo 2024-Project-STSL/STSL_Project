@@ -14,6 +14,8 @@ void UCardGuideMenuBase::NativeConstruct()
 
         FCardData* CardData = reinterpret_cast<FCardData*>(const_cast<uint8*>(RowData));
 
+        if (CardData->CardCode == 0) continue;
+
         UCardEntryData* EntryData = ConvertToEntryData(CardData);
 
         CardListView->AddItem(EntryData);
