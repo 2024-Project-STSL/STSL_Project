@@ -467,7 +467,7 @@ void ASLGameModeBase::LoadBattle(const TArray<FVector>& BattleLocation)
 			if (!CardStack->GetFirstCard()->IsA(ACharacterCard::StaticClass())) continue;
 
 			ACharacterCard* Char = Cast<ACharacterCard>(CardStack->GetFirstCard());
-			if (Char->GetBattleID() != i) continue;
+			if (Char->GetBattleState() == EBattleState::Idle || Char->GetBattleID() != i) continue;
 
 			if (bBattleSetted)
 			{
