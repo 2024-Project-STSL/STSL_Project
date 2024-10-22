@@ -23,7 +23,8 @@ enum class EBattleState : uint8
 	Select,
 	Attack,
 	Hit,
-	Dead
+	Dead,
+	MoveBack
 };
 
 UENUM(BlueprintType)
@@ -72,6 +73,9 @@ class STSL_API ACharacterCard : public ACard
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UMaterialInstance* EnemyCardMaterial;
+
+	UPROPERTY(EditAnywhere, Category = "Battle")
+	int32 BattleID;
 
 	UPROPERTY(EditAnywhere, Category = "Battle")
 	EBattleState BattleState;
@@ -153,6 +157,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void ResetAttackGauge() { AttackGauge = 0.0f; }
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	int32 GetBattleID() const { return BattleID; }
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	void SetBattleFreeze(bool NewBattleFreeze);
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	void SetBattleID(int32 NewBattleID) { BattleID = NewBattleID; }
 
 	FOnDeath OnDeath;
 

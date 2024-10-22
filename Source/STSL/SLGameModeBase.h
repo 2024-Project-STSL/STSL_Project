@@ -123,7 +123,10 @@ public:
 	void HandleDeath(ACharacterCard* DeadCard);
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
-	void StartBattle(ACardStack* FirstStack, ACardStack* SecondStack) const;
+	void LoadBattle(const TArray<FVector>& BattleLocation);
+
+	UFUNCTION(BlueprintCallable, Category = "Battle")
+	void StartBattle(ACardStack* FirstStack, ACardStack* SecondStack);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
 	int GetTotalCardAmount(bool ExcludeCoin) const;
@@ -150,10 +153,10 @@ public:
 	void SetCardHighlight(bool bCardHighlight, ACardStack* NewDraggingStack = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	ACardStack* GetDraggingStack() const { return GetGameState<ASLGameStateBase>()->DraggingStack; };
+	ACardStack* GetDraggingStack() const { return SLGameState->DraggingStack; };
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack")
-	void EmptyDraggingStack() { GetGameState<ASLGameStateBase>()->DraggingStack = nullptr; };
+	void EmptyDraggingStack() { SLGameState->DraggingStack = nullptr; };
 
 	UFUNCTION(BlueprintCallable, Category = "CardStack", BlueprintPure = false)
 	ACardStack* SpawnCard(FVector Location, int CardID);

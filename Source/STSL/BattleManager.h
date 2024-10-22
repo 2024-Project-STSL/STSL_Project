@@ -13,6 +13,9 @@ class STSL_API ABattleManager : public AActor
 	GENERATED_BODY()
 	
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
+	int32 BattleID;
+
+	UPROPERTY(VisibleAnywhere, Category = "Battle")
 	TObjectPtr<UStaticMeshComponent> BattleCube;
 
 	UPROPERTY(VisibleAnywhere, Category = "Battle")
@@ -89,13 +92,19 @@ public:
 	void Attack(ACharacterCard* Attacker, ACharacterCard* Victim);
 
 	UFUNCTION(BlueprintCallable)
-	void SetTeam(TArray<ACharacterCard*>& Team1, TArray<ACharacterCard*>& Team2);
+	void SetBattle(TArray<ACharacterCard*>& Team1, TArray<ACharacterCard*>& Team2, int32 NewBattleID, bool bResetChar = true);
 
 	UFUNCTION(BlueprintCallable)
-	void JoinBattle(ACharacterCard* TargetCard);
+	void SetBattleID(int32 NewBattleID);
+
+	UFUNCTION(BlueprintCallable)
+	void JoinBattle(ACharacterCard* TargetCard, bool bResetChar = true);
 
 	UFUNCTION()
 	void LeaveBattle(ACharacterCard* TargetCard);
+
+	UFUNCTION()
+	TArray<ACharacterCard*> GetAllCharacters() const;
 
 	UFUNCTION(BlueprintCallable)
 	void HandleDeath(ACharacterCard* DeadCard);

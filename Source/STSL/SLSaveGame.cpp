@@ -19,8 +19,12 @@ void FCharacterSaveData::SaveData(AActor* TargetActor)
 
 	MaxAttackGauge = TargetCard->MaxAttackGauge;
 
+	// 공격 시도 중 저장 시 불러오기 이후 즉시 공격
+	if (BattleState == EBattleState::Attack) AttackGauge += MaxAttackGauge;
+
 	AppliedEffects = TargetCard->AppliedEffects;
 	
+	BattleID = TargetCard->BattleID;
 }
 
 void FCharacterSaveData::LoadData(AActor* TargetActor) const

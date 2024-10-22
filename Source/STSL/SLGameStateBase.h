@@ -73,6 +73,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Portal")
 	int MaxSpawnCount = 5;
 
+	UPROPERTY(VisibleAnywhere, Category = "Battle")
+	int32 MaxBattleID = 0;
+
 	UFUNCTION(BlueprintCallable, Category = "Save")
 	USLSaveGame* GetSaveGame() const;
 };

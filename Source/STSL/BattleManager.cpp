@@ -329,28 +329,44 @@ void ABattleManager::EndBattle()
 	Destroy();
 }
 
-void ABattleManager::SetTeam(TArray<ACharacterCard*>& Team1, TArray<ACharacterCard*>& Team2)
+void ABattleManager::SetBattle(TArray<ACharacterCard*>& Team1, TArray<ACharacterCard*>& Team2, int32 NewBattleID, bool bResetChar)
 {
 	FirstTeam = Team1;
 	SecondTeam = Team2;
+	BattleID = NewBattleID;
 
 	for (auto FirstChar : FirstTeam)
 	{
-		FirstChar->SetBattleState(EBattleState::Wait);
-		FirstChar->ResetAttackGauge();
+		if (bResetChar)
+		{
+			FirstChar->SetBattleState(EBattleState::Wait);
+			FirstChar->ResetAttackGauge();
+		}
+		if (NewBattleID != -1) FirstChar->SetBattleID(NewBattleID);
 		FirstChar->OnDeath.AddUniqueDynamic(this, &ABattleManager::HandleDeath);
 		FirstChar->OnLeaveBattle.AddUniqueDynamic(this, &ABattleManager::LeaveBattle);
 	}
 
 	for (auto SecondChar : SecondTeam)
 	{
-		SecondChar->SetBattleState(EBattleState::Wait);
-		SecondChar->ResetAttackGauge();
+		if (bResetChar)
+		{
+			SecondChar->SetBattleState(EBattleState::Wait);
+			SecondChar->ResetAttackGauge();
+		}
+		if (NewBattleID != -1) SecondChar->SetBattleID(NewBattleID);
 		SecondChar->OnDeath.AddUniqueDynamic(this, &ABattleManager::HandleDeath);
 		SecondChar->OnLeaveBattle.AddUniqueDynamic(this, &ABattleManager::LeaveBattle);
 	}
 
 	Relocate();
+}
+
+void ABattleManager::SetBattleID(int32 NewBattleID)
+{
+	BattleID = NewBattleID;
+	for (auto FirstChar : FirstTeam) FirstChar->SetBattleID(NewBattleID);
+	for (auto SecondChar : SecondTeam) SecondChar->SetBattleID(NewBattleID);
 }
 
 FVector ABattleManager::GetCardPosition(int TeamIndex, int CardIndex) const
@@ -417,6 +433,7 @@ void ABattleManager::DamageVictim()
 	FCharacterData AttackerStat = CurrentAttacker->GetCharacterStat();
 	FCharacterData VictimStat = CurrentVictim->GetCharacterStat();
 
+	CurrentAttacker->SetBattleState(EBattleState::MoveBack);
 	CurrentVictim->SetBattleState(EBattleState::Hit);
 
 	bool Crit = FMath::RandRange(0.0f, 1.0f) < AttackerStat.CharCritRate;
@@ -463,7 +480,7 @@ void ABattleManager::MovebackCompleted()
 	Relocate();
 }
 
-void ABattleManager::JoinBattle(ACharacterCard* TargetCard)
+void ABattleManager::JoinBattle(ACharacterCard* TargetCard, bool bResetChar)
 {
 	if (FirstTeam.Num() == 0) return;
 
@@ -477,8 +494,9 @@ void ABattleManager::JoinBattle(ACharacterCard* TargetCard)
 		SecondTeam.Add(TargetCard);
 	}
 
-	TargetCard->SetBattleState(EBattleState::Wait);
-	TargetCard->ResetAttackGauge();
+	if (bResetChar) TargetCard->SetBattleState(EBattleState::Wait);
+	if (bResetChar) TargetCard->ResetAttackGauge();
+	TargetCard->SetBattleID(BattleID);
 	TargetCard->OnDeath.AddDynamic(this, &ABattleManager::HandleDeath);
 	TargetCard->OnLeaveBattle.AddDynamic(this, &ABattleManager::LeaveBattle);
 
@@ -500,4 +518,13 @@ void ABattleManager::LeaveBattle(ACharacterCard* TargetCard)
 	}
 
 	Relocate();
+}
+
+TArray<ACharacterCard*> ABattleManager::GetAllCharacters() const
+{
+	TArray<ACharacterCard*> AllCharacters;
+	AllCharacters.Append(FirstTeam);
+	AllCharacters.Append(SecondTeam);
+
+	return AllCharacters;
 }

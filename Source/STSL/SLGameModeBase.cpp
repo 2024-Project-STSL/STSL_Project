@@ -345,7 +345,21 @@ void ASLGameModeBase::SaveGame() const
 	if (SLGameState->CurrentPlayState == GamePlayState::BreakState) return;
 	if (SLGameState->bSellingExcessiveCard) return;
 
+	TArray<AActor*> BattleManagers;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABattleManager::StaticClass(), BattleManagers);
+	for (int i = 0; i < BattleManagers.Num(); i++)
+	{
+		Cast<ABattleManager>(BattleManagers[i])->SetBattleID(i);
+	}
+
+	SLGameState->MaxBattleID = BattleManagers.Num();
+
 	USLSaveGame* SaveGame = SLGameState->GetSaveGame();
+
+	for (int i = 0; i < BattleManagers.Num(); i++)
+	{
+		SaveGame->BattleLocation.Add(BattleManagers[i]->GetActorLocation());
+	}
 
 	TArray<AActor*> BuyAreaActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuyArea::StaticClass(), BuyAreaActors);
@@ -379,6 +393,8 @@ void ASLGameModeBase::ResetGame()
 		SLGameState->Day = SaveGame->Day;
 		SLGameState->Time = SaveGame->Time;
 		SLGameState->CardLimit = SaveGame->CardLimit;
+		SLGameState->MaxBattleID = SaveGame->MaxBattleID;
+
 		FieldManager->SetWorldBorder(SLGameState->CardLimit, SLGameState->BaseCardLimit);
 
 		// CurrentPlayState는 실제 게임에 적용하기 위해 아래에서 처리
@@ -409,9 +425,10 @@ void ASLGameModeBase::ResetGame()
 				CardStackData.LoadCard(NewCard->GetFirstCard());
 				NewCardStack->AddCard(NewCard->GetFirstCard());
 			}
-
 			NewCardStack->SetCraftingData(CardStackData.CraftingProgress);
 		}
+
+		LoadBattle(SaveGame->BattleLocation);
 
 		if (SaveGame->CurrentPlayState == GamePlayState::PauseState) PauseGame();
 	}
@@ -432,7 +449,43 @@ void ASLGameModeBase::HandleDeath(ACharacterCard* TargetCard)
 	CheckGameover();
 }
 
-void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStack) const
+void ASLGameModeBase::LoadBattle(const TArray<FVector>& BattleLocation)
+{
+	for (int i = 0; i < SLGameState->MaxBattleID; i++)
+	{
+		AActor* NewBattleManager = GetWorld()->SpawnActor
+		(
+			ABattleManager::StaticClass(),
+			&BattleLocation[i]
+		);
+
+		TArray<ACharacterCard*> BattleChar;
+		bool bBattleSetted = false;
+
+		for (auto CardStack : GetAllCardStacks())
+		{
+			if (!CardStack->GetFirstCard()->IsA(ACharacterCard::StaticClass())) continue;
+
+			ACharacterCard* Char = Cast<ACharacterCard>(CardStack->GetFirstCard());
+			if (Char->GetBattleID() != i) continue;
+
+			if (bBattleSetted)
+			{
+				Cast<ABattleManager>(NewBattleManager)->JoinBattle(Char, false);
+			}
+			else {
+				BattleChar.Add(Char);
+				TArray<ACharacterCard*> Dummy;
+				Cast<ABattleManager>(NewBattleManager)->SetBattle(BattleChar, Dummy, i, false);
+				bBattleSetted = true;
+			}
+
+			Char->SetBattleFreeze(true);
+		}
+	}
+}
+
+void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStack)
 {
 	TArray<ACharacterCard*> FirstTeam;
 	TArray<ACharacterCard*> SecondTeam;
@@ -490,7 +543,7 @@ void ASLGameModeBase::StartBattle(ACardStack* FirstStack, ACardStack* SecondStac
 		&Center
 	);
 
-	Cast<ABattleManager>(NewBattleManager)->SetTeam(FirstTeam, SecondTeam);
+	Cast<ABattleManager>(NewBattleManager)->SetBattle(FirstTeam, SecondTeam, SLGameState->MaxBattleID++);
 }
 
 int ASLGameModeBase::GetTotalCardAmount(bool ExcludeCoin = false) const

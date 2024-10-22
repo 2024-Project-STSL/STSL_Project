@@ -25,6 +25,9 @@ struct STSL_API FCharacterSaveData
 	EBattleState BattleState;
 
 	UPROPERTY()
+	int32 BattleID = -1;
+
+	UPROPERTY()
 	float AttackGauge;
 
 	UPROPERTY()
@@ -90,7 +93,10 @@ public:
 	USLSaveGame();
 
 	UPROPERTY()
-	int32 Version = 1;
+	int32 Version = 2;
+
+	UPROPERTY()
+	TArray<FVector> BattleLocation;
 
 	UPROPERTY()
 	float MasterVolume;
@@ -109,6 +115,9 @@ public:
 
 	UPROPERTY()
 	int32 CardLimit;
+
+	UPROPERTY()
+	int32 MaxBattleID;
 
 	UPROPERTY()
 	GamePlayState CurrentPlayState;

@@ -19,6 +19,7 @@ USLSaveGame* ASLGameStateBase::GetSaveGame() const
 	SaveGame->Time = Time;
 	SaveGame->CardLimit = CardLimit;
 	SaveGame->CurrentPlayState = CurrentPlayState;
+	SaveGame->MaxBattleID = MaxBattleID;
 
 	for (auto CardStack : CardStacks)
 	{

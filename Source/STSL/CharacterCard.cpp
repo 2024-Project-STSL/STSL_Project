@@ -293,6 +293,19 @@ void ACharacterCard::PushTowardPeople()
     Push(MoveVector, true);
 }
 
+void ACharacterCard::SetBattleFreeze(bool NewBattleFreeze)
+{
+    if (NewBattleFreeze)
+    {
+        bPreventDragging = true;
+        VisualMesh->SetSimulatePhysics(true);
+    }
+    else {
+        bPreventDragging = false;
+        VisualMesh->SetSimulatePhysics(false);
+    }
+}
+
 void ACharacterCard::SetBattleState(EBattleState NewBattleState)
 {
     // 임시: 모든 전투 중 카드 들기 방지
@@ -300,12 +313,10 @@ void ACharacterCard::SetBattleState(EBattleState NewBattleState)
     {
         SendMovementToStack(ECardMovement::EndHover);
         SendMovementToStack(ECardMovement::EndDrag);
-        bPreventDragging = true;
-        VisualMesh->SetSimulatePhysics(true);
+        SetBattleFreeze(true);
     }
     else {
-        bPreventDragging = false;
-        VisualMesh->SetSimulatePhysics(false);
+        SetBattleFreeze(false);
     }
 
     BattleState = NewBattleState;
