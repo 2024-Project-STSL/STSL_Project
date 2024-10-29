@@ -342,6 +342,10 @@ float ASLGameModeBase::GetDayProgressPercent() const
 
 void ASLGameModeBase::SaveGame() const
 {
+	TWeakObjectPtr<USLGameInstance> GameInstance = Cast<USLGameInstance>(GetGameInstance());
+
+	if (GameInstance->IsSaving()) return;
+
 	if (SLGameState->CurrentPlayState == GamePlayState::BreakState) return;
 	if (SLGameState->bSellingExcessiveCard) return;
 
@@ -369,10 +373,7 @@ void ASLGameModeBase::SaveGame() const
 		SaveGame->CurrentBuyAreaPrice.Add(BuyAreaActor->GetName(), Cast<ABuyArea>(BuyAreaActor)->GetCurrentCardPrice());
 	}
 
-	if (!UGameplayStatics::SaveGameToSlot(SaveGame, TEXT("STSLSave"), 0))
-	{
-		UE_LOG(LogClass, Warning, TEXT("Error occurred at game saving"));
-	}
+	GameInstance->SaveGame(SaveGame);
 }
 
 void ASLGameModeBase::ResetGame()

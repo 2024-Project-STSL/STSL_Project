@@ -18,6 +18,11 @@ USLGameInstance::USLGameInstance()
 
 void USLGameInstance::SaveSettings()
 {
+	if (IsSaving())
+	{
+		bPendingSaveSetting = true;
+		return;
+	}
 	USLSaveGame* SaveGame = Cast<USLSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("STSLSave"), 0));
 
 	if (SaveGame == nullptr)
@@ -30,4 +35,30 @@ void USLGameInstance::SaveSettings()
 	SaveGame->EffectVolume = EffectVolume;
 
 	UGameplayStatics::SaveGameToSlot(SaveGame, TEXT("STSLSave"), 0);
+}
+
+void USLGameInstance::SaveGame(USLSaveGame* SaveGame)
+{
+
+	FAsyncSaveGameToSlotDelegate SaveCompleteDelegate;
+	SaveCompleteDelegate.BindUFunction(this, TEXT("HandleSaveComplete"));
+
+	UGameplayStatics::AsyncSaveGameToSlot(SaveGame, TEXT("STSLSave"), 0, SaveCompleteDelegate);
+}
+
+void USLGameInstance::HandleSaveComplete(FString& SlotName, int32 UserIndex, bool bSuccess)
+{
+	if (!bSuccess)
+	{
+		UE_LOG(LogClass, Warning, TEXT("Error occurred at game saving"));
+	}
+	bIsSaving = false;
+
+	if (bPendingSaveSetting)
+	{
+		bPendingSaveSetting = false;
+		SaveSettings();
+	}
+
+	OnAsyncSavingCompleted.Broadcast();
 }
