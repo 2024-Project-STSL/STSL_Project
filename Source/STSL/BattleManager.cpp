@@ -453,6 +453,8 @@ void ABattleManager::DamageVictim()
 
 	if (!bDead)
 	{
+		if (CurrentAttacker->IsA<APersonCard>()) InflictVictim();
+
 		FVector IndicatorLocation = GetCardPosition(CurrentVictim);
 		DamageIndicator->SetWorldLocation(IndicatorLocation + DamageIndicatorOffset);
 		Cast<UDamageIndicatorBase>(DamageIndicator->GetWidget())->SetDamageText(FinalDamage);
@@ -462,6 +464,18 @@ void ABattleManager::DamageVictim()
 	FCardAnimationCallback Callback;
 	Callback.BindUObject(this, &ABattleManager::MovebackCompleted);
 	CurrentAttacker->MoveBack(Callback);
+}
+
+void ABattleManager::InflictVictim()
+{
+	if (CurrentVictim->IsPendingKillPending()) return;
+
+	FEquipmentData AttackerWeapon = Cast<APersonCard>(CurrentAttacker)->GetEquipment(EquipType::Weapon);
+
+	if (AttackerWeapon.EffectType != EffectCode::None)
+	{
+		CurrentVictim->ApplyEffect(AttackerWeapon.EffectType, AttackerWeapon.EffectRate);
+	}
 }
 
 void ABattleManager::MovebackCompleted()

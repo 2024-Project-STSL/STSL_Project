@@ -188,15 +188,19 @@ void ACharacterCard::CharacterDeath(EDeathReason Reason)
     Remove();
 }
 
-void ACharacterCard::ApplyEffect(EffectCode EffectCode)
+void ACharacterCard::ApplyEffect(EffectCode EffectCode, float EffectRate)
 {
-    
+    if (EffectRate < 1.0f)
+    {
+        if (FMath::FRand() > EffectRate) return;
+    }
+
     FName RowName = FName(*FString::FromInt((uint8)EffectCode));
     FEffectData* EffectRowData = EffectTable->FindRow<FEffectData>(RowName, TEXT(""));
     
     int Index = FindEffect(EffectCode);
 
-    if (Index != INDEX_NONE)
+    if (Index == INDEX_NONE)
     {
         AppliedEffects.Add(*EffectRowData);
     }
@@ -208,11 +212,11 @@ void ACharacterCard::ApplyEffect(EffectCode EffectCode)
 
 int ACharacterCard::FindEffect(EffectCode EffectCode) const
 { 
-    for (int i = 0; i < AppliedEffects.Num(); i++)
+    for (auto &AppliedEffect : AppliedEffects)
     {
-        if (AppliedEffects[i].EffectCode == EffectCode)
+        if (AppliedEffect.EffectCode == EffectCode)
         {
-            return AppliedEffects[i].EffectTime;
+            return AppliedEffect.EffectTime;
         }
     }
 

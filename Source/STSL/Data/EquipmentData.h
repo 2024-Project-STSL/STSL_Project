@@ -4,6 +4,7 @@
 
 #include "Engine/DataTable.h"
 #include "CoreMinimal.h"
+#include "Data/EffectData.h"
 #include "EquipmentData.generated.h"
 
 /**
@@ -38,6 +39,10 @@ public:
 	StatType StatType;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int StatValue;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EffectCode EffectType;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float EffectRate;
 
 	FEquipmentData();
 	~FEquipmentData();

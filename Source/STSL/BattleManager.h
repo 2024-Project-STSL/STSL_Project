@@ -75,6 +75,8 @@ protected:
 
 	void DamageVictim();
 
+	void InflictVictim();
+
 	void MovebackCompleted();
 
 	UFUNCTION()

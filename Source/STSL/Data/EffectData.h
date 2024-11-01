@@ -9,7 +9,8 @@
 UENUM()
 enum class EffectCode : uint8
 {
-	Poison = 0,
+	None = 0,
+	Poison,
 	Stun
 };
 

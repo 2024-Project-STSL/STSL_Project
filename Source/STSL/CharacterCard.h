@@ -138,7 +138,7 @@ public:
 	bool IsAilve() const { return CharacterStat.CharHealth > 0; }
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
-	void ApplyEffect(EffectCode EffectCode);
+	void ApplyEffect(EffectCode EffectCode, float EffectRate = 1.0f);
 
 	UFUNCTION(BlueprintCallable, Category = "Battle")
 	int FindEffect(EffectCode EffectCode) const;
